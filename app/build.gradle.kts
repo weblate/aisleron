@@ -263,6 +263,7 @@ dependencies {
     // Jetpack Compose
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.animation)
+    implementation(libs.compose.animation.core)
     implementation(libs.compose.foundation)
     implementation(libs.compose.foundation.layout)
     implementation(libs.compose.runtime)
@@ -286,15 +287,12 @@ dependencies {
 
     // Navigation
     implementation(libs.navigation.common)
-    implementation(libs.navigation.compose)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.runtime)
     implementation(libs.navigation.ui)
+    implementation(libs.navigation3.runtime)
+    implementation(libs.navigation3.ui)
     androidTestImplementation(libs.navigation.testing)
-
-    // Consider moving to navigation3 once it matures
-    // implementation("androidx.navigation3:navigation3-runtime:1.1.3")
-    // implementation("androidx.navigation3:navigation3-ui:1.1.3")
 
     // Database
     ksp(libs.room.compiler)

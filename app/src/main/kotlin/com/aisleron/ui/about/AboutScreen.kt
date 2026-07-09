@@ -34,27 +34,20 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AboutScreen(
-    onBackPressed: () -> Unit,
-    onUrlClick: (String) -> Unit,
     viewModel: AboutViewModel = koinViewModel()
 ) {
     AboutScreenContent(
-        versionName = viewModel.versionName,
-        onBackPressed = onBackPressed,
-        onUrlClick = onUrlClick
+        versionName = viewModel.versionName
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreenContent(
-    versionName: String,
-    onBackPressed: () -> Unit,
-    onUrlClick: (String) -> Unit
+    versionName: String
 ) {
     AisleronScreen(
-        title = stringResource(R.string.title_activity_about),
-        onBackPressed = onBackPressed
+        title = stringResource(R.string.title_activity_about)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -68,36 +61,31 @@ fun AboutScreenContent(
                         summary = stringResource(
                             R.string.about_support_version_summary, versionName
                         ),
-                        urlResId = R.string.aisleron_version_history_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_version_history_url
                     )
 
                     // Documentation
                     UrlPreference(
                         title = stringResource(R.string.about_support_documentation_title),
                         summary = stringResource(R.string.about_support_documentation_summary),
-                        urlResId = R.string.aisleron_documentation_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_documentation_url
                     )
 
                     // Report Issue
                     UrlPreference(
                         title = stringResource(R.string.about_support_report_issue_title),
                         summary = stringResource(R.string.about_support_report_issue_summary),
-                        urlResId = R.string.aisleron_reporting_issues_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_reporting_issues_url
                     )
 
                     // Source Code
                     UrlPreference(
                         title = stringResource(R.string.about_support_sourcecode_title),
                         summary = stringResource(R.string.about_support_sourcecode_summary),
-                        urlResId = R.string.aisleron_sourcecode_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_sourcecode_url
                     )
                 }
             }
-
 
             // Contribute Section
             item {
@@ -106,8 +94,7 @@ fun AboutScreenContent(
                     UrlPreference(
                         title = stringResource(R.string.about_contribute_translate_title),
                         summary = stringResource(R.string.about_contribute_translate_summary),
-                        urlResId = R.string.aisleron_translate_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_translate_url
                     )
 
 
@@ -115,8 +102,7 @@ fun AboutScreenContent(
                     UrlPreference(
                         title = stringResource(R.string.about_contribute_financial_title),
                         summary = stringResource(R.string.about_contribute_financial_summary),
-                        urlResId = R.string.aisleron_financial_contribution_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_financial_contribution_url
                     )
                 }
             }
@@ -128,24 +114,21 @@ fun AboutScreenContent(
                     UrlPreference(
                         title = stringResource(R.string.about_legal_license_title),
                         summary = stringResource(R.string.about_legal_license_summary),
-                        urlResId = R.string.aisleron_license_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_license_url
                     )
 
                     // Privacy Policy
                     UrlPreference(
                         title = stringResource(R.string.about_legal_privacy_title),
                         summary = stringResource(R.string.about_legal_privacy_summary),
-                        urlResId = R.string.aisleron_privacy_policy_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_privacy_policy_url
                     )
 
                     // Third Party Licences
                     UrlPreference(
                         title = stringResource(R.string.about_legal_3rdparty_title),
                         summary = stringResource(R.string.about_legal_3rdparty_summary),
-                        urlResId = R.string.aisleron_3rd_party_licenses_url,
-                        onUrlClick = onUrlClick
+                        urlResId = R.string.aisleron_3rd_party_licenses_url
                     )
                 }
             }
@@ -163,9 +146,7 @@ fun AboutScreenContent(
 fun AboutScreenContentPreview() {
     AisleronTheme {
         AboutScreenContent(
-            versionName = BuildConfig.VERSION_NAME,
-            onBackPressed = {},
-            onUrlClick = {}
+            versionName = BuildConfig.VERSION_NAME
         )
     }
 }

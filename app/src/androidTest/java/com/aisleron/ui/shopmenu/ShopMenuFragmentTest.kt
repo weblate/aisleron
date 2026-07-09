@@ -36,22 +36,19 @@ import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.location.LocationRepository
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
-import com.aisleron.ui.bundles.Bundler
 import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorTestImpl
-import com.aisleron.ui.shoppinglist.ShoppingListGrouping
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
+import kotlin.test.assertEquals
 
 class ShopMenuFragmentTest : KoinTest {
-    private lateinit var bundler: Bundler
     private lateinit var navigator: MainNavigatorTestImpl
 
     @get:Rule
@@ -90,7 +87,6 @@ class ShopMenuFragmentTest : KoinTest {
 
     @Before
     fun setUp() {
-        bundler = Bundler()
         navigator = get<MainNavigator>() as MainNavigatorTestImpl
         runBlocking { get<CreateSampleDataUseCase>().invoke() }
     }
@@ -98,26 +94,25 @@ class ShopMenuFragmentTest : KoinTest {
     @Test
     fun onCreateView_ShopsLoaded_MatchesPinnedShopCount() = runTest {
         val pinnedShopCount = get<LocationRepository>().getPinnedShops().count()
-        getFragmentScenario()
-        onView(withId(R.id.fragment_shop_menu)).check(matches(hasChildCount(pinnedShopCount)))
+        getFragmentScenario().use {
+            onView(withId(R.id.fragment_shop_menu)).check(matches(hasChildCount(pinnedShopCount)))
+        }
     }
 
     @Test
     fun onItemClick_IsValidLocation_NavigateToShoppingList() = runTest {
         val shopLocation = get<LocationRepository>().getAll().first { it.pinned }
 
-        getFragmentScenario()
+        getFragmentScenario().use {
+            onView(withText(shopLocation.name)).perform(click())
 
-        onView(withText(shopLocation.name)).perform(click())
+            val expectedDestination =
+                MainNavigatorTestImpl.TestDestination.AisleGroupedProductListDestination(
+                    shopLocation.id,
+                    shopLocation.defaultFilter
+                )
 
-        val shoppingListBundle = bundler.getShoppingListBundle(navigator.bundle)
-
-        assertEquals(shopLocation.defaultFilter, shoppingListBundle.filterType)
-        assertEquals(
-            shopLocation.id,
-            (shoppingListBundle.listGrouping as? ShoppingListGrouping.AisleGrouping)?.locationId
-        )
-
-        assertEquals(R.id.nav_shopping_list, navigator.destination)
+            assertEquals(expectedDestination, navigator.destination)
+        }
     }
 }

@@ -17,6 +17,7 @@
 
 package com.aisleron.ui.component
 
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,14 +34,16 @@ import com.aisleron.R
 @Composable
 fun BasicTopAppBar(
     title: String,
-    onBackPressed: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier
 ) {
+    val systemDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    val backAction: () -> Unit = { systemDispatcher?.onBackPressed() }
+
     TopAppBar(
         title = { Text(title) },
         navigationIcon = {
-            IconButton(onClick = onBackPressed) {
+            IconButton(onClick = backAction) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                     contentDescription = stringResource(R.string.back)

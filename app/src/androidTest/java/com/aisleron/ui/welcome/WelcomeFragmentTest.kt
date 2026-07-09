@@ -53,11 +53,10 @@ import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.aisle.AisleRepository
 import com.aisleron.domain.location.LocationRepository
+import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.product.Product
 import com.aisleron.domain.product.ProductRepository
-import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
-import com.aisleron.ui.FabHandlerTestImpl
 import com.aisleron.ui.bundles.Bundler
 import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorImpl
@@ -82,7 +81,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WelcomeFragmentTest : KoinTest {
-    private lateinit var fabHandler: FabHandlerTestImpl
     private lateinit var navigator: MainNavigatorTestImpl
 
     @get:Rule
@@ -107,7 +105,6 @@ class WelcomeFragmentTest : KoinTest {
 
     @Before
     fun setUp() {
-        fabHandler = FabHandlerTestImpl()
         navigator = get<MainNavigator>() as MainNavigatorTestImpl
         SharedPreferencesInitializer().clearPreferences()
     }
@@ -181,7 +178,8 @@ class WelcomeFragmentTest : KoinTest {
         val aisleCountAfter = get<AisleRepository>().getAll().count()
         assertEquals(aisleCountBefore, aisleCountAfter)
 
-        Assert.assertEquals(R.id.nav_in_stock, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.InStockDestination
+        Assert.assertEquals(expectedDestination, navigator.destination)
 
         Assert.assertFalse(initialisedBefore)
         Assert.assertTrue(welcomePreferences.isInitialized())
@@ -208,7 +206,8 @@ class WelcomeFragmentTest : KoinTest {
         val aisleCountAfter = get<AisleRepository>().getAll().count()
         assertTrue(aisleCountBefore < aisleCountAfter)
 
-        Assert.assertEquals(R.id.nav_in_stock, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.InStockDestination
+        Assert.assertEquals(expectedDestination, navigator.destination)
 
         Assert.assertFalse(initialisedBefore)
         Assert.assertTrue(welcomePreferences.isInitialized())
@@ -253,7 +252,8 @@ class WelcomeFragmentTest : KoinTest {
         val welcomeOption = onView(withId(R.id.txt_welcome_import_db))
         welcomeOption.perform(click())
 
-        Assert.assertEquals(R.id.nav_settings, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.SettingsDestination
+        Assert.assertEquals(expectedDestination, navigator.destination)
 
         Assert.assertFalse(initialisedBefore)
         Assert.assertTrue(welcomePreferences.isInitialized())

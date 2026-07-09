@@ -56,11 +56,8 @@ import com.aisleron.domain.location.usecase.RemoveLocationUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.ui.FabHandler
 import com.aisleron.ui.FabHandlerTestImpl
-import com.aisleron.ui.bundles.AddEditLocationBundle
-import com.aisleron.ui.bundles.Bundler
 import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorTestImpl
-import com.aisleron.ui.shoppinglist.ShoppingListGrouping
 import com.aisleron.utils.SystemIds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -78,7 +75,6 @@ import org.koin.test.get
 import org.koin.test.mock.declare
 
 class ShopListFragmentTest : KoinTest {
-    private lateinit var bundler: Bundler
     private lateinit var fabHandler: FabHandlerTestImpl
     private lateinit var activityFragment: ShopListFragment
     private lateinit var navigator: MainNavigatorTestImpl
@@ -92,8 +88,7 @@ class ShopListFragmentTest : KoinTest {
 
     @Before
     fun setUp() {
-        bundler = Bundler()
-        fabHandler = FabHandlerTestImpl()
+        fabHandler = get<FabHandler>() as FabHandlerTestImpl
         navigator = get<MainNavigator>() as MainNavigatorTestImpl
         runBlocking { get<CreateSampleDataUseCase>().invoke() }
     }
@@ -128,14 +123,12 @@ class ShopListFragmentTest : KoinTest {
 
         onView(withText(shopLocation.name)).perform(click())
 
-        val shoppingListBundle = bundler.getShoppingListBundle(navigator.bundle)
-        assertEquals(
-            shopLocation.id,
-            (shoppingListBundle.listGrouping as? ShoppingListGrouping.AisleGrouping)?.locationId
-        )
+        val expectedDestination =
+            MainNavigatorTestImpl.TestDestination.AisleGroupedProductListDestination(
+                shopLocation.id, shopLocation.defaultFilter
+            )
 
-        assertEquals(shopLocation.defaultFilter, shoppingListBundle.filterType)
-        assertEquals(R.id.nav_shopping_list, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -167,12 +160,10 @@ class ShopListFragmentTest : KoinTest {
         onView(withText(editLocation.name)).perform(longClick())
         onView(withId(R.id.mnu_edit_shop_list_item)).perform(click())
 
-        val addEditLocationBundle = bundler.getAddEditLocationBundle(navigator.bundle)
-        assertEquals(editLocation.id, addEditLocationBundle.locationId)
-        assertEquals(editLocation.type, addEditLocationBundle.locationType)
-        assertEquals(AddEditLocationBundle.LocationAction.EDIT, addEditLocationBundle.actionType)
+        val expectedDestination =
+            MainNavigatorTestImpl.TestDestination.EditShopDestination(editLocation.id)
 
-        assertEquals(R.id.nav_add_shop, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -426,10 +417,8 @@ class ShopListFragmentTest : KoinTest {
             fabHandler.clickFab(FabHandler.FabOption.ADD_SHOP)
         }
 
-        val addEditShopBundle = bundler.getAddEditLocationBundle(navigator.bundle)
-        assertEquals(AddEditLocationBundle.LocationAction.ADD, addEditShopBundle.actionType)
-
-        assertEquals(R.id.nav_add_shop, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.AddShopDestination
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     private fun ViewInteraction.checkVisibility(

@@ -22,6 +22,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.aisleron.R
@@ -31,16 +32,16 @@ fun UrlPreference(
     title: String,
     summary: String,
     @StringRes urlResId: Int,
-    onUrlClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int? = null
 ) {
     val url = stringResource(urlResId)
+    val uriHandler = LocalUriHandler.current
 
     Preference(
         title = title,
         summary = summary,
-        onClick = { onUrlClick(url) },
+        onClick = { uriHandler.openUri(url) },
         modifier = modifier,
         iconResId = iconResId,
         control = {

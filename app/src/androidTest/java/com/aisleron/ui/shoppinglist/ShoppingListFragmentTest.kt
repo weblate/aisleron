@@ -78,17 +78,16 @@ import com.aisleron.domain.loyaltycard.LoyaltyCardRepository
 import com.aisleron.domain.note.Note
 import com.aisleron.domain.note.NoteRepository
 import com.aisleron.domain.preferences.NoteHint
+import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.product.Product
 import com.aisleron.domain.product.ProductRepository
-import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
+import com.aisleron.ui.ApplicationTitleUpdateListener
 import com.aisleron.ui.ApplicationTitleUpdateListenerTestImpl
 import com.aisleron.ui.FabHandler
 import com.aisleron.ui.FabHandlerTestImpl
 import com.aisleron.ui.aisle.AisleDialogFragment
 import com.aisleron.ui.aisle.AislePickerDialogFragment
-import com.aisleron.ui.bundles.AddEditLocationBundle
-import com.aisleron.ui.bundles.AddEditProductBundle
 import com.aisleron.ui.bundles.Bundler
 import com.aisleron.ui.loyaltycard.LoyaltyCardProvider
 import com.aisleron.ui.loyaltycard.LoyaltyCardProviderTestImpl
@@ -115,7 +114,6 @@ import org.koin.test.get
 import java.text.DecimalFormat
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ShoppingListFragmentTest : KoinTest {
@@ -212,8 +210,10 @@ class ShoppingListFragmentTest : KoinTest {
     @Before
     fun setUp() {
         bundler = Bundler()
-        applicationTitleUpdateListener = ApplicationTitleUpdateListenerTestImpl()
-        fabHandler = FabHandlerTestImpl()
+        applicationTitleUpdateListener =
+            get<ApplicationTitleUpdateListener>() as ApplicationTitleUpdateListenerTestImpl
+
+        fabHandler = get<FabHandler>() as FabHandlerTestImpl
         navigator = get<MainNavigator>() as MainNavigatorTestImpl
         runBlocking { get<CreateSampleDataUseCase>().invoke() }
     }
@@ -735,11 +735,10 @@ class ShoppingListFragmentTest : KoinTest {
         productItem.perform(longClick())
         onView(withId(R.id.mnu_edit_shopping_list_item)).perform(click())
 
-        val addEditProductBundle = bundler.getAddEditProductBundle(navigator.bundle)
+        val expectedDestination =
+            MainNavigatorTestImpl.TestDestination.EditProductDestination(product.id)
 
-        assertEquals(product.id, addEditProductBundle.productId)
-        assertEquals(AddEditProductBundle.ProductAction.EDIT, addEditProductBundle.actionType)
-        assertEquals(R.id.nav_add_product, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -837,15 +836,11 @@ class ShoppingListFragmentTest : KoinTest {
             fabHandler.clickFab(FabHandler.FabOption.ADD_PRODUCT)
         }
 
-        val addEditProductBundle = bundler.getAddEditProductBundle(navigator.bundle)
-        assertEquals("", addEditProductBundle.name)
-        assertEquals(AddEditProductBundle.ProductAction.ADD, addEditProductBundle.actionType)
-        assertEquals(
-            shoppingList.defaultFilter == FilterType.IN_STOCK,
-            addEditProductBundle.inStock
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.AddProductDestination(
+            shoppingList.defaultFilter, "", null
         )
 
-        assertEquals(R.id.nav_add_product, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -881,11 +876,8 @@ class ShoppingListFragmentTest : KoinTest {
             fabHandler.clickFab(FabHandler.FabOption.ADD_SHOP)
         }
 
-        val addEditLocationBundle = bundler.getAddEditLocationBundle(navigator.bundle)
-        assertNull(addEditLocationBundle.name)
-        assertEquals(AddEditLocationBundle.LocationAction.ADD, addEditLocationBundle.actionType)
-
-        assertEquals(R.id.nav_add_shop, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.AddShopDestination
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -967,11 +959,11 @@ class ShoppingListFragmentTest : KoinTest {
         onView(withText(aisle.name)).perform(longClick())
         onView(withId(R.id.mnu_add_product_to_aisle)).perform(click())
 
-        val addEditProductBundle = bundler.getAddEditProductBundle(navigator.bundle)
-        assertEquals(aisle.id, addEditProductBundle.aisleId)
-        assertEquals(AddEditProductBundle.ProductAction.ADD, addEditProductBundle.actionType)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.AddProductDestination(
+            shoppingList.defaultFilter, "", aisle.id
+        )
 
-        assertEquals(R.id.nav_add_product, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -1046,11 +1038,11 @@ class ShoppingListFragmentTest : KoinTest {
             fragment.onMenuItemSelected(menuItem)
         }
 
-        val addEditShopBundle = bundler.getAddEditLocationBundle(navigator.bundle)
-        assertEquals(shoppingList.id, addEditShopBundle.locationId)
-        assertEquals(AddEditLocationBundle.LocationAction.EDIT, addEditShopBundle.actionType)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.EditShopDestination(
+            shoppingList.id
+        )
 
-        assertEquals(R.id.nav_add_shop, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test
@@ -1688,12 +1680,12 @@ class ShoppingListFragmentTest : KoinTest {
         openActionBarOverflowOrOptionsMenu(getInstrumentation().targetContext)
         onView(withText(buttonName)).perform(click())
 
-        val resultBundle = bundler.getShoppingListBundle(navigator.bundle)
-        assertTrue(resultBundle.listGrouping is ShoppingListGrouping.AisleGrouping)
-        assertEquals(location.id, resultBundle.listGrouping.locationId)
-        assertEquals(FilterType.NEEDED, resultBundle.filterType)
+        val expectedDestination =
+            MainNavigatorTestImpl.TestDestination.AisleGroupedProductListDestination(
+                location.id, location.defaultFilter
+            )
 
-        assertEquals(R.id.nav_shopping_list, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 
     @Test

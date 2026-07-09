@@ -100,6 +100,10 @@ class MainNavigatorImpl(private val bundler: Bundler) : MainNavigator {
         navigateToActivity(Destination.About, ConfigActivity::class.java)
     }
 
+    override fun navigateToAccountPreferences() {
+        navigateToActivity(Destination.AccountPreferences, ConfigActivity::class.java)
+    }
+
     private fun navigateToActivity(
         destination: Destination, activityClass: Class<out Activity>
     ) {

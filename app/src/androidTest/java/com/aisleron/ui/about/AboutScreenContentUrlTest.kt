@@ -17,6 +17,9 @@
 
 package com.aisleron.ui.about
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -86,21 +89,24 @@ class AboutScreenContentUrlTest(private val labelResId: Int, private val expecte
         val expectedLabelString = context.getString(labelResId)
         var capturedUrl: String? = null
 
-        // 2. Launch the stateless UI component in isolation
-        composeTestRule.setContent {
-            AboutScreenContent(
-                versionName = "2.4.1",
-                onBackPressed = {},
-                onUrlClick = { url -> capturedUrl = url } // Trap the URL string in our test hook
-            )
+        val fakeUriHandler = object : UriHandler {
+            override fun openUri(uri: String) {
+                capturedUrl = uri
+            }
         }
 
-        // 3. Find, Scroll to, and Click the item using semantic text matchers
+        composeTestRule.setContent {
+            CompositionLocalProvider(LocalUriHandler provides fakeUriHandler) {
+                AboutScreenContent(
+                    versionName = "2.4.1"
+                )
+            }
+        }
+
         composeTestRule.onNodeWithText(expectedLabelString)
             .performScrollTo()
             .performClick()
 
-        // 4. Verify the UI passed the correct string payload back up to the parent layer
         assertEquals(expectedUri, capturedUrl)
     }
 }

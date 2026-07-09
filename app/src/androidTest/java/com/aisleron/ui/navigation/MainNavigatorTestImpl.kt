@@ -17,80 +17,101 @@
 
 package com.aisleron.ui.navigation
 
-import android.os.Bundle
 import com.aisleron.R
 import com.aisleron.domain.FilterType
 import com.aisleron.domain.location.LocationType
-import com.aisleron.ui.bundles.Bundler
-import com.aisleron.ui.shoppinglist.ShoppingListGrouping
 
-class MainNavigatorTestImpl(private val bundler: Bundler) : MainNavigator {
-    private var _bundle: Bundle? = null
-    val bundle: Bundle? get() = _bundle
-
-    private var _destination: Int? = null
-    val destination: Int? get() = _destination
+class MainNavigatorTestImpl : MainNavigator {
+    private var _destination: TestDestination? = null
+    val destination: TestDestination? get() = _destination
 
     override fun navigateToAddShop() {
-        _bundle = bundler.makeAddLocationBundle()
-        _destination = R.id.nav_add_shop
-
+        _destination = TestDestination.AddShopDestination
     }
 
     override fun navigateToEditShop(locationId: Int) {
-        _bundle = bundler.makeEditLocationBundle(locationId)
-        _destination = R.id.nav_add_shop
+        _destination = TestDestination.EditShopDestination(locationId)
     }
 
     override fun navigateToAddProduct(
         filterType: FilterType, name: String, aisleId: Int?
     ) {
-        _bundle = bundler.makeAddProductBundle(
-            name = name,
-            inStock = filterType == FilterType.IN_STOCK,
-            aisleId = aisleId
-        )
-
-        _destination = R.id.nav_add_product
+        _destination = TestDestination.AddProductDestination(filterType, name, aisleId)
     }
 
     override fun navigateToEditProduct(productId: Int) {
-        _bundle = bundler.makeEditProductBundle(productId)
-        _destination = R.id.nav_add_product
+        _destination = TestDestination.EditProductDestination(productId)
     }
 
-    override fun navigateToAisleGroupedProductList(
-        locationId: Int, productFilter: FilterType
-    ) {
-        _bundle = bundler.makeShoppingListBundle(
-            productFilter, ShoppingListGrouping.AisleGrouping(locationId)
-        )
-
-        _destination = R.id.nav_shopping_list
+    override fun navigateToAisleGroupedProductList(locationId: Int, productFilter: FilterType) {
+        _destination =
+            TestDestination.AisleGroupedProductListDestination(locationId, productFilter)
     }
 
     override fun navigateToLocationGroupedProductList(
         locationType: LocationType, productFilter: FilterType
     ) {
-        _bundle = bundler.makeShoppingListBundle(
-            productFilter, ShoppingListGrouping.LocationGrouping(locationType)
-        )
-
-        _destination = R.id.nav_shopping_list
+        _destination =
+            TestDestination.LocationGroupedProductListDestination(locationType, productFilter)
     }
 
     override fun navigateToDefaultRoute(destinationId: Int) {
-        _bundle = null
-        _destination = destinationId
+        _destination = when (destinationId) {
+            R.id.nav_in_stock -> TestDestination.InStockDestination
+            R.id.nav_needed -> TestDestination.NeededDestination
+            R.id.nav_all_items -> TestDestination.AllItemsDestination
+            R.id.nav_settings -> TestDestination.SettingsDestination
+            R.id.nav_all_lists -> TestDestination.AllListsDestination
+            else -> TestDestination.UnknownDestination
+        }
     }
 
     override fun navigateToWelcome() {
-        _bundle = null
-        _destination = R.id.nav_welcome
+        _destination = TestDestination.WelcomeDestination
     }
 
     override fun navigateToAbout() {
-        _bundle = null
-        _destination = R.id.nav_about
+        _destination = TestDestination.AboutDestination
+    }
+
+    override fun navigateToAccountPreferences() {
+        _destination = TestDestination.AccountPreferencesDestination
+    }
+
+    sealed class TestDestination {
+        data object UnknownDestination : TestDestination()
+        data object InStockDestination : TestDestination()
+        data object AllItemsDestination : TestDestination()
+        data object NeededDestination : TestDestination()
+        data object SettingsDestination : TestDestination()
+        data object AllListsDestination : TestDestination()
+        data object AccountPreferencesDestination : TestDestination()
+        data object AboutDestination : TestDestination()
+        data object WelcomeDestination : TestDestination()
+
+        data class LocationGroupedProductListDestination(
+            val locationType: LocationType,
+            val productFilter: FilterType
+        ) : TestDestination()
+
+        data class AisleGroupedProductListDestination(
+            val locationId: Int,
+            val productFilter: FilterType
+        ) : TestDestination()
+
+        data object AddShopDestination : TestDestination()
+
+        data class EditShopDestination(
+            val locationId: Int
+        ) : TestDestination()
+
+        data class EditProductDestination(val productId: Int) : TestDestination()
+        data class AddProductDestination(
+            val filterType: FilterType,
+            val name: String,
+            val aisleId: Int?
+        ) : TestDestination()
+
+
     }
 }
