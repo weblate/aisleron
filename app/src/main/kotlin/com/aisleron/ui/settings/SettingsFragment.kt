@@ -45,6 +45,7 @@ import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.location.LocationType
 import com.aisleron.ui.AisleronExceptionMap
 import com.aisleron.ui.AisleronFragment
+import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.widgets.ErrorSnackBar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -52,7 +53,9 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 
-class SettingsFragment : PreferenceFragmentCompat(), AisleronFragment {
+class SettingsFragment(
+    private val navigator: MainNavigator
+) : PreferenceFragmentCompat(), AisleronFragment {
 
     enum class PreferenceOption(val key: String) {
         BACKUP_FOLDER("backup_folder"),
@@ -82,6 +85,11 @@ class SettingsFragment : PreferenceFragmentCompat(), AisleronFragment {
             val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageTag)
             AppCompatDelegate.setApplicationLocales(appLocale)
 
+            true
+        }
+
+        findPreference<Preference>("account_sync")?.setOnPreferenceClickListener {
+            navigator.navigateToAccountPreferences()
             true
         }
 
