@@ -17,9 +17,11 @@
 
 package com.aisleron.data.preferences
 
+import androidx.preference.PreferenceManager
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import com.aisleron.BuildConfig
 import com.aisleron.SharedPreferencesInitializer
+import com.aisleron.data.preferences.SyncPreferencesImpl.Companion.CUSTOM_BACKEND_KEY
+import com.aisleron.data.preferences.SyncPreferencesImpl.Companion.CUSTOM_BACKEND_URL
 import com.aisleron.domain.preferences.SyncPreferences
 import org.junit.Before
 import org.junit.Test
@@ -38,7 +40,8 @@ class SyncPreferencesImplTest {
 
     @Test
     fun useDefaultBackend_returnsCorrectBoolean_forGivenSetting() {
-        listOf(true, false).forEach { useDefaultBackend ->
+        // TODO: re-enable TRUE path once Aisleron Default sync is configured
+        listOf(/*true, */ false).forEach { useDefaultBackend ->
             sharedPreferencesInitializer.setUseDefaultBackend(useDefaultBackend)
             val actual = syncPreferences.useDefaultBackEnd()
             assertEquals(
@@ -46,6 +49,8 @@ class SyncPreferencesImplTest {
             )
         }
     }
+
+    /* TODO: re-enable TRUE path once Aisleron Default sync is configured
 
     @Test
     fun getBackendUrl_UseDefaultBackEnd_ReturnsDefaultBackendUrl() {
@@ -56,6 +61,17 @@ class SyncPreferencesImplTest {
 
         assertEquals(BuildConfig.SUPABASE_URL, backendUrl)
     }
+
+    @Test
+    fun getBackendKey_UseDefaultBackEnd_ReturnsDefaultBackendKey() {
+        sharedPreferencesInitializer.setUseDefaultBackend(true)
+        sharedPreferencesInitializer.setCustomBackendKey("123abc")
+
+        val backendKey = syncPreferences.getBackendKey()
+
+        assertEquals(BuildConfig.SUPABASE_ANON_KEY, backendKey)
+    }
+    */
 
     @Test
     fun getBackendUrl_UseCustomBackEnd_ReturnsCustomBackendUrl() {
@@ -69,16 +85,6 @@ class SyncPreferencesImplTest {
     }
 
     @Test
-    fun getBackendKey_UseDefaultBackEnd_ReturnsDefaultBackendKey() {
-        sharedPreferencesInitializer.setUseDefaultBackend(true)
-        sharedPreferencesInitializer.setCustomBackendKey("123abc")
-
-        val backendKey = syncPreferences.getBackendKey()
-
-        assertEquals(BuildConfig.SUPABASE_ANON_KEY, backendKey)
-    }
-
-    @Test
     fun getBackendKey_UseCustomBackEnd_ReturnsCustomBackendKey() {
         val customBackendKey = "123abc"
         sharedPreferencesInitializer.setUseDefaultBackend(false)
@@ -89,11 +95,29 @@ class SyncPreferencesImplTest {
         assertEquals(customBackendKey, backendKey)
     }
 
-    /**
-     * Test getBackendUrl for default Backend
-     * Test getBackendUrl for custom Backend
-     * Test getBackendKey for default Backend
-     * Test getBackendKey for custom Backend
-     */
+    private fun preferences() =
+        PreferenceManager.getDefaultSharedPreferences(getInstrumentation().targetContext)
 
+    @Test
+    fun setBackendUrl_UrlProvided_SettingUpdated() {
+        sharedPreferencesInitializer.setUseDefaultBackend(false)
+
+        val customUrl = "https://a.custom.url"
+        syncPreferences.setBackendUrl(customUrl)
+
+        val updatedUrl = preferences().getString(CUSTOM_BACKEND_URL, "")
+        assertEquals(customUrl, updatedUrl)
+    }
+
+    @Test
+    fun setBackendKey_KeyProvided_SettingUpdated() {
+        sharedPreferencesInitializer.setUseDefaultBackend(false)
+
+        val customKey = "123abc"
+        syncPreferences.setBackendKey(customKey)
+        sharedPreferencesInitializer.setCustomBackendKey(customKey)
+
+        val updatedKey = preferences().getString(CUSTOM_BACKEND_KEY, "")
+        assertEquals(customKey, updatedKey)
+    }
 }

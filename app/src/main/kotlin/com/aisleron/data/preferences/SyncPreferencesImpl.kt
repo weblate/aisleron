@@ -21,11 +21,12 @@ import android.content.Context
 import androidx.preference.PreferenceManager
 import com.aisleron.BuildConfig
 import com.aisleron.domain.preferences.SyncPreferences
+import androidx.core.content.edit
 
 class SyncPreferencesImpl(context: Context) : SyncPreferences {
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
-    override fun useDefaultBackEnd(): Boolean =
-        prefs.getBoolean(USE_DEFAULT_BACKEND, true)
+    override fun useDefaultBackEnd(): Boolean = false
+    //prefs.getBoolean(USE_DEFAULT_BACKEND, false)
 
     override fun getBackendUrl(): String {
         return if (useDefaultBackEnd())
@@ -41,9 +42,21 @@ class SyncPreferencesImpl(context: Context) : SyncPreferences {
             prefs.getString(CUSTOM_BACKEND_KEY, "").orEmpty()
     }
 
+    override fun setBackendUrl(url: String) {
+        prefs.edit {
+            putString(CUSTOM_BACKEND_URL, url)
+        }
+    }
+
+    override fun setBackendKey(key: String) {
+        prefs.edit {
+            putString(CUSTOM_BACKEND_KEY, key)
+        }
+    }
+
     companion object {
-        private const val USE_DEFAULT_BACKEND = "use_default_backend"
-        private const val CUSTOM_BACKEND_URL = "custom_backend_url"
-        private const val CUSTOM_BACKEND_KEY = "custom_backend_key"
+        const val USE_DEFAULT_BACKEND = "use_default_backend"
+        const val CUSTOM_BACKEND_URL = "custom_backend_url"
+        const val CUSTOM_BACKEND_KEY = "custom_backend_key"
     }
 }

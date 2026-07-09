@@ -21,4 +21,7 @@ interface SyncPreferences {
     fun useDefaultBackEnd(): Boolean
     fun getBackendUrl(): String
     fun getBackendKey(): String
+    fun setBackendUrl(url: String)
+    fun setBackendKey(key: String)
+
 }
