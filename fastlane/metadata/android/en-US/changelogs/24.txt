@@ -1,5 +1,5 @@
 Enhancements:
-* Register and login to the Aisleron cloud backend.
+* Register and sign in to the Aisleron sync service.
 
 Bug Fixes:
 *

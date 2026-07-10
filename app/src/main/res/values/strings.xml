@@ -263,4 +263,20 @@
     <string name="keep_editing">Keep Editing</string>
     <string name="show_location_list">Show %1$s</string>
     <string name="back">Back</string>
+
+    <!-- Account -->
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="account">Account</string>
+    <string name="sync_service">Sync Service</string>
+    <string name="status">Status</string>
+    <string name="account_sync">Account and Sync</string>
+    <string name="manage_account">Manage Account</string>
+    <string name="sync_settings">Sync Settings</string>
+    <string name="none">None</string>
+    <string name="email">Email</string>
+    <string name="sync_service_address">Sync Service Address</string>
+    <string name="sync_service_public_key">Public Key</string>
+    <string name="sync_service_dialog_header">Sync Service</string>
+    <string name="sync_service_dialog_info">Enter the required details for the Aisleron sync service.</string>
 </resources>

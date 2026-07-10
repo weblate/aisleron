@@ -20,9 +20,10 @@ package com.aisleron.data.preferences
 import androidx.preference.PreferenceManager
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.aisleron.SharedPreferencesInitializer
-import com.aisleron.data.preferences.SyncPreferencesRepositoryImpl.Companion.CUSTOM_SERVICE_KEY
-import com.aisleron.data.preferences.SyncPreferencesRepositoryImpl.Companion.CUSTOM_SERVICE_URL
-import com.aisleron.domain.preferences.SyncPreferencesRepository
+import com.aisleron.data.preferences.syncpreferences.SyncPreferencesRepositoryImpl
+import com.aisleron.data.preferences.syncpreferences.SyncPreferencesRepositoryImpl.Companion.CUSTOM_SERVICE_KEY
+import com.aisleron.data.preferences.syncpreferences.SyncPreferencesRepositoryImpl.Companion.CUSTOM_SERVICE_URL
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -31,12 +32,18 @@ class SyncPreferencesRepositoryImplTest {
     private lateinit var syncPreferencesRepository: SyncPreferencesRepository
     private lateinit var sharedPreferencesInitializer: SharedPreferencesInitializer
 
+    private val defaultUrl = "https://SyncPreferencesRepositoryImplTest.com"
+    private val defaultKey = "SyncPreferencesRepositoryImplTest"
+
     @Before
     fun setUp() {
         sharedPreferencesInitializer = SharedPreferencesInitializer()
         sharedPreferencesInitializer.clearPreferences()
-        syncPreferencesRepository =
-            SyncPreferencesRepositoryImpl(getInstrumentation().targetContext)
+        syncPreferencesRepository = SyncPreferencesRepositoryImpl(
+            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getInstrumentation().targetContext),
+            defaultUrl = defaultUrl,
+            defaultKey = defaultKey
+        )
     }
 
     @Test
@@ -44,79 +51,62 @@ class SyncPreferencesRepositoryImplTest {
         // TODO: re-enable TRUE path once Aisleron Default sync is configured
         listOf(/*true, */ false).forEach { useDefaultService ->
             sharedPreferencesInitializer.setUseDefaultSyncService(useDefaultService)
-            val actual = syncPreferencesRepository.useDefaultService()
+
+            val syncPreferences = syncPreferencesRepository.getSyncPreferences()
+
             assertEquals(
-                useDefaultService, actual, "Failed for useDefaultService: $useDefaultService"
+                useDefaultService,
+                syncPreferences.useDefaultService,
+                "Failed for useDefaultService: $useDefaultService"
             )
         }
     }
 
     /* TODO: re-enable TRUE path once Aisleron Default sync is configured
-
     @Test
-    fun getServiceUrl_UseDefaultService_ReturnsDefaultServiceUrl() {
-        sharedPreferencesInitializer.setUseDefaultService(true)
-        sharedPreferencesInitializer.setCustomServiceUrl("https://a.custom.url")
+    fun getSyncPreferences_UseDefaultService_ReturnsDefaultServiceUrl() {
+        val customServiceUrl = "https://a.custom.url"
+        val customServiceKey = "123abc"
 
-        val serviceUrl = syncPreferences.getServiceUrl()
+        sharedPreferencesInitializer.setUseDefaultSyncService(true)
+        sharedPreferencesInitializer.setCustomSyncServiceUrl(customServiceUrl)
+        sharedPreferencesInitializer.setCustomSyncServiceKey(customServiceKey)
 
-        assertEquals(BuildConfig.SUPABASE_URL, serviceUrl)
-    }
+        val syncPreferences = syncPreferencesRepository.getSyncPreferences()
 
-    @Test
-    fun getServiceKey_UseDefaultService_ReturnsDefaultServiceKey() {
-        sharedPreferencesInitializer.setUseDefaultService(true)
-        sharedPreferencesInitializer.setCustomServiceKey("123abc")
-
-        val serviceKey = syncPreferences.getServiceKey()
-
-        assertEquals(BuildConfig.SUPABASE_ANON_KEY, serviceKey)
+        assertEquals(defaultUrl, syncPreferences.serviceUrl)
+        assertEquals(defaultKey, syncPreferences.serviceKey)
     }
     */
 
     @Test
-    fun getServiceUrl_UseCustomService_ReturnsCustomServiceUrl() {
+    fun getSyncPreferences_UseCustomService_ReturnsCustomServiceUrl() {
         val customServiceUrl = "https://a.custom.url"
+        val customServiceKey = "123abc"
+
         sharedPreferencesInitializer.setUseDefaultSyncService(false)
         sharedPreferencesInitializer.setCustomSyncServiceUrl(customServiceUrl)
-
-        val serviceUrl = syncPreferencesRepository.getServiceUrl()
-
-        assertEquals(customServiceUrl, serviceUrl)
-    }
-
-    @Test
-    fun getServiceKey_UseCustomService_ReturnsCustomServiceKey() {
-        val customServiceKey = "123abc"
-        sharedPreferencesInitializer.setUseDefaultSyncService(false)
         sharedPreferencesInitializer.setCustomSyncServiceKey(customServiceKey)
 
-        val serviceKey = syncPreferencesRepository.getServiceKey()
+        val syncPreferences = syncPreferencesRepository.getSyncPreferences()
 
-        assertEquals(customServiceKey, serviceKey)
+        assertEquals(customServiceUrl, syncPreferences.serviceUrl)
+        assertEquals(customServiceKey, syncPreferences.serviceKey)
     }
 
     private fun preferences() =
         PreferenceManager.getDefaultSharedPreferences(getInstrumentation().targetContext)
 
     @Test
-    fun setServiceUrl_UrlProvided_SettingUpdated() {
+    fun setCustomServiceDetails_DetailsProvided_SettingsUpdated() {
         sharedPreferencesInitializer.setUseDefaultSyncService(false)
-
         val customUrl = "https://a.custom.url"
-        syncPreferencesRepository.setServiceUrl(customUrl)
+        val customKey = "123abc"
+
+        syncPreferencesRepository.setCustomServiceDetails(customUrl, customKey)
 
         val updatedUrl = preferences().getString(CUSTOM_SERVICE_URL, "")
         assertEquals(customUrl, updatedUrl)
-    }
-
-    @Test
-    fun setServiceKey_KeyProvided_SettingUpdated() {
-        sharedPreferencesInitializer.setUseDefaultSyncService(false)
-
-        val customKey = "123abc"
-        syncPreferencesRepository.setServiceKey(customKey)
-        sharedPreferencesInitializer.setCustomSyncServiceKey(customKey)
 
         val updatedKey = preferences().getString(CUSTOM_SERVICE_KEY, "")
         assertEquals(customKey, updatedKey)

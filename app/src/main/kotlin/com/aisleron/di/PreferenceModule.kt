@@ -17,8 +17,10 @@
 
 package com.aisleron.di
 
-import com.aisleron.data.preferences.SyncPreferencesRepositoryImpl
-import com.aisleron.domain.preferences.SyncPreferencesRepository
+import androidx.preference.PreferenceManager
+import com.aisleron.BuildConfig
+import com.aisleron.data.preferences.syncpreferences.SyncPreferencesRepositoryImpl
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.ui.settings.DisplayPreferences
 import com.aisleron.ui.settings.DisplayPreferencesImpl
 import com.aisleron.ui.settings.ProductPreferences
@@ -37,5 +39,12 @@ val preferenceModule = module {
     factory<DisplayPreferences> { DisplayPreferencesImpl(get()) }
     factory<ProductPreferences> { ProductPreferencesImpl(get()) }
     factory<ShopPreferences> { ShopPreferencesImpl(get()) }
-    factory<SyncPreferencesRepository> { SyncPreferencesRepositoryImpl(get()) }
+
+    single<SyncPreferencesRepository> {
+        SyncPreferencesRepositoryImpl(
+            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(get()),
+            defaultUrl = BuildConfig.SUPABASE_URL,
+            defaultKey = BuildConfig.SUPABASE_ANON_KEY
+        )
+    }
 }

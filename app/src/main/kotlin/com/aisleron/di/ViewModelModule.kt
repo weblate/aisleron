@@ -123,14 +123,16 @@ val viewModelModule = module {
     viewModel {
         SignInViewModel(
             signInWithEmailUseCase = get(),
-            syncPreferencesRepository = get()
+            getSyncPreferencesUseCase = get(),
+            setCustomSyncServiceDetailsUseCase = get()
         )
     }
 
     viewModel {
         AccountPreferencesViewModel(
             signOutUseCase = get(),
-            syncPreferencesRepository = get()
+            getSyncPreferencesUseCase = get(),
+            setCustomSyncServiceDetailsUseCase = get()
         )
     }
 }

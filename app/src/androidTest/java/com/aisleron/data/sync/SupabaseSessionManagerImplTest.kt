@@ -17,7 +17,8 @@
 
 package com.aisleron.data.sync
 
-import com.aisleron.domain.preferences.SyncPreferencesRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import io.github.jan.supabase.SupabaseClient
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -47,8 +48,11 @@ class SupabaseSessionManagerImplTest {
     }
 
     private fun initPreferences(serviceUrl: String, serviceKey: String) {
-        every { syncPreferencesRepository.getServiceUrl() } returns serviceUrl
-        every { syncPreferencesRepository.getServiceKey() } returns serviceKey
+        every { syncPreferencesRepository.getSyncPreferences() } returns SyncPreferences (
+            useDefaultService = false,
+            serviceUrl = serviceUrl,
+            serviceKey = serviceKey
+        )
     }
 
     private fun initMocks(serviceUrl: String, serviceKey: String) {

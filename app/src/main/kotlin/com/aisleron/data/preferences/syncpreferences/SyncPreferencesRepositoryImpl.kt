@@ -15,41 +15,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.preferences
+package com.aisleron.data.preferences.syncpreferences
 
-import android.content.Context
-import androidx.preference.PreferenceManager
-import com.aisleron.BuildConfig
-import com.aisleron.domain.preferences.SyncPreferencesRepository
+import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 
-class SyncPreferencesRepositoryImpl(context: Context) : SyncPreferencesRepository {
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
-    override fun useDefaultService(): Boolean = false
+class SyncPreferencesRepositoryImpl(
+    private val sharedPreferences: SharedPreferences,
+    private val defaultUrl: String,
+    private val defaultKey: String
+) : SyncPreferencesRepository {
+    private fun useDefaultService(): Boolean = false
     //prefs.getBoolean(USE_DEFAULT_SERVICE, false)
 
-    override fun getServiceUrl(): String {
+    private fun getServiceUrl(): String {
         return if (useDefaultService())
-            BuildConfig.SUPABASE_URL
+            defaultUrl
         else
-            prefs.getString(CUSTOM_SERVICE_URL, "").orEmpty()
+            sharedPreferences.getString(CUSTOM_SERVICE_URL, "").orEmpty()
     }
 
-    override fun getServiceKey(): String {
+    private fun getServiceKey(): String {
         return if (useDefaultService())
-            BuildConfig.SUPABASE_ANON_KEY
+            defaultKey
         else
-            prefs.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
+            sharedPreferences.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
     }
 
-    override fun setServiceUrl(url: String) {
-        prefs.edit {
+    override fun getSyncPreferences(): SyncPreferences =
+        SyncPreferences(
+            useDefaultService = useDefaultService(),
+            serviceUrl = getServiceUrl(),
+            serviceKey = getServiceKey()
+        )
+
+    override fun setCustomServiceDetails(url: String, key: String) {
+        sharedPreferences.edit {
             putString(CUSTOM_SERVICE_URL, url)
-        }
-    }
-
-    override fun setServiceKey(key: String) {
-        prefs.edit {
             putString(CUSTOM_SERVICE_KEY, key)
         }
     }

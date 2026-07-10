@@ -18,7 +18,7 @@
 package com.aisleron.data.sync
 
 import android.util.Log
-import com.aisleron.domain.preferences.SyncPreferencesRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionManager
 import io.github.jan.supabase.SupabaseClient
 
@@ -31,9 +31,10 @@ class SupabaseSessionManagerImpl(
 
     override fun getClientOrNull(): SupabaseClient? {
         if (activeClient != null) return activeClient
+        val syncPreferences = syncPreferencesRepository.getSyncPreferences()
 
-        val savedUrl = syncPreferencesRepository.getServiceUrl()
-        val savedKey = syncPreferencesRepository.getServiceKey()
+        val savedUrl = syncPreferences.serviceUrl
+        val savedKey = syncPreferences.serviceKey
 
         if (savedUrl.isNotBlank() && savedKey.isNotBlank()) {
             try {
