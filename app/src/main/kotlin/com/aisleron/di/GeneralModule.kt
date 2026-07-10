@@ -50,7 +50,7 @@ val generalModule = module {
 
     single {
         SupabaseSessionManagerImpl(
-            syncPreferences = get(),
+            syncPreferencesRepository = get(),
             clientFactory = get(),
             authDelegate = get()
         )

@@ -17,11 +17,10 @@
 
 package com.aisleron.domain.preferences
 
-interface SyncPreferences {
-    fun useDefaultBackEnd(): Boolean
-    fun getBackendUrl(): String
-    fun getBackendKey(): String
-    fun setBackendUrl(url: String)
-    fun setBackendKey(key: String)
-
+interface SyncPreferencesRepository {
+    fun useDefaultService(): Boolean
+    fun getServiceUrl(): String
+    fun getServiceKey(): String
+    fun setServiceUrl(url: String)
+    fun setServiceKey(key: String)
 }

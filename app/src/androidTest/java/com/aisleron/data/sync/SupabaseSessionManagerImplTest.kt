@@ -17,7 +17,7 @@
 
 package com.aisleron.data.sync
 
-import com.aisleron.domain.preferences.SyncPreferences
+import com.aisleron.domain.preferences.SyncPreferencesRepository
 import io.github.jan.supabase.SupabaseClient
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -33,7 +33,7 @@ import org.junit.Before
 import org.junit.Test
 
 class SupabaseSessionManagerImplTest {
-    private val syncPreferences: SyncPreferences = mockk()
+    private val syncPreferencesRepository: SyncPreferencesRepository = mockk()
     private val clientFactory: SupabaseClientFactory = mockk()
     private val authDelegate: SupabaseAuthDelegate = mockk()
     private val mockSupabaseClient: SupabaseClient = mockk(relaxed = true)
@@ -42,82 +42,83 @@ class SupabaseSessionManagerImplTest {
 
     @Before
     fun setUp() {
-        sessionManager = SupabaseSessionManagerImpl(syncPreferences, clientFactory, authDelegate)
+        sessionManager =
+            SupabaseSessionManagerImpl(syncPreferencesRepository, clientFactory, authDelegate)
     }
 
-    private fun initPreferences(backendUrl: String, backendKey: String) {
-        every { syncPreferences.getBackendUrl() } returns backendUrl
-        every { syncPreferences.getBackendKey() } returns backendKey
+    private fun initPreferences(serviceUrl: String, serviceKey: String) {
+        every { syncPreferencesRepository.getServiceUrl() } returns serviceUrl
+        every { syncPreferencesRepository.getServiceKey() } returns serviceKey
     }
 
-    private fun initMocks(backendUrl: String, backendKey: String) {
-        initPreferences(backendUrl, backendKey)
+    private fun initMocks(serviceUrl: String, serviceKey: String) {
+        initPreferences(serviceUrl, serviceKey)
         every {
-            clientFactory.create(backendUrl, backendKey)
+            clientFactory.create(serviceUrl, serviceKey)
         } returns mockSupabaseClient
     }
 
     @Test
     fun getClientOrNull_ValidCredentialsForNewClient_ReturnsClient() {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initMocks(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initMocks(serviceUrl, serviceKey)
 
         val client = sessionManager.getClientOrNull()
 
         assertNotNull(client)
         assertEquals(mockSupabaseClient, client)
-        verify(exactly = 1) { clientFactory.create(backendUrl, backendKey) }
+        verify(exactly = 1) { clientFactory.create(serviceUrl, serviceKey) }
     }
 
     @Test
     fun getClientOrNull_BlankCredentials_ReturnsNull() {
-        val backendUrl = ""
-        val backendKey = ""
-        initPreferences(backendUrl, backendKey)
+        val serviceUrl = ""
+        val serviceKey = ""
+        initPreferences(serviceUrl, serviceKey)
 
         val client = sessionManager.getClientOrNull()
 
         assertNull(client)
-        verify(exactly = 0) { clientFactory.create(backendUrl, backendKey) }
+        verify(exactly = 0) { clientFactory.create(serviceUrl, serviceKey) }
     }
 
     @Test
     fun getClientOrNull_ErrorWithClient_ReturnsNull() {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initPreferences(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initPreferences(serviceUrl, serviceKey)
         every {
-            clientFactory.create(backendUrl, backendKey)
+            clientFactory.create(serviceUrl, serviceKey)
         } throws RuntimeException("Network Error")
 
         val client = sessionManager.getClientOrNull()
 
         assertNull(client)
-        verify(exactly = 1) { clientFactory.create(backendUrl, backendKey) }
+        verify(exactly = 1) { clientFactory.create(serviceUrl, serviceKey) }
     }
 
     @Test
     fun getClientOrNull_ClientExists_ReturnsExistingClient() {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initPreferences(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initPreferences(serviceUrl, serviceKey)
         every {
-            clientFactory.create(backendUrl, backendKey)
+            clientFactory.create(serviceUrl, serviceKey)
         } returns mockk<SupabaseClient>(relaxed = true)
 
         val client1 = sessionManager.getClientOrNull()
         val client2 = sessionManager.getClientOrNull()
 
         assertEquals(client1, client2)
-        verify(exactly = 1) { clientFactory.create(backendUrl, backendKey) }
+        verify(exactly = 1) { clientFactory.create(serviceUrl, serviceKey) }
     }
 
     @Test
     fun signInWithEmail_SuccessfulAuth_ReturnsSuccess() = runTest {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initMocks(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initMocks(serviceUrl, serviceKey)
         coEvery {
             authDelegate.signInWithEmail(
                 mockSupabaseClient, "test@example.com", "password123"
@@ -136,9 +137,9 @@ class SupabaseSessionManagerImplTest {
 
     @Test
     fun signInWithEmail_AuthThrowsException_ReturnsFailureAndClosesClient() = runTest {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initMocks(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initMocks(serviceUrl, serviceKey)
         coEvery {
             authDelegate.signInWithEmail(
                 mockSupabaseClient, "test@example.com", "password123"
@@ -159,11 +160,11 @@ class SupabaseSessionManagerImplTest {
 
     @Test
     fun signInWithEmail_ClientAcquisitionError_ReturnsFailure() = runTest {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initPreferences(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initPreferences(serviceUrl, serviceKey)
         every {
-            clientFactory.create(backendUrl, backendKey)
+            clientFactory.create(serviceUrl, serviceKey)
         } throws RuntimeException("Network Error")
 
         val result = sessionManager.signInWithEmail("test@example.com", "password123")
@@ -173,9 +174,9 @@ class SupabaseSessionManagerImplTest {
 
     @Test
     fun signOut_SuccessfulSignOut_ReturnsSuccess() = runTest {
-        val backendUrl = "https://example.supabase.co"
-        val backendKey = "some-valid-key"
-        initMocks(backendUrl, backendKey)
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        initMocks(serviceUrl, serviceKey)
 
         coEvery {
             authDelegate.signOut(mockSupabaseClient)
@@ -190,9 +191,9 @@ class SupabaseSessionManagerImplTest {
 
     @Test
     fun signOut_ClientIsNull_SignOutNotCalled() = runTest {
-        val backendUrl = ""
-        val backendKey = ""
-        initMocks(backendUrl, backendKey)
+        val serviceUrl = ""
+        val serviceKey = ""
+        initMocks(serviceUrl, serviceKey)
 
         val result = sessionManager.signOut()
 

@@ -20,43 +20,43 @@ package com.aisleron.data.preferences
 import android.content.Context
 import androidx.preference.PreferenceManager
 import com.aisleron.BuildConfig
-import com.aisleron.domain.preferences.SyncPreferences
+import com.aisleron.domain.preferences.SyncPreferencesRepository
 import androidx.core.content.edit
 
-class SyncPreferencesImpl(context: Context) : SyncPreferences {
+class SyncPreferencesRepositoryImpl(context: Context) : SyncPreferencesRepository {
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
-    override fun useDefaultBackEnd(): Boolean = false
-    //prefs.getBoolean(USE_DEFAULT_BACKEND, false)
+    override fun useDefaultService(): Boolean = false
+    //prefs.getBoolean(USE_DEFAULT_SERVICE, false)
 
-    override fun getBackendUrl(): String {
-        return if (useDefaultBackEnd())
+    override fun getServiceUrl(): String {
+        return if (useDefaultService())
             BuildConfig.SUPABASE_URL
         else
-            prefs.getString(CUSTOM_BACKEND_URL, "").orEmpty()
+            prefs.getString(CUSTOM_SERVICE_URL, "").orEmpty()
     }
 
-    override fun getBackendKey(): String {
-        return if (useDefaultBackEnd())
+    override fun getServiceKey(): String {
+        return if (useDefaultService())
             BuildConfig.SUPABASE_ANON_KEY
         else
-            prefs.getString(CUSTOM_BACKEND_KEY, "").orEmpty()
+            prefs.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
     }
 
-    override fun setBackendUrl(url: String) {
+    override fun setServiceUrl(url: String) {
         prefs.edit {
-            putString(CUSTOM_BACKEND_URL, url)
+            putString(CUSTOM_SERVICE_URL, url)
         }
     }
 
-    override fun setBackendKey(key: String) {
+    override fun setServiceKey(key: String) {
         prefs.edit {
-            putString(CUSTOM_BACKEND_KEY, key)
+            putString(CUSTOM_SERVICE_KEY, key)
         }
     }
 
     companion object {
-        const val USE_DEFAULT_BACKEND = "use_default_backend"
-        const val CUSTOM_BACKEND_URL = "custom_backend_url"
-        const val CUSTOM_BACKEND_KEY = "custom_backend_key"
+        const val USE_DEFAULT_SERVICE = "use_default_service"
+        const val CUSTOM_SERVICE_URL = "custom_service_url"
+        const val CUSTOM_SERVICE_KEY = "custom_service_key"
     }
 }
