@@ -26,9 +26,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.dependency.analysis)
-}
 
-apply(file("../gradle/jacoco.gradle.kts"))
+    id("test-coverage")
+}
 
 // Keep this list aligned with the values in the language_codes array in arrays.xml and with locale_config.xml
 val supportedLocales =
@@ -91,17 +91,17 @@ android {
         testInstrumentationRunnerArguments["notPackage"] = "com.aisleron.screenshots"
     }
 
-    val backendProperties = Properties()
-    val backendPropertiesFile = rootProject.file("backend.properties")
+    val syncServiceProperties = Properties()
+    val syncServicePropertiesFile = rootProject.file("syncservice.properties")
 
-    if (backendPropertiesFile.exists()) {
-        FileInputStream(backendPropertiesFile).use { stream ->
-            backendProperties.load(stream)
+    if (syncServicePropertiesFile.exists()) {
+        FileInputStream(syncServicePropertiesFile).use { stream ->
+            syncServiceProperties.load(stream)
         }
     }
 
-    fun getBackendProperty(key: String, defaultValue: String = ""): String {
-        return backendProperties.getProperty(key) ?: defaultValue
+    fun getSyncServiceProperty(key: String, defaultValue: String = ""): String {
+        return syncServiceProperties.getProperty(key) ?: defaultValue
     }
 
     buildTypes {
@@ -118,13 +118,13 @@ android {
             buildConfigField(
                 "String",
                 "SUPABASE_URL",
-                getBackendProperty("RELEASE_SUPABASE_URL")
+                getSyncServiceProperty("RELEASE_SUPABASE_URL")
             )
 
             buildConfigField(
                 "String",
                 "SUPABASE_ANON_KEY",
-                getBackendProperty("RELEASE_SUPABASE_ANON_KEY")
+                getSyncServiceProperty("RELEASE_SUPABASE_ANON_KEY")
             )
         }
 
@@ -138,13 +138,13 @@ android {
             buildConfigField(
                 "String",
                 "SUPABASE_URL",
-                getBackendProperty("DEBUG_SUPABASE_URL", "http://10.0.2.2:54321")
+                getSyncServiceProperty("DEBUG_SUPABASE_URL", "http://10.0.2.2:54321")
             )
 
             buildConfigField(
                 "String",
                 "SUPABASE_ANON_KEY",
-                getBackendProperty("DEBUG_SUPABASE_ANON_KEY", "missing_debug_key")
+                getSyncServiceProperty("DEBUG_SUPABASE_ANON_KEY", "missing_debug_key")
             )
         }
     }
@@ -254,6 +254,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.preference.ktx)
     implementation(libs.recyclerview)
+    implementation(libs.savedstate)
     implementation(libs.viewpager2)
 
     // Fragment
@@ -267,6 +268,7 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.foundation.layout)
     implementation(libs.compose.runtime)
+    implementation(libs.compose.runtime.saveable)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.text)
@@ -282,6 +284,7 @@ dependencies {
     // Lifecycle
     implementation(libs.lifecycle.common)
     implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.compose)
 
@@ -316,8 +319,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     testImplementation(platform(libs.kotlinx.coroutines.bom))
     testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(platform(libs.kotlinx.coroutines.bom))
-    androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // Supabase
     implementation(platform(libs.supabase.bom))
