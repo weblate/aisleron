@@ -18,6 +18,8 @@
 package com.aisleron.di
 
 import com.aisleron.ui.about.AboutViewModel
+import com.aisleron.ui.account.AccountPreferencesViewModel
+import com.aisleron.ui.account.SignInViewModel
 import com.aisleron.ui.aisle.AisleViewModel
 import com.aisleron.ui.copyentity.CopyEntityViewModel
 import com.aisleron.ui.note.NoteDialogViewModel
@@ -128,6 +130,24 @@ val viewModelTestModule = module {
         NoteDialogViewModel(
             getNoteParentUseCase = get(),
             applyNoteChangesUseCase = get(),
+            TestScope(UnconfinedTestDispatcher())
+        )
+    }
+
+    viewModel {
+        SignInViewModel(
+            signInWithEmailUseCase = get(),
+            getSyncPreferencesUseCase = get(),
+            setCustomSyncServiceDetailsUseCase = get(),
+            TestScope(UnconfinedTestDispatcher())
+        )
+    }
+
+    viewModel {
+        AccountPreferencesViewModel(
+            signOutUseCase = get(),
+            getSyncPreferencesUseCase = get(),
+            setCustomSyncServiceDetailsUseCase = get(),
             TestScope(UnconfinedTestDispatcher())
         )
     }

@@ -17,39 +17,37 @@
 
 package com.aisleron.ui.component.account
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
-import androidx.test.platform.app.InstrumentationRegistry
 import com.aisleron.R
 import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalTestApi::class)
 class SyncServiceConfigDialogTest {
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
-    private fun targetContext() = InstrumentationRegistry.getInstrumentation().targetContext
-
     @Test
-    fun invoke_InitialUrlNotSet_UrlIsEmpty() {
-        val urlLabel = targetContext().getString(R.string.sync_service_address)
+    fun invoke_InitialUrlNotSet_UrlIsEmpty() = runComposeUiTest {
+        lateinit var urlLabel: String
 
-        composeTestRule.setContent {
+        setContent {
+            urlLabel = stringResource(R.string.sync_service_address)
+
             SyncServiceConfigDialog(
                 onDismissRequest = {},
                 onConfirmPressed = { _, _ -> }
             )
         }
 
-        composeTestRule.onNodeWithText(urlLabel).assert(
+        onNodeWithText(urlLabel).assert(
             SemanticsMatcher.expectValue(
                 SemanticsProperties.EditableText,
                 AnnotatedString("")
@@ -58,11 +56,13 @@ class SyncServiceConfigDialogTest {
     }
 
     @Test
-    fun invoke_InitialUrlSet_UrlIsPrefilled() {
-        val urlLabel = targetContext().getString(R.string.sync_service_address)
+    fun invoke_InitialUrlSet_UrlIsPrefilled() = runComposeUiTest {
+        lateinit var urlLabel: String
         val url = "https://test.url"
 
-        composeTestRule.setContent {
+        setContent {
+            urlLabel = stringResource(R.string.sync_service_address)
+
             SyncServiceConfigDialog(
                 onDismissRequest = {},
                 initialUrl = url,
@@ -70,7 +70,7 @@ class SyncServiceConfigDialogTest {
             )
         }
 
-        composeTestRule.onNodeWithText(urlLabel).assert(
+        onNodeWithText(urlLabel).assert(
             SemanticsMatcher.expectValue(
                 SemanticsProperties.EditableText,
                 AnnotatedString(url)
@@ -79,55 +79,63 @@ class SyncServiceConfigDialogTest {
     }
 
     @Test
-    fun dismissButtonClicked_OnDismissRequestProvided_ONDismissRequestExecuted() {
-        val buttonTitle = targetContext().getString(android.R.string.cancel)
-        var dismissPressed = 0
-        var confirmPressed = 0
+    fun dismissButtonClicked_OnDismissRequestProvided_ONDismissRequestExecuted() =
+        runComposeUiTest {
+            lateinit var buttonTitle: String
+            var dismissPressed = 0
+            var confirmPressed = 0
 
-        composeTestRule.setContent {
-            SyncServiceConfigDialog(
-                onDismissRequest = { dismissPressed++ },
-                onConfirmPressed = { _, _ -> confirmPressed++ }
-            )
+            setContent {
+                buttonTitle = stringResource(android.R.string.cancel)
+
+
+                SyncServiceConfigDialog(
+                    onDismissRequest = { dismissPressed++ },
+                    onConfirmPressed = { _, _ -> confirmPressed++ }
+                )
+            }
+
+            onNodeWithText(buttonTitle)
+                .assertHasClickAction()
+                .performClick()
+
+            assertEquals(1, dismissPressed)
+            assertEquals(0, confirmPressed)
         }
-
-        composeTestRule.onNodeWithText(buttonTitle)
-            .assertHasClickAction()
-            .performClick()
-
-        assertEquals(1, dismissPressed)
-        assertEquals(0, confirmPressed)
-    }
 
     @Test
-    fun confirmButtonClicked_onConfirmPressedProvided_onConfirmPressedExecuted() {
-        val context = targetContext()
-        val buttonTitle = context.getString(R.string.save)
-        val urlLabel = context.getString(R.string.sync_service_address)
-        val keyLabel = context.getString(R.string.sync_service_public_key)
+    fun confirmButtonClicked_onConfirmPressedProvided_onConfirmPressedExecuted() =
+        runComposeUiTest {
+            lateinit var buttonTitle: String
+            lateinit var urlLabel: String
+            lateinit var keyLabel: String
 
-        val enteredUrl = "https://confirmtest.url"
-        val enteredKey = "confirm-test-key"
+            val enteredUrl = "https://confirmtest.url"
+            val enteredKey = "confirm-test-key"
 
-        var dismissPressed = 0
-        var callbackResult: Pair<String, String>? = null
+            var dismissPressed = 0
+            var callbackResult: Pair<String, String>? = null
 
-        composeTestRule.setContent {
-            SyncServiceConfigDialog(
-                onDismissRequest = { dismissPressed++ },
-                onConfirmPressed = { url, key -> callbackResult = url to key }
-            )
+            setContent {
+                buttonTitle = stringResource(R.string.save)
+                urlLabel = stringResource(R.string.sync_service_address)
+                keyLabel = stringResource(R.string.sync_service_public_key)
+
+                SyncServiceConfigDialog(
+                    onDismissRequest = { dismissPressed++ },
+                    onConfirmPressed = { url, key -> callbackResult = url to key }
+                )
+            }
+
+            onNodeWithText(urlLabel).performTextInput(enteredUrl)
+            onNodeWithText(keyLabel).performTextInput(enteredKey)
+
+            onNodeWithText(buttonTitle)
+                .assertHasClickAction()
+                .performClick()
+
+            assertEquals(0, dismissPressed)
+            assertEquals(enteredUrl, callbackResult?.first)
+            assertEquals(enteredKey, callbackResult?.second)
         }
-
-        composeTestRule.onNodeWithText(urlLabel).performTextInput(enteredUrl)
-        composeTestRule.onNodeWithText(keyLabel).performTextInput(enteredKey)
-
-        composeTestRule.onNodeWithText(buttonTitle)
-            .assertHasClickAction()
-            .performClick()
-
-        assertEquals(0, dismissPressed)
-        assertEquals(enteredUrl, callbackResult?.first)
-        assertEquals(enteredKey, callbackResult?.second)
-    }
 }

@@ -17,6 +17,8 @@
 
 package com.aisleron.di
 
+import com.aisleron.data.sync.SyncSessionManagerTestImpl
+import com.aisleron.domain.sync.SyncSessionManager
 import com.aisleron.ui.AddEditFragmentListener
 import com.aisleron.ui.AddEditFragmentListenerTestImpl
 import com.aisleron.ui.ApplicationTitleUpdateListener
@@ -38,4 +40,5 @@ val generalTestModule = module {
     factory<LoyaltyCardProvider> { LoyaltyCardProviderTestImpl() }
     factory<ResourceProvider> { ResourceProviderTestImpl() }
     factory<MainNavigator> { MainNavigatorTestImpl() }
+    factory<SyncSessionManager> { SyncSessionManagerTestImpl() }
 }

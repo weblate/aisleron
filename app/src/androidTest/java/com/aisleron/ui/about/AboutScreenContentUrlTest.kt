@@ -20,18 +20,19 @@ package com.aisleron.ui.about
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
-import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.aisleron.R
 import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+@OptIn(ExperimentalTestApi::class)
 @RunWith(value = Parameterized::class)
 class AboutScreenContentUrlTest(private val labelResId: Int, private val expectedUri: String) {
 
@@ -80,13 +81,9 @@ class AboutScreenContentUrlTest(private val labelResId: Int, private val expecte
         }
     }
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
     @Test
-    fun onAboutEntryClick_InvokesCallbackWithCorrectUrl() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val expectedLabelString = context.getString(labelResId)
+    fun onAboutEntryClick_InvokesCallbackWithCorrectUrl() = runComposeUiTest {
+        lateinit var expectedLabelString: String
         var capturedUrl: String? = null
 
         val fakeUriHandler = object : UriHandler {
@@ -95,7 +92,8 @@ class AboutScreenContentUrlTest(private val labelResId: Int, private val expecte
             }
         }
 
-        composeTestRule.setContent {
+        setContent {
+            expectedLabelString = stringResource(labelResId)
             CompositionLocalProvider(LocalUriHandler provides fakeUriHandler) {
                 AboutScreenContent(
                     versionName = "2.4.1"
@@ -103,7 +101,7 @@ class AboutScreenContentUrlTest(private val labelResId: Int, private val expecte
             }
         }
 
-        composeTestRule.onNodeWithText(expectedLabelString)
+        onNodeWithText(expectedLabelString)
             .performScrollTo()
             .performClick()
 
