@@ -46,6 +46,7 @@ navigation = "2.9.8"
 navigation3 = "1.1.4"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
+# robolectric = "4.16.1"
 room = "2.8.4"
 savedstate = "1.5.0"
 screengrab = "2.1.1"
@@ -57,50 +58,7 @@ uiautomator = "2.4.0"
 viewpager2 = "1.1.0"
 
 [libraries]
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-compose-animation = { module = "androidx.compose.animation:animation" }
-compose-animation-core = { module = "androidx.compose.animation:animation-core" }
-compose-foundation = { module = "androidx.compose.foundation:foundation" }
-compose-foundation-layout = { module = "androidx.compose.foundation:foundation-layout" }
-compose-runtime = { module = "androidx.compose.runtime:runtime" }
-compose-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable" }
-compose-ui = { module = "androidx.compose.ui:ui" }
-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
-compose-ui-test = { module = "androidx.compose.ui:ui-test" }
-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
-compose-ui-text = { module = "androidx.compose.ui:ui-text" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-compose-ui-unit = { module = "androidx.compose.ui:ui-unit" }
-material3 = { module = "androidx.compose.material3:material3" }
-
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
-junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
-
-koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koinBom" }
-koin-android = { module = "io.insert-koin:koin-android" }
-koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
-koin-compose = { module = "io.insert-koin:koin-compose" }
-koin-core = { module = "io.insert-koin:koin-core" }
-koin-core-viewmodel = { module = "io.insert-koin:koin-core-viewmodel" }
-koin-test = { module = "io.insert-koin:koin-test" }
-
-kotlinx-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutinesBom" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test" }
-
-ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktorBom" }
-ktor-client-core = { module = "io.ktor:ktor-client-core" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio" }
-
-supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabaseBom" }
-supabase-auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt" }
-supabase-kt = { module = "io.github.jan-tennert.supabase:supabase-kt" }
-
+# Individual dependencies
 activity = { module = "androidx.activity:activity", version.ref = "activity" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -141,6 +99,7 @@ navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", ver
 navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
+# robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 room-common = { module = "androidx.room:room-common", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -152,6 +111,52 @@ sqlite = { module = "androidx.sqlite:sqlite", version.ref = "sqlite" }
 test-core-ktx = { module = "androidx.test:core-ktx", version.ref = "testCoreKtx" }
 uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+
+# BOM dependencies
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+compose-animation = { module = "androidx.compose.animation:animation" }
+compose-animation-core = { module = "androidx.compose.animation:animation-core" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-foundation-layout = { module = "androidx.compose.foundation:foundation-layout" }
+compose-runtime = { module = "androidx.compose.runtime:runtime" }
+compose-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-test = { module = "androidx.compose.ui:ui-test" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+compose-ui-text = { module = "androidx.compose.ui:ui-text" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-ui-unit = { module = "androidx.compose.ui:ui-unit" }
+material3 = { module = "androidx.compose.material3:material3" }
+
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+# junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine" }
+
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koinBom" }
+koin-android = { module = "io.insert-koin:koin-android" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-compose = { module = "io.insert-koin:koin-compose" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-core-viewmodel = { module = "io.insert-koin:koin-core-viewmodel" }
+koin-test = { module = "io.insert-koin:koin-test" }
+
+kotlinx-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutinesBom" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test" }
+
+ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktorBom" }
+ktor-client-core = { module = "io.ktor:ktor-client-core" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio" }
+
+supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabaseBom" }
+supabase-auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt" }
+supabase-kt = { module = "io.github.jan-tennert.supabase:supabase-kt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

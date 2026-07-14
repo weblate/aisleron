@@ -15,27 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.sync
+package com.aisleron.domain.log
 
-import com.aisleron.domain.sync.SyncSessionManager
-import com.aisleron.domain.sync.SyncSessionStatus
-import kotlinx.coroutines.flow.Flow
-
-class SyncSessionManagerTestImpl : SyncSessionManager {
-    override val sessionStatus: Flow<SyncSessionStatus>
-        get() = TODO("Not yet implemented")
-
-    override suspend fun signInWithEmail(
-        email: String, password: String
-    ): Result<Unit> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun signOut(): Result<Unit> {
-        TODO("Not yet implemented")
-    }
-
-    override fun refreshStatus() {
-        TODO("Not yet implemented")
-    }
+interface Logger {
+    fun d(tag: String, message: String)
+    fun e(tag: String, message: String, throwable: Throwable? = null)
 }

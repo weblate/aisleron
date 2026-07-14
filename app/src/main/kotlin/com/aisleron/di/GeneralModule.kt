@@ -17,10 +17,12 @@
 
 package com.aisleron.di
 
+import com.aisleron.data.log.LoggerImpl
 import com.aisleron.data.sync.SupabaseAuthDelegate
 import com.aisleron.data.sync.SupabaseAuthDelegateImpl
 import com.aisleron.data.sync.SupabaseClientProvider
 import com.aisleron.data.sync.SupabaseSessionManagerImpl
+import com.aisleron.domain.log.Logger
 import com.aisleron.domain.sync.SyncSessionManager
 import com.aisleron.ui.AddEditFragmentListener
 import com.aisleron.ui.AddEditFragmentListenerImpl
@@ -52,10 +54,13 @@ val generalModule = module {
         SupabaseSessionManagerImpl(
             syncPreferencesRepository = get(),
             clientFactory = get(),
-            authDelegate = get()
+            authDelegate = get(),
+            logger = get()
         )
     } binds arrayOf(
         SyncSessionManager::class,
         SupabaseClientProvider::class
     )
+
+    single<Logger> { LoggerImpl() }
 }

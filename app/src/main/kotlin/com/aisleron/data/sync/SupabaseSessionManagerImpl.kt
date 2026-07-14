@@ -17,7 +17,7 @@
 
 package com.aisleron.data.sync
 
-import android.util.Log
+import com.aisleron.domain.log.Logger
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.domain.sync.SyncSessionManager
@@ -34,7 +34,8 @@ import kotlinx.coroutines.flow.map
 class SupabaseSessionManagerImpl(
     private val syncPreferencesRepository: SyncPreferencesRepository,
     private val clientFactory: SupabaseClientFactory,
-    private val authDelegate: SupabaseAuthDelegate
+    private val authDelegate: SupabaseAuthDelegate,
+    private val logger: Logger
 ) : SyncSessionManager, SupabaseClientProvider {
     private var activeClient: SupabaseClient? = null
     private val clientRefreshTrigger = MutableStateFlow(System.currentTimeMillis())
@@ -71,7 +72,7 @@ class SupabaseSessionManagerImpl(
             try {
                 it.close()
             } catch (e: Exception) {
-                Log.e("SupabaseSessionManager", "Error closing old client configuration", e)
+                logger.e("SupabaseSessionManager", "Error closing old client configuration", e)
             } finally {
                 activeClient = null
             }
@@ -79,10 +80,10 @@ class SupabaseSessionManagerImpl(
 
         if (savedUrl.isNotBlank() && savedKey.isNotBlank()) {
             try {
-                Log.d("SupabaseSessionManager", "Provisioning client on demand...")
+                logger.d("SupabaseSessionManager", "Provisioning client on demand...")
                 activeClient = clientFactory.create(savedUrl, savedKey)
             } catch (e: Exception) {
-                Log.e("SupabaseSessionManager", "Failed to build Supabase client", e)
+                logger.e("SupabaseSessionManager", "Failed to build Supabase client", e)
                 activeClient = null
             }
         }

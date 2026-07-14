@@ -20,6 +20,7 @@ package com.aisleron.data.sync
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionStatus
+import com.aisleron.testdata.data.log.LoggerTestImpl
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.status.RefreshFailureCause
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -33,26 +34,27 @@ import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
-import kotlin.test.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class SupabaseSessionManagerImplTest {
     private val syncPreferencesRepository: SyncPreferencesRepository = mockk()
     private val clientFactory: SupabaseClientFactory = mockk()
     private val authDelegate: SupabaseAuthDelegate = mockk()
     private val mockSupabaseClient: SupabaseClient = mockk()
-
     private lateinit var sessionManager: SupabaseSessionManagerImpl
 
-    @Before
+    @BeforeEach
     fun setUp() {
         sessionManager =
-            SupabaseSessionManagerImpl(syncPreferencesRepository, clientFactory, authDelegate)
+            SupabaseSessionManagerImpl(
+                syncPreferencesRepository, clientFactory, authDelegate, LoggerTestImpl()
+            )
     }
 
     private fun initPreferences(serviceUrl: String, serviceKey: String) {
@@ -178,34 +180,6 @@ class SupabaseSessionManagerImplTest {
         coVerify(exactly = 1) { clientFactory.create(url2, key2) }
         coVerify(exactly = 1) { client1?.close() }
     }
-
-    /*
-    @Test
-    fun getClientOrNull_ErrorClosingClient_HandleError() = runTest {
-        val url1 = "https://one.supabase.co"
-        val key1 = "some-valid-key-one"
-        initPreferences(url1, key1)
-        coEvery {
-            clientFactory.create(url1, key1)
-        } returns getMockClient(url1, key1, true)
-
-        val client1 = sessionManager.getClientOrNull()
-
-        val url2 = "https://two.supabase.co"
-        val key2 = "some-valid-key-two"
-        initPreferences(url2, key2)
-        coEvery {
-            clientFactory.create(url2, key2)
-        } returns getMockClient(url2, key2)
-
-        sessionManager.getClientOrNull()
-
-        assertNull(client1)
-        coVerify(exactly = 1) { clientFactory.create(url1, key1) }
-        coVerify(exactly = 1) { clientFactory.create(url2, key2) }
-        coVerify(exactly = 1) { client1?.close() }
-    }
-    */
 
     @Test
     fun signInWithEmail_SuccessfulAuth_ReturnsSuccess() = runTest {

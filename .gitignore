@@ -43,3 +43,4 @@ syncservice.properties
 # Build outputs
 /build
 /bin
+/buildSrc/build/

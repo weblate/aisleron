@@ -334,11 +334,13 @@ dependencies {
     // Testing
     testImplementation(platform(libs.junit.bom))
     testRuntimeOnly(libs.junit.platform.launcher)
+    // testRuntimeOnly(libs.junit.vintage.engine)
     testImplementation(project(":testData"))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.mockk)
+    // testImplementation(libs.robolectric)
     testImplementation(libs.slf4j.nop)
 
     // Android Testing
