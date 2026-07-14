@@ -132,7 +132,9 @@ val viewModelModule = module {
         AccountPreferencesViewModel(
             signOutUseCase = get(),
             getSyncPreferencesUseCase = get(),
-            setCustomSyncServiceDetailsUseCase = get()
+            setCustomSyncServiceDetailsUseCase = get(),
+            getSessionStatusUseCase = get(),
+            refreshSessionStatusUseCase = get()
         )
     }
 }

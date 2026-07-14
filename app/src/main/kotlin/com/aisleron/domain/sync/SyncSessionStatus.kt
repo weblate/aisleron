@@ -17,11 +17,10 @@
 
 package com.aisleron.domain.sync
 
-import kotlinx.coroutines.flow.Flow
-
-interface SyncSessionManager {
-    val sessionStatus: Flow<SyncSessionStatus>
-    suspend fun signInWithEmail(email: String, password: String): Result<Unit>
-    suspend fun signOut(): Result<Unit>
-    fun refreshStatus()
+sealed interface SyncSessionStatus {
+    object Loading : SyncSessionStatus
+    object NotAuthenticated : SyncSessionStatus
+    data class Authenticated(val userId: String) : SyncSessionStatus
+    object NotConfigured : SyncSessionStatus
+    object RefreshFailure : SyncSessionStatus
 }

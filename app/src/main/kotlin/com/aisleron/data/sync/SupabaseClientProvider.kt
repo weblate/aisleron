@@ -20,5 +20,5 @@ package com.aisleron.data.sync
 import io.github.jan.supabase.SupabaseClient
 
 interface SupabaseClientProvider {
-    fun getClientOrNull(): SupabaseClient?
+    suspend fun getClientOrNull(): SupabaseClient?
 }

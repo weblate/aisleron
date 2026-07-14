@@ -148,6 +148,8 @@ val viewModelTestModule = module {
             signOutUseCase = get(),
             getSyncPreferencesUseCase = get(),
             setCustomSyncServiceDetailsUseCase = get(),
+            getSessionStatusUseCase = get(),
+            refreshSessionStatusUseCase = get(),
             TestScope(UnconfinedTestDispatcher())
         )
     }

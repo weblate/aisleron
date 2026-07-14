@@ -126,6 +126,8 @@ import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCaseImpl
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCase
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCaseImpl
+import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
+import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.SignInWithEmailUseCase
 import com.aisleron.domain.sync.usecase.SignOutUseCase
 import org.koin.android.ext.koin.androidApplication
@@ -464,9 +466,9 @@ val useCaseModule = module {
     factory<SignOutUseCase> { SignOutUseCase(sessionManager = get()) }
     factory<GetSyncPreferencesUseCase> { GetSyncPreferencesUseCase(syncPreferencesRepository = get()) }
     factory<SetCustomSyncServiceDetailsUseCase> {
-        SetCustomSyncServiceDetailsUseCase(
-            syncPreferencesRepository = get()
-        )
+        SetCustomSyncServiceDetailsUseCase(syncPreferencesRepository = get())
     }
 
+    factory<GetSessionStatusUseCase> { GetSessionStatusUseCase(sessionManager = get()) }
+    factory<RefreshSessionStatusUseCase> { RefreshSessionStatusUseCase(sessionManager = get()) }
 }

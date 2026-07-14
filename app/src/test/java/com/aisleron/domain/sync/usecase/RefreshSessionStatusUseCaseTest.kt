@@ -15,27 +15,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.sync
+package com.aisleron.domain.sync.usecase
 
 import com.aisleron.domain.sync.SyncSessionManager
-import com.aisleron.domain.sync.SyncSessionStatus
-import kotlinx.coroutines.flow.Flow
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
-class SyncSessionManagerTestImpl : SyncSessionManager {
-    override val sessionStatus: Flow<SyncSessionStatus>
-        get() = TODO("Not yet implemented")
+class RefreshSessionStatusUseCaseTest {
+    private val sessionManager: SyncSessionManager = mockk()
+    private lateinit var refreshSessionStatusUseCase: RefreshSessionStatusUseCase
 
-    override suspend fun signInWithEmail(
-        email: String, password: String
-    ): Result<Unit> {
-        TODO("Not yet implemented")
+    @BeforeEach
+    fun setUp() {
+        refreshSessionStatusUseCase = RefreshSessionStatusUseCase(sessionManager)
     }
 
-    override suspend fun signOut(): Result<Unit> {
-        TODO("Not yet implemented")
-    }
+    @Test
+    fun invoke_CallsRefreshSession() = runTest {
+        coEvery {
+            sessionManager.refreshStatus()
+        } returns Unit
 
-    override fun refreshStatus() {
-        TODO("Not yet implemented")
+        refreshSessionStatusUseCase()
+
+        coVerify(exactly = 1) { sessionManager.refreshStatus() }
     }
 }
