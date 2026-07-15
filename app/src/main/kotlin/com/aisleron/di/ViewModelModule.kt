@@ -134,7 +134,8 @@ val viewModelModule = module {
             getSyncPreferencesUseCase = get(),
             setCustomSyncServiceDetailsUseCase = get(),
             getSessionStatusUseCase = get(),
-            refreshSessionStatusUseCase = get()
+            refreshSessionStatusUseCase = get(),
+            logger = get()
         )
     }
 }

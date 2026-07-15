@@ -21,6 +21,5 @@ import com.aisleron.domain.log.Logger
 
 class LoggerTestImpl : Logger {
     override fun d(tag: String, message: String) {}
-
     override fun e(tag: String, message: String, throwable: Throwable?) {}
 }

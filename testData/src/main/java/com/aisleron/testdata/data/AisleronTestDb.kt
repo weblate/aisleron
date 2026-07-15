@@ -33,6 +33,7 @@ import com.aisleron.testdata.data.aisleproduct.AisleProductDaoTestImpl
 import com.aisleron.testdata.data.location.LocationDaoTestImpl
 import com.aisleron.testdata.data.loyaltycard.LocationLoyaltyCardDaoTestImpl
 import com.aisleron.testdata.data.loyaltycard.LoyaltyCardDaoTestImpl
+import com.aisleron.testdata.data.maintenance.MaintenanceDaoTestImpl
 import com.aisleron.testdata.data.note.NoteDaoTestImpl
 import com.aisleron.testdata.data.product.ProductDaoTestImpl
 import com.aisleron.testdata.data.productvariant.ProductVariantDaoTestImpl
@@ -45,12 +46,11 @@ class AisleronTestDb : AisleronDb {
     private val _locationDao = LocationDaoTestImpl(_aisleDao)
     private val _locationLoyaltyCardDao = LocationLoyaltyCardDaoTestImpl()
     private val _loyaltyCardDao = LoyaltyCardDaoTestImpl(_locationLoyaltyCardDao)
+    private val _maintenanceDao = MaintenanceDaoTestImpl()
     private val _noteDao = NoteDaoTestImpl()
     private val _productVariantDao = ProductVariantDaoTestImpl(_productDao)
 
-    override fun maintenanceDao(): MaintenanceDao {
-        TODO("Not yet implemented")
-    }
+    override fun maintenanceDao(): MaintenanceDao = _maintenanceDao
 
     override fun aisleDao(): AisleDao = _aisleDao
 

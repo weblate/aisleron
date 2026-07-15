@@ -15,7 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.maintenance
+package com.aisleron.testdata.data.maintenance
+
+import com.aisleron.data.maintenance.MaintenanceDao
 
 class MaintenanceDaoTestImpl : MaintenanceDao {
     override suspend fun checkpoint(supportSQLiteQuery: androidx.sqlite.db.SupportSQLiteQuery): Int {
