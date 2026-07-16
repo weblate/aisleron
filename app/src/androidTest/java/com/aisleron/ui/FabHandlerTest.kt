@@ -46,11 +46,11 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.not
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
+import kotlin.test.assertEquals
 
 class FabHandlerTest : KoinTest {
     private lateinit var scenario: ActivityScenario<MainActivity>

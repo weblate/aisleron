@@ -346,6 +346,7 @@ dependencies {
     // Android Testing
     androidTestImplementation(project(":testData"))
     androidTestImplementation(libs.junit)
+     androidTestImplementation(libs.kotlin.test)
     androidTestImplementation(libs.mockk.agent)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.screengrab)

@@ -19,10 +19,10 @@ package com.aisleron.ui.loyaltycard
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class PackageCheckerImplTest {
 

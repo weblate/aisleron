@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaProjectCodeInsightSettings">
+    <excluded-names>
+      <name>junit.framework.*</name>
+      <name>kotlin.test.Asserter</name>
+      <name>org.junit.Assert</name>
+    </excluded-names>
+  </component>
+</project>

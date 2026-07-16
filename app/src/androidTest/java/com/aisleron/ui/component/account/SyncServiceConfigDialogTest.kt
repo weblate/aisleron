@@ -29,8 +29,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
 import com.aisleron.R
-import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class SyncServiceConfigDialogTest {

@@ -68,7 +68,6 @@ import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -179,10 +178,10 @@ class WelcomeFragmentTest : KoinTest {
         assertEquals(aisleCountBefore, aisleCountAfter)
 
         val expectedDestination = MainNavigatorTestImpl.TestDestination.InStockDestination
-        Assert.assertEquals(expectedDestination, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
 
-        Assert.assertFalse(initialisedBefore)
-        Assert.assertTrue(welcomePreferences.isInitialized())
+        assertFalse(initialisedBefore)
+        assertTrue(welcomePreferences.isInitialized())
     }
 
     @Test
@@ -207,10 +206,10 @@ class WelcomeFragmentTest : KoinTest {
         assertTrue(aisleCountBefore < aisleCountAfter)
 
         val expectedDestination = MainNavigatorTestImpl.TestDestination.InStockDestination
-        Assert.assertEquals(expectedDestination, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
 
-        Assert.assertFalse(initialisedBefore)
-        Assert.assertTrue(welcomePreferences.isInitialized())
+        assertFalse(initialisedBefore)
+        assertTrue(welcomePreferences.isInitialized())
     }
 
     @Test
@@ -253,10 +252,10 @@ class WelcomeFragmentTest : KoinTest {
         welcomeOption.perform(click())
 
         val expectedDestination = MainNavigatorTestImpl.TestDestination.SettingsDestination
-        Assert.assertEquals(expectedDestination, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
 
-        Assert.assertFalse(initialisedBefore)
-        Assert.assertTrue(welcomePreferences.isInitialized())
+        assertFalse(initialisedBefore)
+        assertTrue(welcomePreferences.isInitialized())
     }
 
     @Test

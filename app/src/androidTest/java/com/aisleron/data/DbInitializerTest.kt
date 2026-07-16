@@ -25,10 +25,11 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.lang.Thread.sleep
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class DbInitializerTest {
     private lateinit var db: AisleronDatabase
@@ -59,8 +60,8 @@ class DbInitializerTest {
         initializer.invoke()
         sleep(100)
         val homeAfter = db.locationDao().getLocations().count { it.type == LocationType.HOME }
-        Assert.assertEquals(0, homeBefore)
-        Assert.assertEquals(1, homeAfter)
+        assertEquals(0, homeBefore)
+        assertEquals(1, homeAfter)
     }
 
     @Test
@@ -72,13 +73,13 @@ class DbInitializerTest {
         val homeId = db.locationDao().getHome().id
         val defaultAisle = db.aisleDao().getDefaultAisleFor(homeId)
 
-        Assert.assertEquals(0, aisleCountBefore)
-        Assert.assertNotNull(defaultAisle)
+        assertEquals(0, aisleCountBefore)
+        assertNotNull(defaultAisle)
     }
 
     @Test
     fun constructor_NoCoroutineScopeProvided_DbInitializerReturned() {
         val init = DbInitializer(db.locationDao(), db.aisleDao())
-        Assert.assertNotNull(init)
+        assertNotNull(init)
     }
 }

@@ -104,16 +104,17 @@ import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matcher
-import org.junit.Assert
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
 import java.text.DecimalFormat
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ShoppingListFragmentTest : KoinTest {
@@ -620,7 +621,7 @@ class ShoppingListFragmentTest : KoinTest {
             .perform(click())
 
         val deletedProduct = get<ProductRepository>().getByName(product.name)
-        Assert.assertNull(deletedProduct)
+        assertNull(deletedProduct)
 
         scenario.onActivity {
             assertFalse(activityFragment.hasSelectedItems())
@@ -643,7 +644,7 @@ class ShoppingListFragmentTest : KoinTest {
             .perform(click())
 
         val deletedAisle = get<AisleRepository>().get(aisle.id)
-        Assert.assertNull(deletedAisle)
+        assertNull(deletedAisle)
 
         scenario.onActivity {
             assertFalse(activityFragment.hasSelectedItems())
@@ -714,7 +715,7 @@ class ShoppingListFragmentTest : KoinTest {
             .perform(click())
 
         val deletedAisle = get<AisleRepository>().get(aisle.id)
-        Assert.assertNotNull(deletedAisle)
+        assertNotNull(deletedAisle)
 
         scenario.onActivity {
             // Action mode is not cancelled if delete is cancelled

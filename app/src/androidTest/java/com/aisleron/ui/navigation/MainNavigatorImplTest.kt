@@ -40,10 +40,10 @@ import com.aisleron.ui.shoppinglist.ShoppingListGrouping
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class MainNavigatorImplTest {
     private lateinit var bundler: Bundler

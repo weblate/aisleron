@@ -65,7 +65,6 @@ import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.startsWithIgnoringCase
 import org.hamcrest.Matchers.emptyString
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -109,7 +108,7 @@ class ProductFragmentTest : KoinTest {
         val bundle = bundler.makeEditProductBundle(1)
         val scenario = getFragmentScenario(bundle)
         scenario.onFragment {
-            Assert.assertEquals(
+            assertEquals(
                 it.getString(R.string.edit_product),
                 applicationTitleUpdateListener.appTitle
             )
@@ -131,7 +130,7 @@ class ProductFragmentTest : KoinTest {
         val bundle = bundler.makeAddProductBundle("New Product")
         val scenario = getFragmentScenario(bundle)
         scenario.onFragment {
-            Assert.assertEquals(
+            assertEquals(
                 it.getString(R.string.add_product),
                 applicationTitleUpdateListener.appTitle
             )
@@ -157,8 +156,8 @@ class ProductFragmentTest : KoinTest {
         val product = productRepository.getByName(newProductName)
 
         onView(withId(R.id.edt_product_name)).check(matches(withText(newProductName)))
-        Assert.assertTrue(addEditFragmentListener.addEditSuccess)
-        Assert.assertNotNull(product)
+        assertTrue(addEditFragmentListener.addEditSuccess)
+        assertNotNull(product)
     }
 
     @Test
@@ -172,7 +171,7 @@ class ProductFragmentTest : KoinTest {
         }
 
         onView(withId(R.id.edt_product_name)).check(matches(withText("")))
-        Assert.assertFalse(addEditFragmentListener.addEditSuccess)
+        assertFalse(addEditFragmentListener.addEditSuccess)
     }
 
     @Test
@@ -194,9 +193,9 @@ class ProductFragmentTest : KoinTest {
         val updatedProduct = productRepository.get(existingProduct.id)
 
         onView(withId(R.id.edt_product_name)).check(matches(withText(newProductName)))
-        Assert.assertTrue(addEditFragmentListener.addEditSuccess)
-        Assert.assertNotNull(updatedProduct)
-        Assert.assertEquals(newProductName, updatedProduct?.name)
+        assertTrue(addEditFragmentListener.addEditSuccess)
+        assertNotNull(updatedProduct)
+        assertEquals(newProductName, updatedProduct.name)
     }
 
     @Test
@@ -214,8 +213,8 @@ class ProductFragmentTest : KoinTest {
         val updatedProduct = productRepository.get(existingProduct.id)
 
         onView(withId(R.id.chk_product_in_stock)).check(matches(ViewMatchers.isChecked()))
-        Assert.assertTrue(addEditFragmentListener.addEditSuccess)
-        Assert.assertEquals(
+        assertTrue(addEditFragmentListener.addEditSuccess)
+        assertEquals(
             existingProduct.copy(inStock = !existingProduct.inStock),
             updatedProduct
         )
@@ -643,6 +642,6 @@ class ProductFragmentTest : KoinTest {
         }
 
         val expectedDestination = MainNavigatorTestImpl.TestDestination.AddShopDestination
-        Assert.assertEquals(expectedDestination, navigator.destination)
+        assertEquals(expectedDestination, navigator.destination)
     }
 }

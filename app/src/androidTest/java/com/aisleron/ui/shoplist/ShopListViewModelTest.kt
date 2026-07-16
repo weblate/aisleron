@@ -37,12 +37,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ShopListViewModelTest : KoinTest {
@@ -69,7 +71,7 @@ class ShopListViewModelTest : KoinTest {
             (shopListViewModel.shopListUiState.value as ShopListViewModel.ShopListUiState.Updated).shops
 
         assertTrue { pinnedShopCount > 0 }
-        Assert.assertEquals(pinnedShopCount, shops.count())
+        assertEquals(pinnedShopCount, shops.count())
     }
 
     @Test
@@ -80,7 +82,7 @@ class ShopListViewModelTest : KoinTest {
         val shops =
             (shopListViewModel.shopListUiState.value as ShopListViewModel.ShopListUiState.Updated).shops
 
-        Assert.assertEquals(shopCount, shops.count())
+        assertEquals(shopCount, shops.count())
     }
 
     @Test
@@ -96,7 +98,7 @@ class ShopListViewModelTest : KoinTest {
         shopListViewModel.removeItem(shopListItemViewModel)
         val removedLocation = locationRepository.get(location.id)
 
-        Assert.assertNull(removedLocation)
+        assertNull(removedLocation)
     }
 
     @Test
@@ -112,7 +114,7 @@ class ShopListViewModelTest : KoinTest {
         shopListViewModel.removeItem(shopListItemViewModel)
         val countAfter = locationRepository.getAll().count()
 
-        Assert.assertEquals(countBefore, countAfter)
+        assertEquals(countBefore, countAfter)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -145,12 +147,12 @@ class ShopListViewModelTest : KoinTest {
 
         sli.removeItem(shopListItemViewModel)
 
-        Assert.assertTrue(sli.shopListUiState.value is ShopListViewModel.ShopListUiState.Error)
-        Assert.assertEquals(
+        assertTrue(sli.shopListUiState.value is ShopListViewModel.ShopListUiState.Error)
+        assertEquals(
             AisleronException.ExceptionCode.GENERIC_EXCEPTION,
             (sli.shopListUiState.value as ShopListViewModel.ShopListUiState.Error).errorCode
         )
-        Assert.assertEquals(
+        assertEquals(
             exceptionMessage,
             (sli.shopListUiState.value as ShopListViewModel.ShopListUiState.Error).errorMessage
         )
@@ -165,6 +167,6 @@ class ShopListViewModelTest : KoinTest {
             getLocationUseCase = get<GetLocationUseCase>()
         )
 
-        Assert.assertNotNull(sli)
+        assertNotNull(sli)
     }
 }

@@ -25,13 +25,13 @@ import com.aisleron.ui.aisle.AisleDialogFragment
 import com.aisleron.ui.copyentity.CopyEntityType
 import com.aisleron.ui.note.NoteParentRef
 import com.aisleron.ui.shoppinglist.ShoppingListGrouping
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 
 class BundlerTest {
@@ -61,8 +61,8 @@ class BundlerTest {
             getParcelableBundle(bundle, "addEditProduct", AddEditProductBundle::class.java)
 
         assertNotNull(editProductBundle)
-        assertEquals(1, editProductBundle?.productId)
-        assertEquals(AddEditProductBundle.ProductAction.EDIT, editProductBundle?.actionType)
+        assertEquals(1, editProductBundle.productId)
+        assertEquals(AddEditProductBundle.ProductAction.EDIT, editProductBundle.actionType)
     }
 
     @Test
@@ -73,8 +73,8 @@ class BundlerTest {
             getParcelableBundle(bundle, "addEditProduct", AddEditProductBundle::class.java)
 
         assertNotNull(addProductBundle)
-        assertNull(addProductBundle?.name)
-        assertFalse(addProductBundle?.inStock!!)
+        assertNull(addProductBundle.name)
+        assertFalse(addProductBundle.inStock!!)
         assertEquals(AddEditProductBundle.ProductAction.ADD, addProductBundle.actionType)
         assertNull(addProductBundle.aisleId)
     }
@@ -133,8 +133,8 @@ class BundlerTest {
             getParcelableBundle(bundle, "addEditLocation", AddEditLocationBundle::class.java)
 
         assertNotNull(editLocationBundle)
-        assertEquals(1, editLocationBundle?.locationId)
-        assertEquals(AddEditLocationBundle.LocationAction.EDIT, editLocationBundle?.actionType)
+        assertEquals(1, editLocationBundle.locationId)
+        assertEquals(AddEditLocationBundle.LocationAction.EDIT, editLocationBundle.actionType)
     }
 
     @Test
@@ -145,8 +145,8 @@ class BundlerTest {
             getParcelableBundle(bundle, "addEditLocation", AddEditLocationBundle::class.java)
 
         assertNotNull(addLocationBundle)
-        assertNull(addLocationBundle?.name)
-        assertEquals(AddEditLocationBundle.LocationAction.ADD, addLocationBundle?.actionType)
+        assertNull(addLocationBundle.name)
+        assertEquals(AddEditLocationBundle.LocationAction.ADD, addLocationBundle.actionType)
     }
 
     @Test
@@ -305,7 +305,7 @@ class BundlerTest {
             getParcelableBundle(bundle, "copyEntity", CopyEntityBundle::class.java)
 
         assertTrue(copyEntityBundle!!.type is CopyEntityType.Location)
-        assertEquals(locationId, (copyEntityBundle.type as CopyEntityType.Location).sourceId)
+        assertEquals(locationId, copyEntityBundle.type.sourceId)
         assertEquals(title, copyEntityBundle.title)
         assertEquals(defaultName, copyEntityBundle.defaultName)
         assertEquals(nameHint, copyEntityBundle.nameHint)
@@ -325,7 +325,7 @@ class BundlerTest {
             getParcelableBundle(bundle, "copyEntity", CopyEntityBundle::class.java)
 
         assertTrue(copyEntityBundle!!.type is CopyEntityType.Product)
-        assertEquals(productId, (copyEntityBundle.type as CopyEntityType.Product).sourceId)
+        assertEquals(productId, copyEntityBundle.type.sourceId)
         assertEquals(title, copyEntityBundle.title)
         assertEquals(defaultName, copyEntityBundle.defaultName)
         assertEquals(nameHint, copyEntityBundle.nameHint)
@@ -401,9 +401,9 @@ class BundlerTest {
             getParcelableBundle(bundle, "aislePicker", AislePickerBundle::class.java)
 
         assertNotNull(aislePickerBundle)
-        assertEquals(title, aislePickerBundle?.title)
-        assertEquals(aisles, aislePickerBundle?.aisles)
-        assertEquals(currentAisleId, aislePickerBundle?.currentAisleId)
+        assertEquals(title, aislePickerBundle.title)
+        assertEquals(aisles, aislePickerBundle.aisles)
+        assertEquals(currentAisleId, aislePickerBundle.currentAisleId)
     }
 
     @Test
@@ -439,9 +439,9 @@ class BundlerTest {
             getParcelableBundle(bundle, "aisleDialog", AisleDialogBundle::class.java)
 
         assertNotNull(aisleDialogBundle)
-        assertEquals(aisleId, aisleDialogBundle?.aisleId)
-        assertEquals(action, aisleDialogBundle?.action)
-        assertEquals(locationId, aisleDialogBundle?.locationId)
+        assertEquals(aisleId, aisleDialogBundle.aisleId)
+        assertEquals(action, aisleDialogBundle.action)
+        assertEquals(locationId, aisleDialogBundle.locationId)
     }
 
     @Test

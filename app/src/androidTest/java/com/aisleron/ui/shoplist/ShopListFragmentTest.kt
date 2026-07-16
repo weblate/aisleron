@@ -65,14 +65,14 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matcher
-import org.junit.Assert
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ShopListFragmentTest : KoinTest {
     private lateinit var fabHandler: FabHandlerTestImpl
@@ -199,7 +199,7 @@ class ShopListFragmentTest : KoinTest {
             .perform(click())
 
         val deletedLocation = locationRepository.get(deleteLocation.id)
-        Assert.assertNull(deletedLocation)
+        assertNull(deletedLocation)
     }
 
     @Test

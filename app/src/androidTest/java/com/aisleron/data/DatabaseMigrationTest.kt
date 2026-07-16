@@ -30,7 +30,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.aisleron.data.base.SyncEntity
 import com.aisleron.domain.FilterType
 import com.aisleron.domain.location.LocationType
-import junit.framework.TestCase.assertNotNull
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +37,7 @@ import java.io.IOException
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 

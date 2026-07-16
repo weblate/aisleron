@@ -36,9 +36,16 @@ syncservice.properties
 /fastlane/.env
 
 # Android Studio IDE files
-.idea/
 .gradle/
 /gradle/gradle-daemon-jvm.properties
+
+# .idea folder. Whitelist specific project files
+.idea/*
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+!.idea/misc.xml
+!.idea/codeInsightSettings.xml
 
 # Build outputs
 /build

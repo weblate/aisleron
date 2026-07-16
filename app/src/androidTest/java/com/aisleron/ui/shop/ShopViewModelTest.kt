@@ -43,7 +43,6 @@ import com.aisleron.domain.note.usecase.GetNoteParentUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,8 +52,10 @@ import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @RunWith(value = Parameterized::class)
 class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisle: Boolean) :
@@ -88,11 +89,11 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         val updatedLocation = locationRepository.get(existingLocation.id)
         val countAfter: Int = locationRepository.getAll().count()
 
-        Assert.assertNotNull(updatedLocation)
-        Assert.assertEquals(updatedLocationName, updatedLocation?.name)
-        Assert.assertEquals(pinned, updatedLocation?.pinned)
-        Assert.assertEquals(showDefaultAisle, updatedLocation?.showDefaultAisle)
-        Assert.assertEquals(countBefore, countAfter)
+        assertNotNull(updatedLocation)
+        assertEquals(updatedLocationName, updatedLocation.name)
+        assertEquals(pinned, updatedLocation.pinned)
+        assertEquals(showDefaultAisle, updatedLocation.showDefaultAisle)
+        assertEquals(countBefore, countAfter)
     }
 
     @Test
@@ -109,11 +110,11 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         val newLocation = locationRepository.getByName(newLocationName)
         val countAfter: Int = locationRepository.getAll().count()
 
-        Assert.assertNotNull(newLocation)
-        Assert.assertEquals(newLocationName, newLocation?.name)
-        Assert.assertEquals(pinned, newLocation?.pinned)
-        Assert.assertEquals(showDefaultAisle, newLocation?.showDefaultAisle)
-        Assert.assertEquals(countBefore + 1, countAfter)
+        assertNotNull(newLocation)
+        assertEquals(newLocationName, newLocation.name)
+        assertEquals(pinned, newLocation.pinned)
+        assertEquals(showDefaultAisle, newLocation.showDefaultAisle)
+        assertEquals(countBefore + 1, countAfter)
     }
 
     @Test
@@ -127,7 +128,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         shopViewModel.updateShowDefaultAisle(showDefaultAisle)
         shopViewModel.saveLocation()
 
-        Assert.assertTrue(shopViewModel.shopUiState.value is ShopViewModel.ShopUiState.Success)
+        assertTrue(shopViewModel.shopUiState.value is ShopViewModel.ShopUiState.Success)
     }
 
     @Test
@@ -141,33 +142,33 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         shopViewModel.updateShowDefaultAisle(showDefaultAisle)
         shopViewModel.saveLocation()
 
-        Assert.assertTrue(shopViewModel.shopUiState.value is ShopViewModel.ShopUiState.Error)
+        assertTrue(shopViewModel.shopUiState.value is ShopViewModel.ShopUiState.Error)
     }
 
     @Test
     fun testGetLocationName_LocationExists_ReturnsLocationName() = runTest {
         val existingLocation: Location = get<LocationRepository>().getAll().first()
         shopViewModel.hydrate(existingLocation.id)
-        Assert.assertEquals(existingLocation.name, shopViewModel.uiData.value.locationName)
+        assertEquals(existingLocation.name, shopViewModel.uiData.value.locationName)
     }
 
     @Test
     fun testGetLocationName_LocationDoesNotExists_ReturnsEmptyName() = runTest {
         shopViewModel.hydrate(0)
-        Assert.assertEquals("", shopViewModel.uiData.value.locationName)
+        assertEquals("", shopViewModel.uiData.value.locationName)
     }
 
     @Test
     fun testGetPinned_LocationExists_ReturnsLocationPinnedStatus() = runTest {
         val existingLocation: Location = get<LocationRepository>().getAll().first { it.pinned }
         shopViewModel.hydrate(existingLocation.id)
-        Assert.assertEquals(existingLocation.pinned, shopViewModel.uiData.value.pinned)
+        assertEquals(existingLocation.pinned, shopViewModel.uiData.value.pinned)
     }
 
     @Test
     fun testGetPinned_LocationDoesNotExists_ReturnsFalse() = runTest {
         shopViewModel.hydrate(0)
-        Assert.assertFalse(shopViewModel.uiData.value.pinned)
+        assertFalse(shopViewModel.uiData.value.pinned)
     }
 
     @Test
@@ -175,7 +176,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         val existingLocation: Location =
             get<LocationRepository>().getAll().first { it.showDefaultAisle }
         shopViewModel.hydrate(existingLocation.id)
-        Assert.assertEquals(
+        assertEquals(
             existingLocation.showDefaultAisle, shopViewModel.uiData.value.showDefaultAisle
         )
     }
@@ -183,7 +184,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
     @Test
     fun testShowDefaultAisle_LocationDoesNotExists_ReturnsTrue() = runTest {
         shopViewModel.hydrate(0)
-        Assert.assertTrue(shopViewModel.uiData.value.showDefaultAisle)
+        assertTrue(shopViewModel.uiData.value.showDefaultAisle)
     }
 
     @Test
@@ -200,7 +201,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
             get<GetLocationMaxRankUseCase>()
         )
 
-        Assert.assertNotNull(svm)
+        assertNotNull(svm)
     }
 
     @Test
@@ -223,12 +224,12 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         svm.updateShowDefaultAisle(showDefaultAisle)
         svm.saveLocation()
 
-        Assert.assertTrue(svm.shopUiState.value is ShopViewModel.ShopUiState.Error)
-        Assert.assertEquals(
+        assertTrue(svm.shopUiState.value is ShopViewModel.ShopUiState.Error)
+        assertEquals(
             AisleronException.ExceptionCode.GENERIC_EXCEPTION,
             (svm.shopUiState.value as ShopViewModel.ShopUiState.Error).errorCode
         )
-        Assert.assertEquals(
+        assertEquals(
             exceptionMessage,
             (svm.shopUiState.value as ShopViewModel.ShopUiState.Error).errorMessage
         )
@@ -255,7 +256,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         shopViewModel.hydrate(location.id)
 
-        Assert.assertEquals(loyaltyCard.name, shopViewModel.uiData.value.loyaltyCardName)
+        assertEquals(loyaltyCard.name, shopViewModel.uiData.value.loyaltyCardName)
     }
 
     @Test
@@ -264,7 +265,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         shopViewModel.hydrate(location.id)
 
-        Assert.assertEquals("", shopViewModel.uiData.value.loyaltyCardName)
+        assertEquals("", shopViewModel.uiData.value.loyaltyCardName)
     }
 
     @Test
@@ -275,7 +276,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         shopViewModel.setLoyaltyCard(loyaltyCard)
 
-        Assert.assertEquals(loyaltyCard.name, shopViewModel.uiData.value.loyaltyCardName)
+        assertEquals(loyaltyCard.name, shopViewModel.uiData.value.loyaltyCardName)
     }
 
     @Test
@@ -287,7 +288,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         shopViewModel.removeLoyaltyCard()
 
-        Assert.assertEquals("", shopViewModel.uiData.value.loyaltyCardName)
+        assertEquals("", shopViewModel.uiData.value.loyaltyCardName)
     }
 
     @Test
@@ -304,7 +305,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         val savedLoyaltyCard = get<LoyaltyCardRepository>().getForLocation(location.id)
 
-        Assert.assertEquals(loyaltyCard, savedLoyaltyCard)
+        assertEquals(loyaltyCard, savedLoyaltyCard)
     }
 
     @Test
@@ -322,7 +323,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         val savedLoyaltyCard = get<LoyaltyCardRepository>().getForLocation(location.id)
 
-        Assert.assertNull(savedLoyaltyCard)
+        assertNull(savedLoyaltyCard)
     }
 
     @Test
@@ -339,7 +340,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         val location = get<LocationRepository>().getByName("Test New Location With Loyalty Card")!!
         val savedLoyaltyCard = get<LoyaltyCardRepository>().getForLocation(location.id)
 
-        Assert.assertEquals(loyaltyCard, savedLoyaltyCard)
+        assertEquals(loyaltyCard, savedLoyaltyCard)
     }
 
     @Test
@@ -350,12 +351,12 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         shopViewModel.updateLocationName(updatedLocationName)
         shopViewModel.saveLocation()
 
-        Assert.assertEquals(
+        assertEquals(
             ShopViewModel.ShopUiState.Empty, shopViewModel.shopUiState.value
         )
     }
 
-    private suspend fun getShop(): Location{
+    private suspend fun getShop(): Location {
         return get<LocationRepository>().getAll().first { it.type == LocationType.SHOP }
     }
 
@@ -368,7 +369,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
 
         shopViewModel.hydrate(existingLocation.id)
 
-        Assert.assertEquals(noteText, shopViewModel.noteFlow.value)
+        assertEquals(noteText, shopViewModel.noteFlow.value)
     }
 
     @Test
@@ -382,7 +383,7 @@ class ShopViewModelTest(private val pinned: Boolean, private val showDefaultAisl
         val updatedNote = "Updated note text"
         shopViewModel.updateNote(updatedNote)
 
-        Assert.assertEquals(updatedNote, shopViewModel.noteFlow.value)
+        assertEquals(updatedNote, shopViewModel.noteFlow.value)
     }
 
     @Test

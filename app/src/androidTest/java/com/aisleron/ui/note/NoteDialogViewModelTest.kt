@@ -32,7 +32,6 @@ import com.aisleron.domain.product.ProductRepository
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -81,7 +80,7 @@ class NoteDialogViewModelTest : KoinTest {
             get<ApplyNoteChangesUseCase>()
         )
 
-        Assert.assertNotNull(vm)
+        assertNotNull(vm)
     }
 
     @Test
@@ -163,7 +162,7 @@ class NoteDialogViewModelTest : KoinTest {
         val newNoteText = "New Note text"
         val noteRepository = get<NoteRepository>()
         val countBefore = noteRepository.getAll().count()
-        viewModel.hydrate(NoteParentRef.Product( -1))
+        viewModel.hydrate(NoteParentRef.Product(-1))
         viewModel.updateNote(newNoteText)
 
         viewModel.saveNote()
@@ -194,10 +193,8 @@ class NoteDialogViewModelTest : KoinTest {
         vm.saveNote()
 
         val uiState = vm.uiState.value
-        assertTrue { uiState is NoteDialogViewModel.UiState.Error }
-        with(uiState as NoteDialogViewModel.UiState.Error) {
-            Assert.assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, this.errorCode)
-            Assert.assertEquals(exceptionMessage, this.errorMessage)
-        }
+        assertTrue(uiState is NoteDialogViewModel.UiState.Error)
+        assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, uiState.errorCode)
+        assertEquals(exceptionMessage, uiState.errorMessage)
     }
 }
