@@ -18,7 +18,10 @@
 package com.aisleron.di
 
 import com.aisleron.domain.log.Logger
+import com.aisleron.domain.sync.SyncSessionManager
+import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.log.LoggerTestImpl
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import com.aisleron.ui.AddEditFragmentListener
 import com.aisleron.ui.AddEditFragmentListenerTestImpl
 import com.aisleron.ui.ApplicationTitleUpdateListener
@@ -31,6 +34,8 @@ import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorTestImpl
 import com.aisleron.ui.resourceprovider.ResourceProvider
 import com.aisleron.ui.resourceprovider.ResourceProviderTestImpl
+import com.aisleron.ui.settings.LocaleDelegate
+import com.aisleron.testdata.ui.settings.LocaleDelegateTestImpl
 import org.koin.dsl.module
 
 val generalTestModule = module {
@@ -41,4 +46,6 @@ val generalTestModule = module {
     factory<ResourceProvider> { ResourceProviderTestImpl() }
     factory<MainNavigator> { MainNavigatorTestImpl() }
     factory<Logger> { LoggerTestImpl() }
+    factory<SyncSessionManager> { SyncSessionManagerTestImpl(SyncSessionStatus.NotConfigured) }
+    factory<LocaleDelegate> { LocaleDelegateTestImpl() }
 }

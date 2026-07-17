@@ -85,6 +85,9 @@ val fragmentModule = module {
     }
 
     fragment {
-        SettingsFragment(navigator = get())
+        SettingsFragment(
+            navigator = get(),
+            localeDelegate = get()
+        )
     }
 }

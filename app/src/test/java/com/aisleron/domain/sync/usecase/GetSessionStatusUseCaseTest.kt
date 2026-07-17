@@ -17,39 +17,37 @@
 
 package com.aisleron.domain.sync.usecase
 
-import com.aisleron.domain.sync.SyncSessionManager
 import com.aisleron.domain.sync.SyncSessionStatus
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.single
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class GetSessionStatusUseCaseTest {
-    private val sessionManager: SyncSessionManager = mockk()
+    private lateinit var sessionManager: SyncSessionManagerTestImpl
     private lateinit var getSessionStatusUseCase: GetSessionStatusUseCase
 
     @BeforeEach
     fun setUp() {
+        sessionManager = SyncSessionManagerTestImpl(SyncSessionStatus.NotConfigured)
         getSessionStatusUseCase = GetSessionStatusUseCase(sessionManager)
     }
 
     @Test
     fun invoke_SessionStatusSet_ReturnsSessionStatus() = runTest {
-        coEvery {
-            sessionManager.sessionStatus
-        } returns flowOf(SyncSessionStatus.NotConfigured)
+        val result = getSessionStatusUseCase()
+        assertEquals(SyncSessionStatus.NotConfigured, result.first())
+    }
+
+    @Test
+    fun invoke_SessionStatusChanged_ReturnsUpdatedStatus() = runTest {
+        sessionManager.setNewStatus(SyncSessionStatus.NotAuthenticated)
+        sessionManager.refreshStatus()
 
         val result = getSessionStatusUseCase()
 
-        assertEquals(SyncSessionStatus.NotConfigured, result.single())
-        coVerify(exactly = 1) {
-            @Suppress("UnusedFlow")
-            sessionManager.sessionStatus
-        }
+        assertEquals(SyncSessionStatus.NotAuthenticated, result.first())
     }
 }

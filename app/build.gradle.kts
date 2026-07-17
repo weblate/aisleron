@@ -188,15 +188,6 @@ android {
             }
         }
     }
-
-    // Added to resolve issues with MockK agent (v1.14.11). Remove if issue is resolved.
-    testOptions {
-        packaging {
-            jniLibs {
-                useLegacyPackaging = true
-            }
-        }
-    }
 }
 
 gradle.taskGraph.whenReady {
@@ -346,9 +337,7 @@ dependencies {
     // Android Testing
     androidTestImplementation(project(":testData"))
     androidTestImplementation(libs.junit)
-     androidTestImplementation(libs.kotlin.test)
-    androidTestImplementation(libs.mockk.agent)
-    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.kotlin.test)
     androidTestImplementation(libs.screengrab)
     androidTestImplementation(libs.test.core.ktx)
     androidTestImplementation(libs.uiautomator)

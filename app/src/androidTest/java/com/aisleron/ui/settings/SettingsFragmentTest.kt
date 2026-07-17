@@ -22,7 +22,6 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.preference.EditTextPreference
@@ -58,12 +57,10 @@ import com.aisleron.domain.location.LocationRepository
 import com.aisleron.domain.location.LocationType
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.testdata.data.maintenance.DatabaseMaintenanceDbNameTestImpl
+import com.aisleron.testdata.ui.settings.LocaleDelegateTestImpl
 import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorTestImpl
 import com.aisleron.utils.SystemIds
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.startsWith
@@ -83,6 +80,7 @@ import kotlin.test.assertTrue
 
 class SettingsFragmentTest : KoinTest {
     private lateinit var navigator: MainNavigatorTestImpl
+    private lateinit var localeDelegate: LocaleDelegateTestImpl
 
     @get:Rule
     val koinTestRule = KoinTestRule(
@@ -98,6 +96,7 @@ class SettingsFragmentTest : KoinTest {
     @Before
     fun setUp() {
         navigator = get<MainNavigator>() as MainNavigatorTestImpl
+        localeDelegate = get<LocaleDelegate>() as LocaleDelegateTestImpl
         declare<DatabaseMaintenance> { DatabaseMaintenanceDbNameTestImpl("Dummy") }
     }
 
@@ -119,7 +118,7 @@ class SettingsFragmentTest : KoinTest {
     private fun getFragmentScenario(): FragmentScenario<SettingsFragment> =
         launchFragmentInContainer<SettingsFragment>(
             themeResId = R.style.Theme_Aisleron,
-            instantiate = { SettingsFragment(navigator) }
+            instantiate = { SettingsFragment(navigator, localeDelegate) }
         )
 
 
@@ -355,32 +354,20 @@ class SettingsFragmentTest : KoinTest {
     @Test
     fun onLanguageClick_SelectValue_PreferenceUpdated() {
         val languageResId = R.string.language_spanish_es
-        val localeTag = "es"
+        getFragmentScenario().use { scenario ->
+            val context = getInstrumentation().targetContext
+            val languageName = context.getString(languageResId)
 
-        mockkStatic(AppCompatDelegate::class)
-        try {
-            getFragmentScenario().use { scenario ->
-                val context = getInstrumentation().targetContext
-                val languageName = context.getString(languageResId)
+            clickOption(R.string.language)
+            onView(withText(languageName)).inRoot(isDialog()).perform(click())
 
-                clickOption(R.string.language)
-                onView(withText(languageName)).inRoot(isDialog()).perform(click())
-
-                scenario.onFragment { fragment ->
-                    val languagePreference = fragment.findPreference<ListPreference>("language")
-                    assertEquals(languageName, languagePreference?.summary)
-                }
-
-                verify(exactly = 1) {
-                    AppCompatDelegate.setApplicationLocales(
-                        withArg { localeList ->
-                            assertEquals(localeTag, localeList[0]?.language)
-                        }
-                    )
-                }
+            scenario.onFragment { fragment ->
+                val languagePreference = fragment.findPreference<ListPreference>("language")
+                assertEquals(languageName, languagePreference?.summary)
             }
-        } finally {
-            unmockkStatic(AppCompatDelegate::class)
+
+            val expectedLocaleTag = "es"
+            assertEquals(expectedLocaleTag, localeDelegate.getLocaleTag())
         }
     }
 

@@ -18,29 +18,20 @@
 package com.aisleron.domain.preferences.syncpreferences.usecase
 
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
-import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class GetSyncPreferencesUseCaseTest {
     private lateinit var getSyncPreferencesUseCaseTest: GetSyncPreferencesUseCase
-    private lateinit var syncPreferencesRepository: SyncPreferencesRepository
+    private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
 
     @BeforeEach
     fun setUp() {
-        syncPreferencesRepository = mockk()
+        syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
+        syncPreferencesRepository.resetSyncPreferences()
         getSyncPreferencesUseCaseTest = GetSyncPreferencesUseCase(syncPreferencesRepository)
-    }
-
-    @AfterEach
-    fun tearDown() {
-        clearAllMocks()
     }
 
     @Test
@@ -51,11 +42,10 @@ class GetSyncPreferencesUseCaseTest {
             serviceKey = "abc143293293248329048"
         )
 
-        every { syncPreferencesRepository.getSyncPreferences() } returns syncPreferences
+        syncPreferencesRepository.setSyncPreferences(syncPreferences)
 
         val resultPreferences = getSyncPreferencesUseCaseTest()
 
         assertEquals(syncPreferences, resultPreferences)
-        verify(exactly = 1) { syncPreferencesRepository.getSyncPreferences() }
     }
 }

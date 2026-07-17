@@ -17,40 +17,33 @@
 
 package com.aisleron.domain.preferences.syncpreferences.usecase
 
-import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import org.junit.jupiter.api.AfterEach
+import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class SetCustomSyncServiceDetailsUseCaseTest {
     private lateinit var setCustomSyncServiceDetailsUseCase: SetCustomSyncServiceDetailsUseCase
-    private lateinit var syncPreferencesRepository: SyncPreferencesRepository
+    private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
 
     @BeforeEach
     fun setUp() {
-        syncPreferencesRepository = mockk()
+        syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
+        syncPreferencesRepository.resetSyncPreferences()
         setCustomSyncServiceDetailsUseCase =
             SetCustomSyncServiceDetailsUseCase(syncPreferencesRepository)
-    }
-
-    @AfterEach
-    fun tearDown() {
-        clearAllMocks()
     }
 
     @Test
     fun invoke_CallsSetCustomServiceDetails() {
         val url = "https://SetCustomSyncServiceDetailsUseCaseTest.com"
         val key = "SetCustomSyncServiceDetailsUseCaseTest"
-        every { syncPreferencesRepository.setCustomServiceDetails(url, key) } returns Unit
 
         setCustomSyncServiceDetailsUseCase(url, key)
 
-        verify(exactly = 1) { syncPreferencesRepository.setCustomServiceDetails(url, key) }
+        val updatedPreferences = syncPreferencesRepository.getSyncPreferences()
+        assertEquals(url, updatedPreferences.serviceUrl)
+        assertEquals(key, updatedPreferences.serviceKey)
     }
 
 }

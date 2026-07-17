@@ -17,10 +17,8 @@
 
 package com.aisleron.domain.sync.usecase
 
-import com.aisleron.domain.sync.SyncSessionManager
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
+import com.aisleron.domain.sync.SyncSessionStatus
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -29,36 +27,31 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class SignOutUseCaseTest {
-    private val sessionManager: SyncSessionManager = mockk()
+    private lateinit var sessionManager: SyncSessionManagerTestImpl
     private lateinit var signOutUseCase: SignOutUseCase
 
     @BeforeEach
     fun setUp() {
+        sessionManager = SyncSessionManagerTestImpl(SyncSessionStatus.NotConfigured)
         signOutUseCase = SignOutUseCase(sessionManager)
     }
 
     @Test
     fun invoke_IsInvalidLogout_ReturnError() = runTest {
         val errorMessage = "Logout Error"
-        coEvery { sessionManager.signOut() } returns Result.failure(Exception(errorMessage))
+        sessionManager.failWith(Exception(errorMessage))
 
         val result = signOutUseCase()
 
         assertTrue(result.isFailure)
         assertEquals(errorMessage, result.exceptionOrNull()?.message)
-
-        coVerify(exactly = 1) { sessionManager.signOut() }
     }
 
     @Test
     fun invoke_IsValidLogout_ReturnSuccess() = runTest {
-        coEvery { sessionManager.signOut() } returns Result.success(Unit)
-
         val result = signOutUseCase()
 
         assertTrue(result.isSuccess)
         assertNull(result.exceptionOrNull())
-
-        coVerify(exactly = 1) { sessionManager.signOut() }
     }
 }

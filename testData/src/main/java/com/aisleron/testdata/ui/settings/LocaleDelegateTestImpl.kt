@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025-2026 aisleron.com
+ * Copyright (C) 2026 aisleron.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,19 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.di
+package com.aisleron.testdata.ui.settings
 
-import com.aisleron.data.AisleronDb
-import com.aisleron.domain.TransactionRunner
-import com.aisleron.testdata.data.AisleronTestDb
-import com.aisleron.testdata.data.TransactionRunnerTestImpl
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import org.koin.dsl.module
+import com.aisleron.ui.settings.LocaleDelegate
 
-@OptIn(ExperimentalCoroutinesApi::class)
-val databaseTestModule = module {
-    single<AisleronDb> { AisleronTestDb(TestScope(UnconfinedTestDispatcher())) }
-    single<TransactionRunner> { TransactionRunnerTestImpl() }
+class LocaleDelegateTestImpl : LocaleDelegate {
+    private var _languageTag = ""
+
+    override fun setLocaleFromTag(languageTag: String) {
+        _languageTag = languageTag
+    }
+
+    override fun getLocaleTag(): String = _languageTag
 }

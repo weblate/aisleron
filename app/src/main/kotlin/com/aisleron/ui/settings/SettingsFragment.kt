@@ -30,9 +30,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toUri
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -54,7 +52,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 
 class SettingsFragment(
-    private val navigator: MainNavigator
+    private val navigator: MainNavigator,
+    private val localeDelegate: LocaleDelegate
 ) : PreferenceFragmentCompat(), AisleronFragment {
 
     enum class PreferenceOption(val key: String) {
@@ -82,8 +81,7 @@ class SettingsFragment(
 
         findPreference<ListPreference>("language")?.setOnPreferenceChangeListener { _, newValue ->
             val languageTag = newValue as String
-            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageTag)
-            AppCompatDelegate.setApplicationLocales(appLocale)
+            localeDelegate.setLocaleFromTag(languageTag)
 
             true
         }
@@ -104,7 +102,7 @@ class SettingsFragment(
 
     private fun syncLanguageSelection() {
         val listPreference = findPreference<ListPreference>("language") ?: return
-        val currentLocaleTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        val currentLocaleTag = localeDelegate.getLocaleTag()
 
         val bestMatch = when {
             listPreference.entryValues.contains(currentLocaleTag) -> currentLocaleTag

@@ -17,10 +17,8 @@
 
 package com.aisleron.domain.sync.usecase
 
-import com.aisleron.domain.sync.SyncSessionManager
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
+import com.aisleron.domain.sync.SyncSessionStatus
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -29,11 +27,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class SignInWithEmailUseCaseTest {
-    private val sessionManager: SyncSessionManager = mockk()
+    private lateinit var sessionManager: SyncSessionManagerTestImpl
     private lateinit var signInWithEmailUseCase: SignInWithEmailUseCase
 
     @BeforeEach
     fun setUp() {
+        sessionManager = SyncSessionManagerTestImpl(SyncSessionStatus.NotConfigured)
         signInWithEmailUseCase = SignInWithEmailUseCase(sessionManager)
     }
 
@@ -42,32 +41,29 @@ class SignInWithEmailUseCaseTest {
         val errorMessage = "Login Error"
         val email = "email"
         val password = "password"
-        coEvery {
-            sessionManager.signInWithEmail(email, password)
-        } returns Result.failure(Exception(errorMessage))
+
+        sessionManager.failWith(Exception(errorMessage))
 
         val result = signInWithEmailUseCase(email, password)
 
         assertTrue(result.isFailure)
         assertEquals(errorMessage, result.exceptionOrNull()?.message)
 
-        coVerify(exactly = 1) { sessionManager.signInWithEmail(email, password) }
+        assertEquals("", sessionManager.email)
+        assertEquals("", sessionManager.password)
     }
 
     @Test
     fun invoke_IsValidLogin_ReturnSuccess() = runTest {
         val email = "email"
         val password = "password"
-        coEvery {
-            sessionManager.signInWithEmail(email, password)
-        } returns Result.success(Unit)
 
         val result = signInWithEmailUseCase(email, password)
 
+        assertEquals(email, sessionManager.email)
+        assertEquals(password, sessionManager.password)
         assertTrue(result.isSuccess)
         assertNull(result.exceptionOrNull())
-
-        coVerify(exactly = 1) { sessionManager.signInWithEmail(email, password) }
     }
 
     @Test
@@ -81,7 +77,8 @@ class SignInWithEmailUseCaseTest {
         assertTrue(result.isFailure)
         assertEquals(errorMessage, result.exceptionOrNull()?.message)
 
-        coVerify(exactly = 0) { sessionManager.signInWithEmail(email, password) }
+        assertEquals("", sessionManager.email)
+        assertEquals("", sessionManager.password)
     }
 
     @Test
@@ -95,6 +92,7 @@ class SignInWithEmailUseCaseTest {
         assertTrue(result.isFailure)
         assertEquals(errorMessage, result.exceptionOrNull()?.message)
 
-        coVerify(exactly = 0) { sessionManager.signInWithEmail(email, password) }
+        assertEquals("", sessionManager.email)
+        assertEquals("", sessionManager.password)
     }
 }

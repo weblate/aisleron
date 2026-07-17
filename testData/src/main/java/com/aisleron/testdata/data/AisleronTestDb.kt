@@ -37,9 +37,9 @@ import com.aisleron.testdata.data.maintenance.MaintenanceDaoTestImpl
 import com.aisleron.testdata.data.note.NoteDaoTestImpl
 import com.aisleron.testdata.data.product.ProductDaoTestImpl
 import com.aisleron.testdata.data.productvariant.ProductVariantDaoTestImpl
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
 
-class AisleronTestDb : AisleronDb {
+class AisleronTestDb(coroutineScopeProvider: CoroutineScope) : AisleronDb {
     private val _productDao = ProductDaoTestImpl()
     private val _aisleProductDao = AisleProductDaoTestImpl(_productDao)
     private val _aisleDao = AisleDaoTestImpl(_aisleProductDao)
@@ -72,8 +72,6 @@ class AisleronTestDb : AisleronDb {
     override fun noteDao(): NoteDao = _noteDao
 
     init {
-        runBlocking {
-            DbInitializer(_locationDao, _aisleDao, this).invoke()
-        }
+        DbInitializer(_locationDao, _aisleDao, coroutineScopeProvider).invoke()
     }
 }

@@ -18,10 +18,14 @@
 package com.aisleron.di
 
 import com.aisleron.testdata.data.AisleronTestDb
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TestDependencyManager(private val addData: Boolean = true) {
-    private val db = AisleronTestDb()
+    private val db = AisleronTestDb(TestScope(UnconfinedTestDispatcher()))
     val testRepositoryFactory = TestRepositoryFactory(db)
     val testUseCaseFactory = TestUseCaseFactory(testRepositoryFactory)
 

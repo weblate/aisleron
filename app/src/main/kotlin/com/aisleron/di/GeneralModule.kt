@@ -38,6 +38,8 @@ import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorImpl
 import com.aisleron.ui.resourceprovider.ResourceProvider
 import com.aisleron.ui.resourceprovider.ResourceProviderImpl
+import com.aisleron.ui.settings.LocaleDelegate
+import com.aisleron.ui.settings.LocaleDelegateImpl
 import org.koin.dsl.binds
 import org.koin.dsl.module
 
@@ -63,4 +65,5 @@ val generalModule = module {
     )
 
     single<Logger> { LoggerImpl() }
+    factory<LocaleDelegate> { LocaleDelegateImpl() }
 }

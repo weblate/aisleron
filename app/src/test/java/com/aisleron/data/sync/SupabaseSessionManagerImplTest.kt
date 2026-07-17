@@ -18,9 +18,9 @@
 package com.aisleron.data.sync
 
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
-import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.log.LoggerTestImpl
+import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.status.RefreshFailureCause
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class SupabaseSessionManagerImplTest {
-    private val syncPreferencesRepository: SyncPreferencesRepository = mockk()
+    private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
     private val clientFactory: SupabaseClientFactory = mockk()
     private val authDelegate: SupabaseAuthDelegate = mockk()
     private val mockSupabaseClient: SupabaseClient = mockk()
@@ -51,6 +51,8 @@ class SupabaseSessionManagerImplTest {
 
     @BeforeEach
     fun setUp() {
+        syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
+        syncPreferencesRepository.resetSyncPreferences()
         sessionManager =
             SupabaseSessionManagerImpl(
                 syncPreferencesRepository, clientFactory, authDelegate, LoggerTestImpl()
@@ -58,10 +60,12 @@ class SupabaseSessionManagerImplTest {
     }
 
     private fun initPreferences(serviceUrl: String, serviceKey: String) {
-        every { syncPreferencesRepository.getSyncPreferences() } returns SyncPreferences(
-            useDefaultService = false,
-            serviceUrl = serviceUrl,
-            serviceKey = serviceKey
+        syncPreferencesRepository.setSyncPreferences(
+            SyncPreferences(
+                useDefaultService = false,
+                serviceUrl = serviceUrl,
+                serviceKey = serviceKey
+            )
         )
     }
 
@@ -282,13 +286,19 @@ class SupabaseSessionManagerImplTest {
     fun sessionStatus_AuthStatusIsAuthenticated_SyncSessionStatusIsAuthenticated() = runTest {
         val userEmail = "a@b.c"
 
-        val userInfo: UserInfo = mockk {
-            every { email } returns userEmail
-        }
+        val userInfo = UserInfo(
+            aud = "",
+            email = userEmail,
+            id = ""
+        )
 
-        val userSession: UserSession = mockk {
-            every { user } returns userInfo
-        }
+        val userSession = UserSession(
+            accessToken = "",
+            refreshToken = "",
+            expiresIn = 0,
+            tokenType = "",
+            user = userInfo
+        )
 
         validateStatus_ArrangeActAssert(
             supabaseSessionStatus = SessionStatus.Authenticated(userSession),

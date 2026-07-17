@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025-2026 aisleron.com
+ * Copyright (C) 2026 aisleron.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,19 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.di
+package com.aisleron.ui.settings
 
-import com.aisleron.data.AisleronDb
-import com.aisleron.domain.TransactionRunner
-import com.aisleron.testdata.data.AisleronTestDb
-import com.aisleron.testdata.data.TransactionRunnerTestImpl
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import org.koin.dsl.module
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
-@OptIn(ExperimentalCoroutinesApi::class)
-val databaseTestModule = module {
-    single<AisleronDb> { AisleronTestDb(TestScope(UnconfinedTestDispatcher())) }
-    single<TransactionRunner> { TransactionRunnerTestImpl() }
+interface LocaleDelegate {
+    fun setLocaleFromTag(languageTag: String)
+    fun getLocaleTag(): String
+}
+
+class LocaleDelegateImpl : LocaleDelegate{
+    override fun setLocaleFromTag(languageTag: String) {
+        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageTag)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+    }
+
+    override fun getLocaleTag(): String =
+        AppCompatDelegate.getApplicationLocales().toLanguageTags()
 }
