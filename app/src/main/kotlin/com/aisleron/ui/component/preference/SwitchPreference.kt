@@ -15,10 +15,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.domain.preferences.syncpreferences
+package com.aisleron.ui.component.preference
 
-interface SyncPreferencesRepository {
-    fun getSyncPreferences(): SyncPreferences
-    fun setCustomServiceDetails(url: String, key: String)
-    fun setSyncOnMobileData(value: Boolean)
+import androidx.annotation.DrawableRes
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+@Composable
+fun SwitchPreference(
+    title: String,
+    checked: Boolean,
+    onCheckedChanged: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    summary: String? = null,
+    @DrawableRes iconResId: Int? = null
+) {
+    Preference(
+        title = title,
+        summary = summary,
+        modifier = modifier,
+        iconResId = iconResId,
+        control = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChanged
+            )
+        }
+    )
 }

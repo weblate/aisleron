@@ -155,6 +155,10 @@ class SharedPreferencesInitializer {
         setPreferenceValue(PREF_CUSTOM_SERVICE_KEY, value)
     }
 
+    fun setSyncOnMobileData(value: Boolean) {
+        setPreferenceValue(PREF_SYNC_ON_MOBILE_DATA, value)
+    }
+
     companion object {
         private const val IS_INITIALIZED = "is_initialised"
         private const val APPLICATION_THEME = "application_theme"
@@ -175,5 +179,6 @@ class SharedPreferencesInitializer {
         private const val PREF_USE_DEFAULT_SERVICE = "use_default_service"
         private const val PREF_CUSTOM_SERVICE_URL = "custom_service_url"
         private const val PREF_CUSTOM_SERVICE_KEY = "custom_service_key"
+        private const val PREF_SYNC_ON_MOBILE_DATA = "sync_on_mobile_data"
     }
 }

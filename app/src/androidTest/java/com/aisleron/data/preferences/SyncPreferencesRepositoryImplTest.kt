@@ -27,6 +27,7 @@ import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SyncPreferencesRepositoryImplTest {
     private lateinit var syncPreferencesRepository: SyncPreferencesRepository
@@ -110,5 +111,16 @@ class SyncPreferencesRepositoryImplTest {
 
         val updatedKey = preferences().getString(CUSTOM_SERVICE_KEY, "")
         assertEquals(customKey, updatedKey)
+    }
+
+    @Test
+    fun setSyncOnMobileData_ValueProvided_SyncOnMobileData() {
+        sharedPreferencesInitializer.setSyncOnMobileData(false)
+        val valueBefore = syncPreferencesRepository.getSyncPreferences().syncOnMobileData
+
+        syncPreferencesRepository.setSyncOnMobileData(!valueBefore)
+
+        val valueAfter = syncPreferencesRepository.getSyncPreferences().syncOnMobileData
+        assertTrue(valueBefore != valueAfter)
     }
 }

@@ -104,6 +104,7 @@ import com.aisleron.domain.note.usecase.UpdateNoteUseCase
 import com.aisleron.domain.note.usecase.UpdateNoteUseCaseImpl
 import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetCustomSyncServiceDetailsUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncOnMobileDataUseCase
 import com.aisleron.domain.product.usecase.AddProductUseCase
 import com.aisleron.domain.product.usecase.AddProductUseCaseImpl
 import com.aisleron.domain.product.usecase.CopyProductUseCase
@@ -462,13 +463,14 @@ val useCaseModule = module {
     /**
      * Sync Use Cases
      */
-    factory<SignInWithEmailUseCase> { SignInWithEmailUseCase(sessionManager = get()) }
-    factory<SignOutUseCase> { SignOutUseCase(sessionManager = get()) }
     factory<GetSyncPreferencesUseCase> { GetSyncPreferencesUseCase(syncPreferencesRepository = get()) }
+    factory<SetSyncOnMobileDataUseCase> { SetSyncOnMobileDataUseCase(syncPreferencesRepository = get()) }
     factory<SetCustomSyncServiceDetailsUseCase> {
         SetCustomSyncServiceDetailsUseCase(syncPreferencesRepository = get())
     }
 
+    factory<SignInWithEmailUseCase> { SignInWithEmailUseCase(sessionManager = get()) }
+    factory<SignOutUseCase> { SignOutUseCase(sessionManager = get()) }
     factory<GetSessionStatusUseCase> { GetSessionStatusUseCase(sessionManager = get()) }
     factory<RefreshSessionStatusUseCase> { RefreshSessionStatusUseCase(sessionManager = get()) }
 }

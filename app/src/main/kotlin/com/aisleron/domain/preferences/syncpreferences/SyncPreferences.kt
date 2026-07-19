@@ -20,5 +20,6 @@ package com.aisleron.domain.preferences.syncpreferences
 data class SyncPreferences(
     val useDefaultService: Boolean,
     val serviceUrl: String,
-    val serviceKey: String
+    val serviceKey: String,
+    val syncOnMobileData: Boolean
 )

@@ -15,10 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.domain.preferences.syncpreferences
+package com.aisleron.domain.preferences.syncpreferences.usecase
 
-interface SyncPreferencesRepository {
-    fun getSyncPreferences(): SyncPreferences
-    fun setCustomServiceDetails(url: String, key: String)
-    fun setSyncOnMobileData(value: Boolean)
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+
+class SetSyncOnMobileDataUseCase(private val syncPreferencesRepository: SyncPreferencesRepository) {
+    operator fun invoke(value: Boolean) {
+        syncPreferencesRepository.setSyncOnMobileData(value)
+    }
 }

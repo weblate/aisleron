@@ -44,7 +44,7 @@ fun SyncServiceConfigDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(stringResource(R.string.sync_service_dialog_header)) },
+        title = { Text(stringResource(R.string.sync_service_title)) },
         text = {
             Column {
                 Text(stringResource(R.string.sync_service_dialog_info))

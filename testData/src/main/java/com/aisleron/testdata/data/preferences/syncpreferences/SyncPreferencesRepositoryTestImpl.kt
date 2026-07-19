@@ -21,11 +21,7 @@ import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 
 class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
-    var _syncPreferences = SyncPreferences(
-        useDefaultService = false,
-        serviceUrl = "",
-        serviceKey = ""
-    )
+    private var _syncPreferences = getDefaultSyncPreferences()
 
     override fun getSyncPreferences(): SyncPreferences = _syncPreferences
 
@@ -36,15 +32,24 @@ class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
         )
     }
 
+    override fun setSyncOnMobileData(value: Boolean) {
+        _syncPreferences = _syncPreferences.copy(
+            syncOnMobileData = value
+        )
+    }
+
     fun setSyncPreferences(syncPreferences: SyncPreferences) {
         _syncPreferences = syncPreferences
     }
 
+    fun getDefaultSyncPreferences() = SyncPreferences(
+        useDefaultService = false,
+        serviceUrl = "",
+        serviceKey = "",
+        syncOnMobileData = false
+    )
+
     fun resetSyncPreferences() {
-        _syncPreferences = SyncPreferences(
-            useDefaultService = false,
-            serviceUrl = "",
-            serviceKey = ""
-        )
+        _syncPreferences = getDefaultSyncPreferences()
     }
 }

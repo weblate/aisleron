@@ -28,7 +28,7 @@ class SyncPreferencesRepositoryImpl(
     private val defaultKey: String
 ) : SyncPreferencesRepository {
     private fun useDefaultService(): Boolean = false
-    //prefs.getBoolean(USE_DEFAULT_SERVICE, false)
+    //sharedPreferences.getBoolean(USE_DEFAULT_SERVICE, false)
 
     private fun getServiceUrl(): String {
         return if (useDefaultService())
@@ -44,11 +44,15 @@ class SyncPreferencesRepositoryImpl(
             sharedPreferences.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
     }
 
+    private fun getSyncOnMobileData(): Boolean =
+        sharedPreferences.getBoolean(SYNC_ON_MOBILE_DATA, false)
+
     override fun getSyncPreferences(): SyncPreferences =
         SyncPreferences(
             useDefaultService = useDefaultService(),
             serviceUrl = getServiceUrl(),
-            serviceKey = getServiceKey()
+            serviceKey = getServiceKey(),
+            syncOnMobileData = getSyncOnMobileData()
         )
 
     override fun setCustomServiceDetails(url: String, key: String) {
@@ -58,9 +62,16 @@ class SyncPreferencesRepositoryImpl(
         }
     }
 
+    override fun setSyncOnMobileData(value: Boolean) {
+        sharedPreferences.edit {
+            putBoolean(SYNC_ON_MOBILE_DATA, value)
+        }
+    }
+
     companion object {
         const val USE_DEFAULT_SERVICE = "use_default_service"
         const val CUSTOM_SERVICE_URL = "custom_service_url"
         const val CUSTOM_SERVICE_KEY = "custom_service_key"
+        const val SYNC_ON_MOBILE_DATA = "sync_on_mobile_data"
     }
 }

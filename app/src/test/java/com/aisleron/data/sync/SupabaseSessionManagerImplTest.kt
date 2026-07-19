@@ -17,7 +17,6 @@
 
 package com.aisleron.data.sync
 
-import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.log.LoggerTestImpl
 import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
@@ -60,13 +59,12 @@ class SupabaseSessionManagerImplTest {
     }
 
     private fun initPreferences(serviceUrl: String, serviceKey: String) {
-        syncPreferencesRepository.setSyncPreferences(
-            SyncPreferences(
-                useDefaultService = false,
-                serviceUrl = serviceUrl,
-                serviceKey = serviceKey
-            )
+        val syncPreferences = syncPreferencesRepository.getDefaultSyncPreferences().copy(
+            serviceUrl = serviceUrl,
+            serviceKey = serviceKey
         )
+
+        syncPreferencesRepository.setSyncPreferences(syncPreferences)
     }
 
     private fun initMocks(serviceUrl: String, serviceKey: String) {

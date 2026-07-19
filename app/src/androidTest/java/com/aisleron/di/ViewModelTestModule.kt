@@ -150,6 +150,7 @@ val viewModelTestModule = module {
             setCustomSyncServiceDetailsUseCase = get(),
             getSessionStatusUseCase = get(),
             refreshSessionStatusUseCase = get(),
+            setSyncOnMobileDataUseCase = get(),
             logger = get(),
             TestScope(UnconfinedTestDispatcher())
         )

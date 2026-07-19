@@ -18,32 +18,28 @@
 package com.aisleron.domain.preferences.syncpreferences.usecase
 
 import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class GetSyncPreferencesUseCaseTest {
-    private lateinit var getSyncPreferencesUseCaseTest: GetSyncPreferencesUseCase
+class SetSyncOnMobileDataUseCaseTest {
+    private lateinit var setSyncOnMobileDataUseCase: SetSyncOnMobileDataUseCase
     private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
 
     @BeforeEach
     fun setUp() {
         syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
         syncPreferencesRepository.resetSyncPreferences()
-        getSyncPreferencesUseCaseTest = GetSyncPreferencesUseCase(syncPreferencesRepository)
+        setSyncOnMobileDataUseCase = SetSyncOnMobileDataUseCase(syncPreferencesRepository)
     }
 
     @Test
-    fun invoke_ReturnsSyncPreferences() {
-        val syncPreferences = syncPreferencesRepository.getDefaultSyncPreferences().copy(
-            serviceUrl = "https://example.com",
-            serviceKey = "abc143293293248329048",
-        )
+    fun invoke_CallsSetSyncOnMobileData() {
+        val syncOnMobileDataBefore = syncPreferencesRepository.getSyncPreferences().syncOnMobileData
 
-        syncPreferencesRepository.setSyncPreferences(syncPreferences)
+        setSyncOnMobileDataUseCase(!syncOnMobileDataBefore)
 
-        val resultPreferences = getSyncPreferencesUseCaseTest()
-
-        assertEquals(syncPreferences, resultPreferences)
+        val updatedPreferences = syncPreferencesRepository.getSyncPreferences()
+        assertTrue(syncOnMobileDataBefore != updatedPreferences.syncOnMobileData)
     }
 }
