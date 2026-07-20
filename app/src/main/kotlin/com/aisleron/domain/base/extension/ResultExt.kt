@@ -15,18 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.domain.sync.usecase
+package com.aisleron.domain.base.extension
 
-import com.aisleron.domain.base.AisleronException
-import com.aisleron.domain.base.extension.recoverCatchingUnlessCancelled
-import com.aisleron.domain.sync.SyncSessionManager
+import kotlinx.coroutines.CancellationException
 
-class SignOutUseCase(private val sessionManager: SyncSessionManager) {
-    suspend operator fun invoke(): Result<Unit> =
-        sessionManager.signOut().recoverCatchingUnlessCancelled { throwable ->
-            throw AisleronException.SignOutException(
-                message = "Error on signing out",
-                cause = throwable
-            )
-        }
+/**
+ * A safe alternative to [recoverCatching] that automatically propagates
+ * coroutine cancellation instead of wrapping it.
+ */
+inline fun <T> Result<T>.recoverCatchingUnlessCancelled(
+    transform: (exception: Throwable) -> T
+): Result<T> {
+    return when (val throwable = exceptionOrNull()) {
+        null -> this
+        is CancellationException -> throw throwable
+        else -> runCatching { transform(throwable) }
+    }
 }

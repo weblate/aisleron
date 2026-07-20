@@ -70,6 +70,9 @@ sealed class AisleronException(
     class AisleMoveException(message: String? = null, cause: Throwable? = null) :
         AisleronException(ExceptionCode.AISLE_MOVE_EXCEPTION, message, cause)
 
+    class SignOutException(message: String? = null, cause: Throwable? = null) :
+        AisleronException(ExceptionCode.SIGN_OUT_EXCEPTION, message, cause)
+
     enum class ExceptionCode {
         GENERIC_EXCEPTION,
         DELETE_DEFAULT_AISLE_EXCEPTION,
@@ -87,6 +90,11 @@ sealed class AisleronException(
         INVALID_LOYALTY_CARD_EXCEPTION,
         LOYALTY_CARD_NOT_FOUND_EXCEPTION,
         INVALID_PRODUCT_EXCEPTION,
-        AISLE_MOVE_EXCEPTION
+        AISLE_MOVE_EXCEPTION,
+        SIGN_OUT_EXCEPTION
     }
 }
+
+val Throwable?.exceptionCode: AisleronException.ExceptionCode
+    get() = (this as? AisleronException)?.exceptionCode
+        ?: AisleronException.ExceptionCode.GENERIC_EXCEPTION

@@ -40,6 +40,7 @@ class AisleronExceptionMap {
             ExceptionCode.INVALID_LOYALTY_CARD_EXCEPTION -> R.string.invalid_loyalty_card_exception
             ExceptionCode.LOYALTY_CARD_NOT_FOUND_EXCEPTION -> R.string.loyalty_card_not_found_exception
             ExceptionCode.AISLE_MOVE_EXCEPTION -> R.string.aisle_move_exception
+            ExceptionCode.SIGN_OUT_EXCEPTION -> R.string.sign_out_exception
         }
     }
 }

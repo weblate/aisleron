@@ -17,14 +17,19 @@
 
 package com.aisleron.domain.sync.usecase
 
+import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertThrows
 
 class SignOutUseCaseTest {
     private lateinit var sessionManager: SyncSessionManagerTestImpl
@@ -37,21 +42,36 @@ class SignOutUseCaseTest {
     }
 
     @Test
-    fun invoke_IsInvalidLogout_ReturnError() = runTest {
-        val errorMessage = "Logout Error"
+    fun invoke_IsInvalidLogout_ReturnsFailureResult() = runTest {
+        val errorMessage = "Sign Out Error"
         sessionManager.failWith(Exception(errorMessage))
 
         val result = signOutUseCase()
 
         assertTrue(result.isFailure)
-        assertEquals(errorMessage, result.exceptionOrNull()?.message)
+        val exception =
+            assertInstanceOf<AisleronException.SignOutException>(result.exceptionOrNull())
+
+        assertEquals(errorMessage, exception.cause?.message)
     }
 
     @Test
-    fun invoke_IsValidLogout_ReturnSuccess() = runTest {
+    fun invoke_IsValidLogout_ReturnsSuccessResult() = runTest {
+        sessionManager.setSignedIn(true)
+
         val result = signOutUseCase()
 
         assertTrue(result.isSuccess)
         assertNull(result.exceptionOrNull())
+        assertFalse(sessionManager.signedIn)
+    }
+
+    @Test
+    fun invoke_IsCancellationException_ThrowsCancellationException() = runTest {
+        sessionManager.failWith(CancellationException())
+
+        assertThrows<CancellationException> {
+            signOutUseCase()
+        }
     }
 }

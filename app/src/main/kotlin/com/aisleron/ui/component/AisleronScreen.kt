@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -33,6 +35,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 fun AisleronScreen(
     title: String,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     topBar: @Composable (TopAppBarScrollBehavior) -> Unit = { scrollBehavior ->
         BasicTopAppBar(
@@ -49,7 +52,10 @@ fun AisleronScreen(
     Scaffold(
         modifier = modifier.nestedScroll(resolvedScrollBehavior.nestedScrollConnection) // Link scrolling to the topbar
             .imePadding(),
-        topBar = { topBar(resolvedScrollBehavior) }
+        topBar = { topBar(resolvedScrollBehavior) },
+        snackbarHost = {
+            snackbarHostState?.let { SnackbarHost(hostState = it) }
+        }
     ) { paddingValues ->
         content(paddingValues)
     }

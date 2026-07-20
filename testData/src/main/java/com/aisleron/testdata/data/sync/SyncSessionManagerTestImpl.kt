@@ -34,6 +34,9 @@ class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSession
     private var _password: String = ""
     val password: String get() = _password
 
+    private var _signedIn: Boolean = false
+    val signedIn: Boolean get() = _signedIn
+
     private var _failWithException: Exception? = null
 
     override suspend fun signInWithEmail(email: String, password: String): Result<Unit> {
@@ -41,12 +44,14 @@ class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSession
 
         _email = email
         _password = password
+        _signedIn = true
         return Result.success(Unit)
     }
 
     override suspend fun signOut(): Result<Unit> {
         _failWithException?.let { return Result.failure(it) }
 
+        _signedIn = false
         return Result.success(Unit)
     }
 
@@ -62,5 +67,9 @@ class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSession
 
     fun failWith(e: Exception?) {
         _failWithException = e
+    }
+
+    fun setSignedIn(signedIn: Boolean) {
+        _signedIn = signedIn
     }
 }

@@ -138,7 +138,7 @@ val viewModelTestModule = module {
         SignInViewModel(
             signInWithEmailUseCase = get(),
             getSyncPreferencesUseCase = get(),
-            setCustomSyncServiceDetailsUseCase = get(),
+            logger = get(),
             TestScope(UnconfinedTestDispatcher())
         )
     }
