@@ -45,7 +45,7 @@ val generalTestModule = module {
     factory<LoyaltyCardProvider> { LoyaltyCardProviderTestImpl() }
     factory<ResourceProvider> { ResourceProviderTestImpl() }
     factory<MainNavigator> { MainNavigatorTestImpl() }
-    factory<Logger> { LoggerTestImpl() }
-    factory<SyncSessionManager> { SyncSessionManagerTestImpl(SyncSessionStatus.NotConfigured) }
+    single<Logger> { LoggerTestImpl() }
+    single<SyncSessionManager> { SyncSessionManagerTestImpl(SyncSessionStatus.NotConfigured) }
     factory<LocaleDelegate> { LocaleDelegateTestImpl() }
 }

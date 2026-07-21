@@ -17,6 +17,8 @@
 
 package com.aisleron.di
 
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
 import com.aisleron.ui.settings.DisplayPreferences
 import com.aisleron.ui.settings.DisplayPreferencesImpl
 import com.aisleron.ui.settings.ProductPreferences
@@ -35,4 +37,5 @@ val preferenceTestModule = module {
     factory<WelcomePreferences> { WelcomePreferencesTestImpl() }
     factory<ShopPreferences> { ShopPreferencesTestImpl() }
     factory<ProductPreferences> { ProductPreferencesTestImpl() }
+    single<SyncPreferencesRepository> { SyncPreferencesRepositoryTestImpl() }
 }

@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSessionManager {
-    private var newStatus: SyncSessionStatus = SyncSessionStatus.NotConfigured
+    private var futureStatus: SyncSessionStatus = SyncSessionStatus.NotConfigured
     private var _sessionStatus = MutableStateFlow(initialStatus)
     override val sessionStatus: Flow<SyncSessionStatus>
         get() = _sessionStatus
@@ -56,13 +56,13 @@ class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSession
     }
 
     override fun refreshStatus() {
-        _sessionStatus.value = newStatus
+        _sessionStatus.value = futureStatus
     }
 
-    fun setNewStatus(syncSessionStatus: SyncSessionStatus) {
+    fun setFutureStatus(futureSyncSessionStatus: SyncSessionStatus) {
         // Don't set the actual status in this method. This should be done with an explicit
         // call to refreshStatus
-        newStatus = syncSessionStatus
+        futureStatus = futureSyncSessionStatus
     }
 
     fun failWith(e: Exception?) {

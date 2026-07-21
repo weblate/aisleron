@@ -152,6 +152,7 @@ val viewModelTestModule = module {
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
             logger = get(),
+            debounceTime = 0,
             TestScope(UnconfinedTestDispatcher())
         )
     }

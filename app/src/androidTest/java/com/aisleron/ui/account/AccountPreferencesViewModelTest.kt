@@ -1,0 +1,207 @@
+/*
+ * Copyright (C) 2026 aisleron.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package com.aisleron.ui.account
+
+import com.aisleron.di.KoinTestRule
+import com.aisleron.di.generalTestModule
+import com.aisleron.di.preferenceTestModule
+import com.aisleron.di.useCaseModule
+import com.aisleron.di.viewModelTestModule
+import com.aisleron.domain.base.AisleronException
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.sync.SyncSessionManager
+import com.aisleron.domain.sync.SyncSessionStatus
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.koin.test.KoinTest
+import org.koin.test.get
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class AccountPreferencesViewModelTest : KoinTest{
+    private lateinit var viewModel: AccountPreferencesViewModel
+
+    @get:Rule
+    val koinTestRule = KoinTestRule(
+        modules = listOf(
+            useCaseModule, preferenceTestModule, generalTestModule, viewModelTestModule
+        )
+    )
+
+    @Before
+    fun setUp() {
+        viewModel = get<AccountPreferencesViewModel>()
+    }
+
+    private fun getSyncSessionManager(): SyncSessionManagerTestImpl =
+        get<SyncSessionManager>() as SyncSessionManagerTestImpl
+
+
+    @Test
+    fun signOut_UseCaseResultIsSuccess_SessionSignedOut() = runTest {
+        val sessionManager = getSyncSessionManager()
+        sessionManager.setSignedIn(true)
+
+        viewModel.signOut()
+
+        assertFalse(sessionManager.signedIn)
+
+        val uiState = viewModel.uiState
+        assertFalse(uiState.value.isLoading)
+    }
+
+    @Test
+    fun signOut_UseCaseResultIsFailure_AisleronErrorCodeEmitted() = runTest {
+        val sessionManager = getSyncSessionManager()
+        sessionManager.setSignedIn(true)
+        sessionManager.failWith(Exception())
+
+        viewModel.signOut()
+
+        assertTrue(sessionManager.signedIn)
+
+        val errorState = viewModel.signOutError
+        assertIs<AisleronException.ExceptionCode>(errorState.value)
+
+        val uiState = viewModel.uiState
+        assertFalse(uiState.value.isLoading)
+    }
+
+    @Test
+    fun signOut_CancellationException_SignOutFailsWithNoError() = runTest {
+        val sessionManager = getSyncSessionManager()
+        sessionManager.setSignedIn(true)
+        sessionManager.failWith(CancellationException())
+
+        viewModel.signOut()
+
+        assertTrue(sessionManager.signedIn)
+
+        val errorState = viewModel.signOutError
+        assertNull(errorState.value)
+
+        val uiState = viewModel.uiState
+        assertFalse(uiState.value.isLoading)
+    }
+
+    @Test
+    fun consumeSignOutError_HasError_ErrorCleared() = runTest {
+        val sessionManager = getSyncSessionManager()
+        sessionManager.failWith(Exception())
+        viewModel.signOut()
+
+        val errorStateBefore = viewModel.signOutError
+        assertIs<AisleronException.ExceptionCode>(errorStateBefore.value)
+
+        viewModel.consumeSignOutError()
+
+        val errorStateAfter = viewModel.signOutError
+        assertNull(errorStateAfter.value)
+    }
+
+    @Test
+    fun saveSyncServiceDetails_WithValidValues_PreferencesUpdated() = runTest {
+        val syncPreferencesRepository = get<SyncPreferencesRepository>()
+        syncPreferencesRepository.setCustomServiceDetails("", "")
+        val url = "http://customurl.test"
+        val key = "customKeyTest"
+
+        viewModel.saveSyncServiceDetails(url, key)
+
+        val preferences = syncPreferencesRepository.getSyncPreferences()
+        assertEquals(url, preferences.serviceUrl)
+        assertEquals(key, preferences.serviceKey)
+
+        val uiState = viewModel.uiState.first()
+        assertEquals(url, uiState.serviceUrl)
+    }
+
+    @Test
+    fun saveSyncServiceDetails_WithValidValues_SyncSessionStatusUpdated() = runTest {
+        val url = "http://customurl.test"
+        val key = "customKeyTest"
+        val sessionManager = getSyncSessionManager()
+        sessionManager.setFutureStatus(SyncSessionStatus.NotAuthenticated)
+        assertIs<SyncSessionStatus.NotConfigured>(viewModel.uiState.first().sessionStatus)
+
+        viewModel.saveSyncServiceDetails(url, key)
+
+        assertIs<SyncSessionStatus.NotAuthenticated>(sessionManager.sessionStatus.first())
+
+        val uiState = viewModel.uiState.first()
+        assertIs<SyncSessionStatus.NotAuthenticated>(uiState.sessionStatus)
+    }
+
+    @Test
+    fun setSyncOnMobileData_WithValidValues_PreferencesUpdated() = runTest {
+        val syncPreferencesRepository = get<SyncPreferencesRepository>()
+        syncPreferencesRepository.setSyncOnMobileData(false)
+
+        viewModel.setSyncOnMobileData(true)
+
+        val preferences = syncPreferencesRepository.getSyncPreferences()
+        assertTrue(preferences.syncOnMobileData)
+
+        val uiState = viewModel.uiState.first()
+        assertTrue(uiState.syncOnMobileData)
+    }
+
+    @Test
+    fun constructor_WithDefaultParameters_AccountPreferencesViewModelReturned() {
+        val vm = AccountPreferencesViewModel(
+            signOutUseCase = get(),
+            getSyncPreferencesUseCase = get(),
+            setCustomSyncServiceDetailsUseCase = get(),
+            getSessionStatusUseCase = get(),
+            refreshSessionStatusUseCase = get(),
+            setSyncOnMobileDataUseCase = get(),
+            logger = get()
+        )
+
+        assertNotNull(vm)
+    }
+
+    @Test
+    fun sessionStatusFlow_IsLoading_LoadingStatusReturned() = runTest {
+        val sessionManager = getSyncSessionManager()
+        sessionManager.setFutureStatus(SyncSessionStatus.Loading)
+
+        sessionManager.refreshStatus()
+
+        val uiState = viewModel.uiState.first()
+        assertIs<SyncSessionStatus.Loading>(uiState.sessionStatus)
+    }
+
+
+    /**
+     * Tests:
+     * setSyncOnMobileData - value specified - preferences updated
+     * setSyncOnMobileData - value specified - Sync Preferences refreshed
+     */
+}

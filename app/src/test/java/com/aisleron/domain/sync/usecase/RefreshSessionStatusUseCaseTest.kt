@@ -37,7 +37,7 @@ class RefreshSessionStatusUseCaseTest {
 
     @Test
     fun invoke_CallsRefreshSession() = runTest {
-        sessionManager.setNewStatus(SyncSessionStatus.NotAuthenticated)
+        sessionManager.setFutureStatus(SyncSessionStatus.NotAuthenticated)
 
         // Validate that status has not yet changed
         assertEquals(SyncSessionStatus.NotConfigured, sessionManager.sessionStatus.first())

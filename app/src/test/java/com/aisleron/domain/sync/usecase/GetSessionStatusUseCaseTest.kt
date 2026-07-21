@@ -43,7 +43,7 @@ class GetSessionStatusUseCaseTest {
 
     @Test
     fun invoke_SessionStatusChanged_ReturnsUpdatedStatus() = runTest {
-        sessionManager.setNewStatus(SyncSessionStatus.NotAuthenticated)
+        sessionManager.setFutureStatus(SyncSessionStatus.NotAuthenticated)
         sessionManager.refreshStatus()
 
         val result = getSessionStatusUseCase()
