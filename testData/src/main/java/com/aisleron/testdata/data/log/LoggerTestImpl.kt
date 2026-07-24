@@ -20,6 +20,31 @@ package com.aisleron.testdata.data.log
 import com.aisleron.domain.log.Logger
 
 class LoggerTestImpl : Logger {
-    override fun d(tag: String, message: String) {}
-    override fun e(tag: String, message: String, throwable: Throwable?) {}
+    private var dParameters = LogParameters()
+    private var eParameters = LogParameters()
+
+    fun getDParameters(): LogParameters = dParameters
+
+    fun getEParameters(): LogParameters = eParameters
+
+    override fun d(tag: String, message: String) {
+        dParameters = LogParameters(
+            tag = tag,
+            message = message
+        )
+    }
+
+    override fun e(tag: String, message: String, throwable: Throwable?) {
+        eParameters = LogParameters(
+            tag = tag,
+            message = message,
+            throwable = throwable
+        )
+    }
+
+    data class LogParameters(
+        val tag: String = "",
+        val message: String = "",
+        val throwable: Throwable? = null
+    )
 }

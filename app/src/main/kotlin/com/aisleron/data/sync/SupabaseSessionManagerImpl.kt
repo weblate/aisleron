@@ -17,12 +17,18 @@
 
 package com.aisleron.data.sync
 
+import com.aisleron.domain.base.AisleronException
+import com.aisleron.domain.base.extension.recoverCatchingUnlessCancelled
+import com.aisleron.domain.base.extension.runCatchingUnlessCancelled
 import com.aisleron.domain.log.Logger
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.domain.sync.SyncSessionManager
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.exception.AuthErrorCode
+import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.exceptions.HttpRequestException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,43 +74,104 @@ class SupabaseSessionManagerImpl(
             && activeClient?.supabaseKey == savedKey
         ) return activeClient
 
-        activeClient?.let {
+        activeClient?.let { client ->
             try {
-                it.close()
-            } catch (e: Exception) {
-                logger.e("SupabaseSessionManager", "Error closing old client configuration", e)
+                runCatchingUnlessCancelled {
+                    client.close()
+                }.onFailure { throwable ->
+                    logger.e(
+                        tag = "SupabaseSessionManager",
+                        message = "Error closing old client configuration",
+                        throwable = throwable
+                    )
+                }
             } finally {
+                // Need try-finally to explicitly free the activeClient even on cancellationException
                 activeClient = null
             }
         }
 
         if (savedUrl.isNotBlank() && savedKey.isNotBlank()) {
-            try {
+            runCatchingUnlessCancelled {
                 logger.d("SupabaseSessionManager", "Provisioning client on demand...")
-                activeClient = clientFactory.create(savedUrl, savedKey)
-            } catch (e: Exception) {
-                logger.e("SupabaseSessionManager", "Failed to build Supabase client", e)
-                activeClient = null
+                clientFactory.create(savedUrl, savedKey)
+            }.onSuccess { newClient ->
+                activeClient = newClient
+            }.onFailure { throwable ->
+                logger.e("SupabaseSessionManager", "Failed to build Supabase client", throwable)
             }
         }
 
         return activeClient
     }
 
-    override suspend fun signInWithEmail(email: String, password: String): Result<Unit> =
-        runCatching {
+    private fun mapException(throwable: Throwable): Throwable {
+        return when (throwable) {
+            is AuthRestException -> {
+                var message: String
+                var exceptionCode: AisleronException.ExceptionCode
+
+                when (throwable.errorCode) {
+                    AuthErrorCode.InvalidCredentials -> {
+                        message = "Invalid email or password"
+                        exceptionCode =
+                            AisleronException.ExceptionCode.INVALID_CREDENTIAL_EXCEPTION
+                    }
+
+                    AuthErrorCode.EmailNotConfirmed -> {
+                        message = "Email address not confirmed"
+                        exceptionCode =
+                            AisleronException.ExceptionCode.UNCONFIRMED_EMAIL_EXCEPTION
+                    }
+
+                    else -> {
+                        message = "Authentication failed"
+                        exceptionCode = AisleronException.ExceptionCode.AUTH_EXCEPTION
+                    }
+                }
+
+                AisleronException.AuthException(exceptionCode, message, cause = throwable)
+            }
+
+            is HttpRequestException -> {
+                AisleronException.NetworkException(
+                    exceptionCode = AisleronException.ExceptionCode.NETWORK_EXCEPTION,
+                    message = "Unable to connect to sync service",
+                    cause = throwable
+                )
+            }
+
+            is AisleronException -> throwable
+
+            else -> AisleronException.SignInException(
+                message = "An unexpected error occurred while signing in",
+                cause = throwable
+            )
+        }
+    }
+
+    override suspend fun signInWithEmail(email: String, password: String): Result<Unit> {
+        return runCatchingUnlessCancelled {
             val client = getClientOrNull()
-                ?: throw IllegalStateException("Failed to acquire client.")
+                ?: throw IllegalStateException("Failed to acquire client")
 
             authDelegate.signInWithEmail(client, email, password)
         }.also {
             refreshStatus()
+        }.recoverCatchingUnlessCancelled { throwable ->
+            throw mapException(throwable)
         }
+    }
 
     override suspend fun signOut(): Result<Unit> =
-        runCatching {
+        runCatchingUnlessCancelled {
             getClientOrNull()?.let { authDelegate.signOut(it) } ?: Unit
         }.also {
             refreshStatus()
+        }.recoverCatchingUnlessCancelled { throwable ->
+            throw AisleronException.SignOutException(
+                message = "Error on signing out",
+                cause = throwable
+            )
         }
 }

@@ -17,14 +17,21 @@
 
 package com.aisleron.data.sync
 
+import com.aisleron.domain.base.AisleronException
+import com.aisleron.domain.base.exceptionCode
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.log.LoggerTestImpl
 import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.exception.AuthErrorCode
+import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.status.RefreshFailureCause
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
 import io.github.jan.supabase.auth.user.UserSession
+import io.github.jan.supabase.exceptions.HttpRequestException
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.statement.HttpResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -40,6 +47,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertInstanceOf
+import kotlin.reflect.KClass
 
 class SupabaseSessionManagerImplTest {
     private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
@@ -47,14 +56,16 @@ class SupabaseSessionManagerImplTest {
     private val authDelegate: SupabaseAuthDelegate = mockk()
     private val mockSupabaseClient: SupabaseClient = mockk()
     private lateinit var sessionManager: SupabaseSessionManagerImpl
+    private lateinit var logger: LoggerTestImpl
 
     @BeforeEach
     fun setUp() {
         syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
         syncPreferencesRepository.resetSyncPreferences()
+        logger = LoggerTestImpl()
         sessionManager =
             SupabaseSessionManagerImpl(
-                syncPreferencesRepository, clientFactory, authDelegate, LoggerTestImpl()
+                syncPreferencesRepository, clientFactory, authDelegate, logger
             )
     }
 
@@ -124,6 +135,33 @@ class SupabaseSessionManagerImplTest {
 
         assertNull(client)
         verify(exactly = 1) { clientFactory.create(serviceUrl, serviceKey) }
+    }
+
+    @Test
+    fun getClientOrNull_ErrorClosingClient_LogsError() = runTest {
+        val url1 = "https://one.supabase.co"
+        val key1 = "some-valid-key-one"
+        initPreferences(url1, key1)
+        coEvery {
+            clientFactory.create(url1, key1)
+        } returns getMockClient(url1, key1, errorOnClose = true)
+
+        sessionManager.getClientOrNull()
+
+        val url2 = "https://two.supabase.co"
+        val key2 = "some-valid-key-two"
+        initPreferences(url2, key2)
+        coEvery {
+            clientFactory.create(url2, key2)
+        } returns getMockClient(url2, key2, errorOnClose = true)
+
+        val client2 = sessionManager.getClientOrNull()
+
+        assertNotNull(client2)
+
+        val logParameters = logger.getEParameters()
+        assertEquals("SupabaseSessionManager", logParameters.tag)
+        assertInstanceOf<RuntimeException>(logParameters.throwable)
     }
 
     private fun getMockClient(
@@ -203,7 +241,7 @@ class SupabaseSessionManagerImplTest {
     }
 
     @Test
-    fun signInWithEmail_AuthThrowsException_ReturnsFailure() = runTest {
+    fun signInWithEmail_UnmappedException_ResultHasSignInException() = runTest {
         initMocks("https://example.supabase.co", "some-valid-key")
         coEvery {
             authDelegate.signInWithEmail(
@@ -214,11 +252,93 @@ class SupabaseSessionManagerImplTest {
         val result = sessionManager.signInWithEmail("test@example.com", "password123")
 
         assertTrue(result.isFailure)
+        assertInstanceOf<AisleronException.SignInException>(result.exceptionOrNull())
         coVerify(exactly = 1) {
             authDelegate.signInWithEmail(
                 mockSupabaseClient, "test@example.com", "password123"
             )
         }
+    }
+
+    private suspend fun <T : AisleronException> signInWithEmail_ValidateAisleronExceptions(
+        throwable: Throwable,
+        expectedExceptionClass: KClass<T>,
+        expectedExceptionCode: AisleronException.ExceptionCode
+    ) {
+        initMocks("https://example.supabase.co", "some-valid-key")
+        coEvery {
+            authDelegate.signInWithEmail(
+                mockSupabaseClient, "test@example.com", "password123"
+            )
+        } throws throwable
+
+        val result = sessionManager.signInWithEmail("test@example.com", "password123")
+
+        assertTrue(result.isFailure)
+
+        val resultException = result.exceptionOrNull()
+        assertTrue(expectedExceptionClass.isInstance(resultException))
+        assertEquals(expectedExceptionCode, resultException.exceptionCode)
+    }
+
+    @Test
+    fun signInWithEmail_InvalidCredentials_ResultHasInvalidCredentialsException() = runTest {
+        signInWithEmail_ValidateAisleronExceptions(
+            throwable = AuthRestException(
+                AuthErrorCode.InvalidCredentials.value,
+                "Error",
+                mockk<HttpResponse>(relaxed = true)
+            ),
+            expectedExceptionClass = AisleronException.AuthException::class,
+            expectedExceptionCode = AisleronException.ExceptionCode.INVALID_CREDENTIAL_EXCEPTION
+        )
+    }
+
+    @Test
+    fun signInWithEmail_EmailNotConfigured_ResultHasUnconfirmedEmailException() = runTest {
+        signInWithEmail_ValidateAisleronExceptions(
+            throwable = AuthRestException(
+                AuthErrorCode.EmailNotConfirmed.value,
+                "Error",
+                mockk<HttpResponse>(relaxed = true)
+            ),
+            expectedExceptionClass = AisleronException.AuthException::class,
+            expectedExceptionCode = AisleronException.ExceptionCode.UNCONFIRMED_EMAIL_EXCEPTION
+        )
+    }
+
+    @Test
+    fun signInWithEmail_UnknownAuthException_ResultHasAuthException() = runTest {
+        signInWithEmail_ValidateAisleronExceptions(
+            throwable = AuthRestException(
+                AuthErrorCode.UserSsoManaged.value,
+                "Error",
+                mockk<HttpResponse>(relaxed = true)
+            ),
+            expectedExceptionClass = AisleronException.AuthException::class,
+            expectedExceptionCode = AisleronException.ExceptionCode.AUTH_EXCEPTION
+        )
+    }
+
+    @Test
+    fun signInWithEmail_HttpRequestException_ResultHasNetworkException() = runTest {
+        signInWithEmail_ValidateAisleronExceptions(
+            throwable = HttpRequestException(
+                "Error",
+                HttpRequestBuilder()
+            ),
+            expectedExceptionClass = AisleronException.NetworkException::class,
+            expectedExceptionCode = AisleronException.ExceptionCode.NETWORK_EXCEPTION
+        )
+    }
+
+    @Test
+    fun signInWithEmail_AisleronException_ResultHasAisleronException() = runTest {
+        signInWithEmail_ValidateAisleronExceptions(
+            throwable = AisleronException.SampleDataCreationException(),
+            expectedExceptionClass = AisleronException.SampleDataCreationException::class,
+            expectedExceptionCode = AisleronException.ExceptionCode.SAMPLE_DATA_CREATION_EXCEPTION
+        )
     }
 
     @Test
@@ -259,6 +379,25 @@ class SupabaseSessionManagerImplTest {
 
         assertTrue(result.isSuccess)
         coVerify(exactly = 0) { authDelegate.signOut(mockSupabaseClient) }
+    }
+
+    @Test
+    fun signOut_ThrowsException_ReturnsFailure() = runTest {
+        val serviceUrl = "https://example.supabase.co"
+        val serviceKey = "some-valid-key"
+        val exceptionMessage = "Sign out error"
+        initMocks(serviceUrl, serviceKey)
+        coEvery {
+            authDelegate.signOut(mockSupabaseClient)
+        } throws Exception(exceptionMessage)
+
+        val result = sessionManager.signOut()
+
+        assertTrue(result.isFailure)
+
+        val resultException = result.exceptionOrNull()
+        assertInstanceOf<AisleronException.SignOutException>(resultException)
+        assertEquals(exceptionMessage, resultException.cause?.message)
     }
 
     private suspend fun validateStatus_ArrangeActAssert(
