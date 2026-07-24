@@ -18,14 +18,16 @@
 package com.aisleron.domain.base.extension
 
 
+import com.aisleron.domain.base.AisleronException
 import kotlinx.coroutines.CancellationException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertThrows
 
 class ResultExtTest {
 
-    private fun getFailureResult(throwable: Throwable): Result<Unit> =
+    private fun getRecoverCatchingUnlessCancelledFailureResult(throwable: Throwable): Result<Unit> =
         runCatching {
             throw throwable
         }.recoverCatchingUnlessCancelled { throwable ->
@@ -37,7 +39,7 @@ class ResultExtTest {
     @Test
     fun recoverCatchingUnlessCancelled_IsCancellationException_RethrowCancellationException() {
         assertThrows<CancellationException> {
-            getFailureResult(CancellationException())
+            getRecoverCatchingUnlessCancelledFailureResult(CancellationException())
         }
     }
 
@@ -45,7 +47,7 @@ class ResultExtTest {
     fun recoverCatchingUnlessCancelled_NotCancellationException_ReturnResult() {
         val exception = Exception("Force Fail")
 
-        val result = getFailureResult(exception)
+        val result = getRecoverCatchingUnlessCancelledFailureResult(exception)
 
         assertTrue(result.isFailure)
         assertEquals(exception, result.exceptionOrNull()?.cause)
@@ -62,5 +64,75 @@ class ResultExtTest {
 
         assertTrue(actualResult.isSuccess)
         assertEquals(expectedValue, actualResult.getOrNull())
+    }
+
+
+    private fun getRunCatchingUnlessCancelledFailureResult(throwable: Throwable): Result<Unit> =
+        runCatchingUnlessCancelled {
+            throw throwable
+        }
+
+    @Test
+    fun runCatchingUnlessCancelled_IsCancellationException_RethrowCancellationException() {
+        assertThrows<CancellationException> {
+            getRunCatchingUnlessCancelledFailureResult(CancellationException())
+        }
+    }
+
+    @Test
+    fun runCatchingUnlessCancelled_NotCancellationException_ReturnResult() {
+        val exception = Exception("Force Fail")
+
+        val result = getRunCatchingUnlessCancelledFailureResult(exception)
+
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+    }
+
+    @Test
+    fun runCatchingUnlessCancelled_NoException_ReturnResult() {
+        val expectedValue = "Success Data"
+
+        val actualResult = runCatchingUnlessCancelled {
+            expectedValue
+        }
+
+        assertTrue(actualResult.isSuccess)
+        assertEquals(expectedValue, actualResult.getOrNull())
+    }
+
+    @Test
+    fun recoverCatchingWithAisleronException_IsAisleronException_ReturnSameException() {
+        val exception = AisleronException.CredentialException("Credential Failure")
+
+        val result = getRunCatchingUnlessCancelledFailureResult(exception)
+            .recoverCatchingWithAisleronException { cause ->
+                AisleronException.SignOutException(
+                    message = "Error on signing out",
+                    cause = cause
+                )
+            }
+
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+    }
+
+    @Test
+    fun recoverCatchingWithAisleronException_IsNotAisleronException_ReturnMappedException() {
+        val exception = Exception("Force Fail")
+
+        val result = getRunCatchingUnlessCancelledFailureResult(exception)
+            .recoverCatchingWithAisleronException { cause ->
+                AisleronException.SignOutException(
+                    message = "Error on signing out",
+                    cause = cause
+                )
+            }
+
+        assertTrue(result.isFailure)
+
+        val resultException = result.exceptionOrNull()
+        assertInstanceOf<AisleronException.SignOutException>(resultException)
+        assertEquals(exception, resultException.cause)
     }
 }

@@ -17,6 +17,7 @@
 
 package com.aisleron.domain.base.extension
 
+import com.aisleron.domain.base.AisleronException
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -30,5 +31,37 @@ inline fun <T> Result<T>.recoverCatchingUnlessCancelled(
         null -> this
         is CancellationException -> throw throwable
         else -> runCatching { transform(throwable) }
+    }
+}
+
+/**
+ * A safe alternative to [runCatching] that automatically propagates
+ * coroutine cancellation instead of wrapping it.
+ */
+inline fun <T, R> T.runCatchingUnlessCancelled(block: T.() -> R): Result<R> {
+    return try {
+        Result.success(block())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Throwable) {
+        Result.failure(e)
+    }
+}
+
+/**
+ * Ensures any failure in the [Result] is mapped to an [AisleronException].
+ *
+ * If the existing error is already an [AisleronException], it is preserved untouched.
+ * Otherwise, [exceptionFactory] is invoked to construct a domain-specific fallback exception.
+ *
+ * Propagates [kotlinx.coroutines.CancellationException] automatically.
+ */
+inline fun <T> Result<T>.recoverCatchingWithAisleronException(
+    crossinline exceptionFactory: (cause: Throwable) -> AisleronException
+): Result<T> = recoverCatchingUnlessCancelled { throwable ->
+    if (throwable is AisleronException) {
+        throw throwable
+    } else {
+        throw exceptionFactory(throwable)
     }
 }

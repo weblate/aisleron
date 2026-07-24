@@ -18,15 +18,15 @@
 package com.aisleron.domain.sync.usecase
 
 import com.aisleron.domain.base.AisleronException
-import com.aisleron.domain.base.extension.recoverCatchingUnlessCancelled
+import com.aisleron.domain.base.extension.recoverCatchingWithAisleronException
 import com.aisleron.domain.sync.SyncSessionManager
 
 class SignOutUseCase(private val sessionManager: SyncSessionManager) {
     suspend operator fun invoke(): Result<Unit> =
-        sessionManager.signOut().recoverCatchingUnlessCancelled { throwable ->
-            throw AisleronException.SignOutException(
+        sessionManager.signOut().recoverCatchingWithAisleronException { cause ->
+            AisleronException.SignOutException(
                 message = "Error on signing out",
-                cause = throwable
+                cause = cause
             )
         }
 }

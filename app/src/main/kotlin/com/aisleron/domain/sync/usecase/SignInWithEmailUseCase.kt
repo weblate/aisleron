@@ -17,15 +17,22 @@
 
 package com.aisleron.domain.sync.usecase
 
+import com.aisleron.domain.base.AisleronException
+import com.aisleron.domain.base.extension.recoverCatchingWithAisleronException
 import com.aisleron.domain.sync.SyncSessionManager
 
 class SignInWithEmailUseCase(private val sessionManager: SyncSessionManager) {
     suspend operator fun invoke(email: String, password: String): Result<Unit> {
         if (email.isBlank() || password.isBlank()) {
-            // TODO: Proper error handling using Aisleron exceptions
-            return Result.failure(IllegalArgumentException("Email and password cannot be empty."))
+            return Result.failure(AisleronException.CredentialException("Email and password cannot be blank"))
         }
 
         return sessionManager.signInWithEmail(email, password)
+            .recoverCatchingWithAisleronException { cause ->
+                AisleronException.SignInException(
+                    message = "An error occurred while signing in",
+                    cause = cause
+                )
+            }
     }
 }
