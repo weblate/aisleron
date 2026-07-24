@@ -103,7 +103,7 @@ class ResultExtTest {
 
     @Test
     fun recoverCatchingWithAisleronException_IsAisleronException_ReturnSameException() {
-        val exception = AisleronException.CredentialException("Credential Failure")
+        val exception = AisleronException.MissingCredentialException("Credential Failure")
 
         val result = getRunCatchingUnlessCancelledFailureResult(exception)
             .recoverCatchingWithAisleronException { cause ->

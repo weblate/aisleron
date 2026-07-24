@@ -24,7 +24,9 @@ import com.aisleron.domain.sync.SyncSessionManager
 class SignInWithEmailUseCase(private val sessionManager: SyncSessionManager) {
     suspend operator fun invoke(email: String, password: String): Result<Unit> {
         if (email.isBlank() || password.isBlank()) {
-            return Result.failure(AisleronException.CredentialException("Email and password cannot be blank"))
+            return Result.failure(
+                AisleronException.MissingCredentialException("Email and password cannot be blank")
+            )
         }
 
         return sessionManager.signInWithEmail(email, password)

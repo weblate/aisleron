@@ -41,6 +41,12 @@ class AisleronExceptionMap {
             ExceptionCode.LOYALTY_CARD_NOT_FOUND_EXCEPTION -> R.string.loyalty_card_not_found_exception
             ExceptionCode.AISLE_MOVE_EXCEPTION -> R.string.aisle_move_exception
             ExceptionCode.SIGN_OUT_EXCEPTION -> R.string.sign_out_exception
+            ExceptionCode.MISSING_CREDENTIAL_EXCEPTION -> R.string.missing_credential_exception
+            ExceptionCode.SIGN_IN_EXCEPTION -> R.string.sign_in_exception
+            ExceptionCode.INVALID_CREDENTIAL_EXCEPTION -> R.string.invalid_credential_exception
+            ExceptionCode.UNCONFIRMED_EMAIL_EXCEPTION -> R.string.unconfirmed_email_exception
+            ExceptionCode.AUTH_EXCEPTION -> R.string.auth_exception
+            ExceptionCode.NETWORK_EXCEPTION -> R.string.network_exception
         }
     }
 }

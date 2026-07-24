@@ -17,6 +17,7 @@
 
 package com.aisleron.domain.sync.usecase
 
+import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import kotlinx.coroutines.test.runTest
@@ -25,6 +26,10 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertThrows
+import java.lang.Exception
+import kotlin.coroutines.cancellation.CancellationException
 
 class SignInWithEmailUseCaseTest {
     private lateinit var sessionManager: SyncSessionManagerTestImpl
@@ -42,12 +47,35 @@ class SignInWithEmailUseCaseTest {
         val email = "email"
         val password = "password"
 
-        sessionManager.failWith(Exception(errorMessage))
+        sessionManager.failWith(
+            AisleronException.AuthException(
+                AisleronException.ExceptionCode.AUTH_EXCEPTION,
+                errorMessage
+            )
+        )
 
         val result = signInWithEmailUseCase(email, password)
 
         assertTrue(result.isFailure)
         assertEquals(errorMessage, result.exceptionOrNull()?.message)
+
+        assertEquals("", sessionManager.email)
+        assertEquals("", sessionManager.password)
+    }
+
+    @Test
+    fun invoke_GenericError_ReturnError() = runTest {
+        val email = "email"
+        val password = "password"
+
+        sessionManager.failWith(Exception("Error"))
+
+        val result = signInWithEmailUseCase(email, password)
+
+        assertTrue(result.isFailure)
+
+        val resultException = result.exceptionOrNull()
+        assertInstanceOf<AisleronException.SignInException> (resultException)
 
         assertEquals("", sessionManager.email)
         assertEquals("", sessionManager.password)
@@ -66,16 +94,25 @@ class SignInWithEmailUseCaseTest {
         assertNull(result.exceptionOrNull())
     }
 
+    private fun assertMissingCredentialException(result: Result<Unit>) {
+        assertTrue(result.isFailure)
+
+        val resultException = result.exceptionOrNull()
+        assertInstanceOf<AisleronException.MissingCredentialException>(resultException)
+        assertEquals(
+            AisleronException.ExceptionCode.MISSING_CREDENTIAL_EXCEPTION,
+            resultException.exceptionCode
+        )
+    }
+
     @Test
     fun invoke_emailIsBlank_ReturnError() = runTest {
         val email = ""
         val password = "password"
-        val errorMessage = "Email and password cannot be empty."
 
         val result = signInWithEmailUseCase(email, password)
 
-        assertTrue(result.isFailure)
-        assertEquals(errorMessage, result.exceptionOrNull()?.message)
+        assertMissingCredentialException(result)
 
         assertEquals("", sessionManager.email)
         assertEquals("", sessionManager.password)
@@ -85,14 +122,21 @@ class SignInWithEmailUseCaseTest {
     fun invoke_passwordIsBlank_ReturnError() = runTest {
         val email = "email"
         val password = ""
-        val errorMessage = "Email and password cannot be empty."
 
         val result = signInWithEmailUseCase(email, password)
 
-        assertTrue(result.isFailure)
-        assertEquals(errorMessage, result.exceptionOrNull()?.message)
+        assertMissingCredentialException(result)
 
         assertEquals("", sessionManager.email)
         assertEquals("", sessionManager.password)
+    }
+
+    @Test
+    fun invoke_IsCancellationException_ThrowsCancellationException() = runTest {
+        sessionManager.failWith(CancellationException())
+
+        assertThrows<CancellationException> {
+            signInWithEmailUseCase("email", "password")
+        }
     }
 }

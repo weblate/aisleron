@@ -17,6 +17,7 @@
 
 package com.aisleron.testdata.data.sync
 
+import com.aisleron.domain.base.extension.runCatchingUnlessCancelled
 import com.aisleron.domain.sync.SyncSessionManager
 import com.aisleron.domain.sync.SyncSessionStatus
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +41,9 @@ class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSession
     private var _failWithException: Exception? = null
 
     override suspend fun signInWithEmail(email: String, password: String): Result<Unit> {
-        _failWithException?.let { return Result.failure(it) }
+        _failWithException?.let {
+            return runCatchingUnlessCancelled { throw it }
+        }
 
         _email = email
         _password = password
@@ -49,7 +52,9 @@ class SyncSessionManagerTestImpl(initialStatus: SyncSessionStatus) : SyncSession
     }
 
     override suspend fun signOut(): Result<Unit> {
-        _failWithException?.let { return Result.failure(it) }
+        _failWithException?.let {
+            return runCatchingUnlessCancelled { throw it }
+        }
 
         _signedIn = false
         return Result.success(Unit)
