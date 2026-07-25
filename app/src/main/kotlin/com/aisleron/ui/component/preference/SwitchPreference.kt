@@ -18,9 +18,11 @@
 package com.aisleron.ui.component.preference
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 
 @Composable
 fun SwitchPreference(
@@ -31,15 +33,25 @@ fun SwitchPreference(
     summary: String? = null,
     @DrawableRes iconResId: Int? = null
 ) {
+    val toggleModifier = if (onCheckedChanged != null) {
+        modifier.toggleable(
+            value = checked,
+            role = Role.Switch,
+            onValueChange = onCheckedChanged
+        )
+    } else {
+        modifier
+    }
+
     Preference(
         title = title,
         summary = summary,
-        modifier = modifier,
+        modifier = toggleModifier,
         iconResId = iconResId,
         control = {
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChanged
+                onCheckedChange = null
             )
         }
     )

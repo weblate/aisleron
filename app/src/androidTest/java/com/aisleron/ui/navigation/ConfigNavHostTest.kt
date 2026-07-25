@@ -32,9 +32,13 @@ import com.aisleron.di.generalTestModule
 import com.aisleron.di.preferenceModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
+import com.aisleron.domain.sync.SyncSessionManager
+import com.aisleron.domain.sync.SyncSessionStatus
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
+import org.koin.test.get
 
 @OptIn(ExperimentalTestApi::class)
 class ConfigNavHostTest : KoinTest {
@@ -75,22 +79,28 @@ class ConfigNavHostTest : KoinTest {
 
     @Test
     fun startDestination_SignIn_DisplaysSignInScreen() {
-        navigateToScreen_ArrangeActAssert(Destination.SignIn, R.string.sign_in)
+        navigateToScreen_ArrangeActAssert(Destination.SignIn, R.string.sign_in_title)
     }
 
     @Test
     fun accountPreferences_clickSignIn_navigatesToSignInScreen() = runComposeUiTest {
+        val sessionManager = get<SyncSessionManager>() as SyncSessionManagerTestImpl
+        sessionManager.setFutureStatus(SyncSessionStatus.NotAuthenticated)
+        sessionManager.refreshStatus()
+
         lateinit var signInText: String
+        lateinit var signInTitle: String
 
         setContent {
             signInText = stringResource(R.string.sign_in)
+            signInTitle = stringResource(R.string.sign_in_title)
             ConfigNavHost(startDestination = Destination.AccountPreferences)
         }
 
         onNodeWithText(signInText)
             .performClick()
 
-        onNode(hasText(signInText) and isHeading())
+        onNode(hasText(signInTitle) and isHeading())
             .assertIsDisplayed()
     }
 
