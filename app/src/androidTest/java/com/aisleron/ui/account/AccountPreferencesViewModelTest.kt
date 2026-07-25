@@ -44,7 +44,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AccountPreferencesViewModelTest : KoinTest{
+class AccountPreferencesViewModelTest : KoinTest {
     private lateinit var viewModel: AccountPreferencesViewModel
 
     @get:Rule
@@ -61,7 +61,6 @@ class AccountPreferencesViewModelTest : KoinTest{
 
     private fun getSyncSessionManager(): SyncSessionManagerTestImpl =
         get<SyncSessionManager>() as SyncSessionManagerTestImpl
-
 
     @Test
     fun signOut_UseCaseResultIsSuccess_SessionSignedOut() = runTest {
@@ -86,11 +85,14 @@ class AccountPreferencesViewModelTest : KoinTest{
 
         assertTrue(sessionManager.signedIn)
 
-        val errorState = viewModel.signOutError
-        assertIs<AisleronException.ExceptionCode>(errorState.value)
-
         val uiState = viewModel.uiState
         assertFalse(uiState.value.isLoading)
+
+        val errorCode = viewModel.signOutError.value?.consumeEvent()
+        assertIs<AisleronException.ExceptionCode>(errorCode)
+
+        val reconsumedEvent = viewModel.signOutError.value?.consumeEvent()
+        assertNull(reconsumedEvent)
     }
 
     @Test
@@ -108,21 +110,6 @@ class AccountPreferencesViewModelTest : KoinTest{
 
         val uiState = viewModel.uiState
         assertFalse(uiState.value.isLoading)
-    }
-
-    @Test
-    fun consumeSignOutError_HasError_ErrorCleared() = runTest {
-        val sessionManager = getSyncSessionManager()
-        sessionManager.failWith(Exception())
-        viewModel.signOut()
-
-        val errorStateBefore = viewModel.signOutError
-        assertIs<AisleronException.ExceptionCode>(errorStateBefore.value)
-
-        viewModel.consumeSignOutError()
-
-        val errorStateAfter = viewModel.signOutError
-        assertNull(errorStateAfter.value)
     }
 
     @Test
@@ -197,11 +184,4 @@ class AccountPreferencesViewModelTest : KoinTest{
         val uiState = viewModel.uiState.first()
         assertIs<SyncSessionStatus.Loading>(uiState.sessionStatus)
     }
-
-
-    /**
-     * Tests:
-     * setSyncOnMobileData - value specified - preferences updated
-     * setSyncOnMobileData - value specified - Sync Preferences refreshed
-     */
 }

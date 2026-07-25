@@ -54,7 +54,9 @@ fun ConfigNavHost(
         }
 
         entry<Destination.SignIn> {
-            SignInScreen()
+            SignInScreen(
+                onSignInSuccess = { backStack.removeLastOrNull() }
+            )
         }
     }
 

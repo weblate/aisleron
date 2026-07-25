@@ -30,6 +30,7 @@ import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.SignOutUseCase
+import com.aisleron.ui.base.UiEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -70,8 +71,9 @@ class AccountPreferencesViewModel(
             emit(status)
         }
 
-    private val _signOutError = MutableStateFlow<AisleronException.ExceptionCode?>(null)
-    val signOutError: StateFlow<AisleronException.ExceptionCode?> = _signOutError.asStateFlow()
+    private val _signOutError = MutableStateFlow<UiEvent<AisleronException.ExceptionCode>?>(null)
+    val signOutError: StateFlow<UiEvent<AisleronException.ExceptionCode>?> =
+        _signOutError.asStateFlow()
 
     val uiState: StateFlow<AccountPreferencesUiState> = combine(
         _syncServiceUrl,
@@ -98,12 +100,9 @@ class AccountPreferencesViewModel(
         coroutineScope.launch {
             try {
                 _isLoading.value = true
-                val signOutResult = signOutUseCase()
-
-                if (signOutResult.isFailure) {
-                    val error = signOutResult.exceptionOrNull()
-                    logger.e(TAG, error?.message.orEmpty(), error)
-                    _signOutError.emit(error.exceptionCode)
+                signOutUseCase().onFailure { throwable ->
+                    logger.e(TAG, throwable.message.orEmpty(), throwable)
+                    _signOutError.value = UiEvent(throwable.exceptionCode)
                 }
             } finally {
                 _isLoading.value = false
@@ -127,10 +126,6 @@ class AccountPreferencesViewModel(
         syncPreferences = getSyncPreferencesUseCase()
         _syncServiceUrl.value = syncPreferences.serviceUrl
         _syncOnMobileData.value = syncPreferences.syncOnMobileData
-    }
-
-    fun consumeSignOutError() {
-        _signOutError.value = null
     }
 
     companion object {
