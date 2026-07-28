@@ -17,6 +17,7 @@
 
 <resources>
     <string name="app_name" translatable="false">Aisleron</string>
+    <string name="app_title" translatable="false">Aisleron</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title" translatable="false">Aisleron</string>
@@ -294,4 +295,9 @@
     <string name="password">Password</string>
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
+    <string name="sync_service_connecting_to">Connecting to</string>
+    <string name="sync_service_sign_up_message">Sign in to the Aisleron Sync service to keep your shopping lists up to date across all your devices.</string>
+    <string name="aisleron_sync_subtitle">Sync through the shops!</string>
+
+
 </resources>
