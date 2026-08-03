@@ -55,7 +55,7 @@ fun SyncServiceConfigDialog(
                     modifier = Modifier.fillMaxWidth(),
                     state = servicedUrlState,
                     lineLimits = TextFieldLineLimits.SingleLine,
-                    label = { Text(stringResource(R.string.sync_service_address)) }
+                    label = { Text(stringResource(R.string.sync_service_address_title)) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -72,7 +72,9 @@ fun SyncServiceConfigDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirmPressed(servicedUrlState.text.toString(), serviceKeyState.text.toString())
+                    onConfirmPressed(
+                        servicedUrlState.text.toString(), serviceKeyState.text.toString()
+                    )
                 }
             ) {
                 Text(stringResource(R.string.save))

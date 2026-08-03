@@ -20,8 +20,10 @@ package com.aisleron
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import com.aisleron.data.preferences.syncpreferences.SyncPreferencesRepositoryImpl
 import com.aisleron.domain.FilterType
 import com.aisleron.domain.location.LocationType
+import com.aisleron.domain.preferences.SyncServicePreference
 
 class SharedPreferencesInitializer {
 
@@ -143,20 +145,20 @@ class SharedPreferencesInitializer {
         setPreferenceValue(PRODUCT_LAST_SELECTED_TAB, position)
     }
 
-    fun setUseDefaultSyncService(value: Boolean) {
-        setPreferenceValue(PREF_USE_DEFAULT_SERVICE, value)
+    fun setSyncService(value: SyncServicePreference) {
+        setPreferenceValue(SyncPreferencesRepositoryImpl.SYNC_SERVICE, value.value)
     }
 
     fun setCustomSyncServiceUrl(value: String) {
-        setPreferenceValue(PREF_CUSTOM_SERVICE_URL, value)
+        setPreferenceValue(SyncPreferencesRepositoryImpl.CUSTOM_SERVICE_URL, value)
     }
 
     fun setCustomSyncServiceKey(value: String) {
-        setPreferenceValue(PREF_CUSTOM_SERVICE_KEY, value)
+        setPreferenceValue(SyncPreferencesRepositoryImpl.CUSTOM_SERVICE_KEY, value)
     }
 
     fun setSyncOnMobileData(value: Boolean) {
-        setPreferenceValue(PREF_SYNC_ON_MOBILE_DATA, value)
+        setPreferenceValue(SyncPreferencesRepositoryImpl.SYNC_ON_MOBILE_DATA, value)
     }
 
     companion object {
@@ -176,9 +178,5 @@ class SharedPreferencesInitializer {
         private const val PREF_LAST_UPDATE_CODE = "last_update_code"
         private const val PREF_LAST_UPDATE_NAME = "last_update_name"
         private const val PRODUCT_LAST_SELECTED_TAB = "product_last_selected_tab"
-        private const val PREF_USE_DEFAULT_SERVICE = "use_default_service"
-        private const val PREF_CUSTOM_SERVICE_URL = "custom_service_url"
-        private const val PREF_CUSTOM_SERVICE_KEY = "custom_service_key"
-        private const val PREF_SYNC_ON_MOBILE_DATA = "sync_on_mobile_data"
     }
 }

@@ -19,6 +19,7 @@ package com.aisleron.data.preferences.syncpreferences
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 
@@ -27,21 +28,25 @@ class SyncPreferencesRepositoryImpl(
     private val defaultUrl: String,
     private val defaultKey: String
 ) : SyncPreferencesRepository {
-    private fun useDefaultService(): Boolean = false
-    //sharedPreferences.getBoolean(USE_DEFAULT_SERVICE, false)
+    private fun getSyncService(): SyncServicePreference {
+        val value = sharedPreferences.getString(SYNC_SERVICE, null)
+        return SyncServicePreference.fromValue(value)
+    }
 
     private fun getServiceUrl(): String {
-        return if (useDefaultService())
-            defaultUrl
-        else
-            sharedPreferences.getString(CUSTOM_SERVICE_URL, "").orEmpty()
+        return when (getSyncService()) {
+            SyncServicePreference.NONE -> ""
+            SyncServicePreference.CUSTOM_SERVICE ->
+                sharedPreferences.getString(CUSTOM_SERVICE_URL, "").orEmpty()
+        }
     }
 
     private fun getServiceKey(): String {
-        return if (useDefaultService())
-            defaultKey
-        else
-            sharedPreferences.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
+        return when (getSyncService()) {
+            SyncServicePreference.NONE -> ""
+            SyncServicePreference.CUSTOM_SERVICE ->
+                sharedPreferences.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
+        }
     }
 
     private fun getSyncOnMobileData(): Boolean =
@@ -49,7 +54,7 @@ class SyncPreferencesRepositoryImpl(
 
     override fun getSyncPreferences(): SyncPreferences =
         SyncPreferences(
-            useDefaultService = useDefaultService(),
+            syncServicePreference = getSyncService(),
             serviceUrl = getServiceUrl(),
             serviceKey = getServiceKey(),
             syncOnMobileData = getSyncOnMobileData()
@@ -68,8 +73,14 @@ class SyncPreferencesRepositoryImpl(
         }
     }
 
+    override fun setSyncService(value: SyncServicePreference) {
+        sharedPreferences.edit {
+            putString(SYNC_SERVICE, value.value)
+        }
+    }
+
     companion object {
-        const val USE_DEFAULT_SERVICE = "use_default_service"
+        const val SYNC_SERVICE = "sync_service"
         const val CUSTOM_SERVICE_URL = "custom_service_url"
         const val CUSTOM_SERVICE_KEY = "custom_service_key"
         const val SYNC_ON_MOBILE_DATA = "sync_on_mobile_data"

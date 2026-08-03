@@ -17,7 +17,7 @@
 
 package com.aisleron.domain.preferences
 
-interface PreferenceEnum {
+sealed interface PreferenceEnum {
     val value: String
 
     interface Factory<T> where T : Enum<T>, T : PreferenceEnum {

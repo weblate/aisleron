@@ -289,7 +289,8 @@
     <string name="sync_on_mobile_data">Sync on mobile data</string>
     <string name="manage_account">Manage Account</string>
     <string name="sync_service_dialog_info">Specify the Aisleron sync service connection details.</string>
-    <string name="sync_service_address">Sync Service Address</string>
+    <string name="sync_service_address">Sync service address</string>
+    <string name="sync_service_address_title">Sync Service Address</string>
     <string name="sync_service_public_key">Public Key</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
@@ -298,6 +299,7 @@
     <string name="sync_service_connecting_to">Connecting to</string>
     <string name="sync_service_sign_up_message">Sign in to the Aisleron Sync service to keep your shopping lists up to date across all your devices.</string>
     <string name="aisleron_sync_subtitle">Sync through the shops!</string>
+    <string name="sync_service_custom">Custom sync service</string>
 
 
 </resources>

@@ -23,6 +23,7 @@ import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.base.AisleronException
+import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionManager
 import com.aisleron.domain.sync.SyncSessionStatus
@@ -168,6 +169,7 @@ class AccountPreferencesViewModelTest : KoinTest {
             getSessionStatusUseCase = get(),
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
+            setSyncServiceUseCase = get(),
             logger = get()
         )
 
@@ -183,5 +185,22 @@ class AccountPreferencesViewModelTest : KoinTest {
 
         val uiState = viewModel.uiState.first()
         assertIs<SyncSessionStatus.Loading>(uiState.sessionStatus)
+    }
+
+    @Test
+    fun setSyncService_WithValidValues_PreferencesUpdated() = runTest {
+        val syncPreferencesRepository = get<SyncPreferencesRepository>()
+        val syncServiceBefore = SyncServicePreference.NONE
+        syncPreferencesRepository.setSyncService(syncServiceBefore)
+
+        viewModel.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
+
+        val preferences = syncPreferencesRepository.getSyncPreferences()
+        assertEquals(
+            SyncServicePreference.CUSTOM_SERVICE, preferences.syncServicePreference
+        )
+
+        val uiState = viewModel.uiState.first()
+        assertEquals(SyncServicePreference.CUSTOM_SERVICE, uiState.syncServicePreference)
     }
 }

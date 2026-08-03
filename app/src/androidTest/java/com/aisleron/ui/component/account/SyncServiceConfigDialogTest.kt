@@ -39,7 +39,7 @@ class SyncServiceConfigDialogTest {
         lateinit var urlLabel: String
 
         setContent {
-            urlLabel = stringResource(R.string.sync_service_address)
+            urlLabel = stringResource(R.string.sync_service_address_title)
 
             SyncServiceConfigDialog(
                 onDismissRequest = {},
@@ -61,7 +61,7 @@ class SyncServiceConfigDialogTest {
         val url = "https://test.url"
 
         setContent {
-            urlLabel = stringResource(R.string.sync_service_address)
+            urlLabel = stringResource(R.string.sync_service_address_title)
 
             SyncServiceConfigDialog(
                 onDismissRequest = {},
@@ -79,7 +79,7 @@ class SyncServiceConfigDialogTest {
     }
 
     @Test
-    fun dismissButtonClicked_OnDismissRequestProvided_ONDismissRequestExecuted() =
+    fun dismissButtonClicked_OnDismissRequestProvided_OnDismissRequestExecuted() =
         runComposeUiTest {
             lateinit var buttonTitle: String
             var dismissPressed = 0
@@ -104,7 +104,7 @@ class SyncServiceConfigDialogTest {
         }
 
     @Test
-    fun confirmButtonClicked_onConfirmPressedProvided_onConfirmPressedExecuted() =
+    fun confirmButtonClicked_OnConfirmPressedProvided_OnConfirmPressedExecuted() =
         runComposeUiTest {
             lateinit var buttonTitle: String
             lateinit var urlLabel: String
@@ -118,7 +118,7 @@ class SyncServiceConfigDialogTest {
 
             setContent {
                 buttonTitle = stringResource(R.string.save)
-                urlLabel = stringResource(R.string.sync_service_address)
+                urlLabel = stringResource(R.string.sync_service_address_title)
                 keyLabel = stringResource(R.string.sync_service_public_key)
 
                 SyncServiceConfigDialog(

@@ -17,6 +17,7 @@
 
 package com.aisleron.testdata.data.preferences.syncpreferences
 
+import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 
@@ -38,12 +39,18 @@ class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
         )
     }
 
+    override fun setSyncService(value: SyncServicePreference) {
+        _syncPreferences = _syncPreferences.copy(
+            syncServicePreference = value
+        )
+    }
+
     fun setSyncPreferences(syncPreferences: SyncPreferences) {
         _syncPreferences = syncPreferences
     }
 
     fun getDefaultSyncPreferences() = SyncPreferences(
-        useDefaultService = false,
+        syncServicePreference = SyncServicePreference.NONE,
         serviceUrl = "",
         serviceKey = "",
         syncOnMobileData = false

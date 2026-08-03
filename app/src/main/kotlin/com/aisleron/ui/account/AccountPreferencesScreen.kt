@@ -17,6 +17,7 @@
 
 package com.aisleron.ui.account
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,11 +37,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aisleron.R
+import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.ui.AisleronExceptionMap
 import com.aisleron.ui.component.AisleronScreen
 import com.aisleron.ui.component.FullScreenProgressIndicator
 import com.aisleron.ui.component.account.SyncServiceConfigDialog
+import com.aisleron.ui.component.preference.ListPreference
 import com.aisleron.ui.component.preference.Preference
 import com.aisleron.ui.component.preference.PreferenceCategory
 import com.aisleron.ui.component.preference.SwitchPreference
@@ -83,11 +86,15 @@ fun AccountPreferencesScreen(
     AccountPreferencesScreenContent(
         state = state,
         snackbarHostState = snackbarHostState,
-        onSaveSyncService = { url, key -> viewModel.saveSyncServiceDetails(url, key) },
+        onSaveSyncServiceAddress = { url, key -> viewModel.saveSyncServiceDetails(url, key) },
         onSignInPressed = onSignInPressed,
         onSignOutPressed = { viewModel.signOut() },
         onSyncOnMobileDataChanged = { syncOnMobileData ->
             viewModel.setSyncOnMobileData(syncOnMobileData)
+        },
+
+        onSyncServiceChanged = { syncService ->
+            viewModel.setSyncService(syncService)
         }
     )
 }
@@ -97,10 +104,11 @@ fun AccountPreferencesScreen(
 fun AccountPreferencesScreenContent(
     state: AccountPreferencesUiState,
     snackbarHostState: SnackbarHostState?,
-    onSaveSyncService: (url: String, key: String) -> Unit,
+    onSaveSyncServiceAddress: (url: String, key: String) -> Unit,
     onSignInPressed: () -> Unit,
     onSignOutPressed: () -> Unit,
-    onSyncOnMobileDataChanged: ((Boolean) -> Unit)
+    onSyncOnMobileDataChanged: ((Boolean) -> Unit),
+    onSyncServiceChanged: ((SyncServicePreference) -> Unit)
 ) {
     var showSyncDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -114,17 +122,26 @@ fun AccountPreferencesScreenContent(
         ) {
             item {
                 PreferenceCategory(title = stringResource(R.string.sync_settings)) {
-                    Preference(
+                    ListPreference(
                         title = stringResource(R.string.sync_service),
-                        summary = state.serviceUrl.ifBlank { stringResource(R.string.preference_none) },
-                        onClick = { showSyncDialog = true },
-                        control = {
-                            Icon(
-                                painter = painterResource(R.drawable.baseline_arrow_right_24),
-                                contentDescription = null
-                            )
-                        }
+                        selectedValue = state.syncServicePreference,
+                        entries = SyncServicePreference.entries,
+                        onValueSelected = onSyncServiceChanged
                     )
+
+                    if (state.syncServicePreference == SyncServicePreference.CUSTOM_SERVICE) {
+                        Preference(
+                            title = stringResource(R.string.sync_service_address),
+                            summary = state.serviceUrl.ifBlank { stringResource(R.string.preference_none) },
+                            onClick = { showSyncDialog = true },
+                            control = {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_arrow_drop_down_24),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
 
                     if (state.sessionStatus is SyncSessionStatus.Authenticated)
                         Preference(
@@ -180,7 +197,7 @@ fun AccountPreferencesScreenContent(
         SyncServiceConfigDialog(
             onDismissRequest = { showSyncDialog = false },
             onConfirmPressed = { url, key ->
-                onSaveSyncService(url, key)
+                onSaveSyncServiceAddress(url, key)
                 showSyncDialog = false
             },
 
@@ -196,23 +213,25 @@ fun AccountPreferencesScreenContent(
 @Preview(showSystemUi = true, name = "Account Preferences Screen Light Mode")
 @Preview(
     showSystemUi = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
     name = "Account Preferences Dark Mode"
 )
 @Composable
 fun AccountPreferencesScreenContentPreview() {
     val state = AccountPreferencesUiState(
-        serviceUrl = "http://sunc.service:123"
+        serviceUrl = "http://sunc.service:123",
+        syncServicePreference = SyncServicePreference.CUSTOM_SERVICE
     )
 
     AisleronTheme {
         AccountPreferencesScreenContent(
             state = state,
             snackbarHostState = null,
-            onSaveSyncService = { _, _ -> },
+            onSaveSyncServiceAddress = { _, _ -> },
             onSignInPressed = {},
             onSignOutPressed = {},
-            onSyncOnMobileDataChanged = {}
+            onSyncOnMobileDataChanged = {},
+            onSyncServiceChanged = {}
         )
     }
 }

@@ -105,6 +105,7 @@ import com.aisleron.domain.note.usecase.UpdateNoteUseCaseImpl
 import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetCustomSyncServiceDetailsUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncOnMobileDataUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncServiceUseCase
 import com.aisleron.domain.product.usecase.AddProductUseCase
 import com.aisleron.domain.product.usecase.AddProductUseCaseImpl
 import com.aisleron.domain.product.usecase.CopyProductUseCase
@@ -465,6 +466,7 @@ val useCaseModule = module {
      */
     factory<GetSyncPreferencesUseCase> { GetSyncPreferencesUseCase(syncPreferencesRepository = get()) }
     factory<SetSyncOnMobileDataUseCase> { SetSyncOnMobileDataUseCase(syncPreferencesRepository = get()) }
+    factory<SetSyncServiceUseCase> { SetSyncServiceUseCase(syncPreferencesRepository = get()) }
     factory<SetCustomSyncServiceDetailsUseCase> {
         SetCustomSyncServiceDetailsUseCase(syncPreferencesRepository = get())
     }

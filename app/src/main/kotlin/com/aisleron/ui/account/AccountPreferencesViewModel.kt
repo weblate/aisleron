@@ -22,10 +22,12 @@ import androidx.lifecycle.viewModelScope
 import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.base.exceptionCode
 import com.aisleron.domain.log.Logger
+import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetCustomSyncServiceDetailsUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncOnMobileDataUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncServiceUseCase
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
@@ -53,6 +55,7 @@ class AccountPreferencesViewModel(
     getSessionStatusUseCase: GetSessionStatusUseCase,
     private val refreshSessionStatusUseCase: RefreshSessionStatusUseCase,
     private val setSyncOnMobileDataUseCase: SetSyncOnMobileDataUseCase,
+    private val setSyncServiceUseCase: SetSyncServiceUseCase,
     private val logger: Logger,
     debounceTime: Long = 300,
     coroutineScopeProvider: CoroutineScope? = null
@@ -62,6 +65,8 @@ class AccountPreferencesViewModel(
 
     private val _syncServiceUrl = MutableStateFlow(syncPreferences.serviceUrl)
     private val _syncOnMobileData = MutableStateFlow(syncPreferences.syncOnMobileData)
+
+    private val _syncService = MutableStateFlow(syncPreferences.syncServicePreference)
     private val _isLoading = MutableStateFlow(false)
     private val _sessionStatusFlow = getSessionStatusUseCase()
         .transformLatest { status ->
@@ -78,12 +83,14 @@ class AccountPreferencesViewModel(
     val uiState: StateFlow<AccountPreferencesUiState> = combine(
         _syncServiceUrl,
         _syncOnMobileData,
+        _syncService,
         _isLoading,
         _sessionStatusFlow
-    ) { url, mobileData, loading, status ->
+    ) { url, mobileData, service, loading, status ->
         AccountPreferencesUiState(
             serviceUrl = url,
             syncOnMobileData = mobileData,
+            syncServicePreference = service,
             isLoading = loading,
             sessionStatus = status
         )
@@ -126,6 +133,13 @@ class AccountPreferencesViewModel(
         syncPreferences = getSyncPreferencesUseCase()
         _syncServiceUrl.value = syncPreferences.serviceUrl
         _syncOnMobileData.value = syncPreferences.syncOnMobileData
+        _syncService.value = syncPreferences.syncServicePreference
+    }
+
+    fun setSyncService(syncServicePreference: SyncServicePreference) {
+        setSyncServiceUseCase(syncServicePreference)
+        refreshSessionStatusUseCase()
+        refreshSyncPreferences()
     }
 
     companion object {
@@ -136,6 +150,7 @@ class AccountPreferencesViewModel(
 data class AccountPreferencesUiState(
     val serviceUrl: String = "",
     val syncOnMobileData: Boolean = false,
+    val syncServicePreference: SyncServicePreference = SyncServicePreference.NONE,
     val isLoading: Boolean = false,
     val sessionStatus: SyncSessionStatus = SyncSessionStatus.NotConfigured
 )

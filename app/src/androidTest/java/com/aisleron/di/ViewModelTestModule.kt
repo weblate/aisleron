@@ -151,6 +151,7 @@ val viewModelTestModule = module {
             getSessionStatusUseCase = get(),
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
+            setSyncServiceUseCase = get(),
             logger = get(),
             debounceTime = 0,
             TestScope(UnconfinedTestDispatcher())

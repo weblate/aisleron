@@ -15,13 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.domain.preferences.syncpreferences
+package com.aisleron.domain.preferences
 
-import com.aisleron.domain.preferences.SyncServicePreference
+enum class SyncServicePreference(override val value: String) : PreferenceEnum {
+    NONE("none"),
+    CUSTOM_SERVICE("custom_service");
 
-interface SyncPreferencesRepository {
-    fun getSyncPreferences(): SyncPreferences
-    fun setCustomServiceDetails(url: String, key: String)
-    fun setSyncOnMobileData(value: Boolean)
-    fun setSyncService(value: SyncServicePreference)
+    companion object : PreferenceEnum.Factory<SyncServicePreference> {
+        override val defaultValue = NONE
+    }
 }
