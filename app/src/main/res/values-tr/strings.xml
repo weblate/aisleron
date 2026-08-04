@@ -14,9 +14,7 @@
   ~
   ~ You should have received a copy of the GNU Affero General Public License
   ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
-  -->
-
-<resources>
+  --><resources>
     <string name="navigation_drawer_open">Navigasyon menüsünü aç</string>
     <string name="navigation_drawer_close">Navigasyon menüsünü kapat</string>
     <string name="nav_header_subtitle">Dükkânlardan uçarak geç!</string>
