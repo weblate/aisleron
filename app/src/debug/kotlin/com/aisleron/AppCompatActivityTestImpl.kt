@@ -17,7 +17,10 @@
 
 package com.aisleron
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -28,6 +31,9 @@ import androidx.appcompat.app.AppCompatActivity
 class AppCompatActivityTestImpl : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
+        )
     }
 }
 
