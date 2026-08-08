@@ -907,7 +907,7 @@ class CaptureScreenshots : KoinTest {
         onNodeWithText(keyLabel).performClick()
 
         waitForIdle()
-        takeScreenshot("alr-370-030-sync-service-config-dialog")
+        takeScreenshot("alr-370-030-sync-service-config-dialog", 300)
     }
 
     @Test
