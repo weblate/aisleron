@@ -44,6 +44,10 @@ class LocationMapper : Mapper<LocationEntity, Location> {
         showDefaultAisle = value.showDefaultAisle,
         noteId = value.noteId,
         expanded = value.expanded,
-        rank = value.rank
+        rank = value.rank,
+        syncId = syncMetadata?.syncId ?: SyncEntity.generateSyncId(),
+        isRemoved = syncMetadata?.isRemoved ?: false,
+        lastModifiedAt = System.currentTimeMillis(),
+        serverUpdatedAt = syncMetadata?.serverUpdatedAt
     )
 }

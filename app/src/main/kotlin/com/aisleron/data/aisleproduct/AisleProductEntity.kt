@@ -19,15 +19,33 @@ package com.aisleron.data.aisleproduct
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.aisleron.data.aisle.AisleEntity
 import com.aisleron.data.base.SyncEntity
+import com.aisleron.data.product.ProductEntity
 
 @Entity(
     tableName = "AisleProduct",
+    foreignKeys = [
+        ForeignKey(
+            entity = AisleEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["aisleId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = ProductEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["productId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [
         Index(value = ["aisleId", "productId"], unique = true),
         Index(value = ["syncId"], unique = true),
+        Index(value = ["productId"]),
         Index(value = ["isRemoved", "id"]),
         Index(value = ["lastModifiedAt"])
     ]
@@ -37,7 +55,7 @@ data class AisleProductEntity(
     val aisleId: Int,
     val productId: Int,
     val rank: Int,
-    override val syncId: String? = null,
+    override val syncId: String = SyncEntity.generateSyncId(),
     @ColumnInfo(defaultValue = "0") override val isRemoved: Boolean = false,
     @ColumnInfo(defaultValue = "0") override val lastModifiedAt: Long = System.currentTimeMillis(),
     override val serverUpdatedAt: Long? = null

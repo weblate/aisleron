@@ -56,7 +56,7 @@ val repositoryModule = module {
 
     factory<ProductRepository> {
         ProductRepositoryImpl(
-            productDao = get(), aisleProductDao = get(), productMapper = ProductMapper()
+            productDao = get(), productMapper = ProductMapper()
         )
     }
 

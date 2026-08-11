@@ -41,7 +41,6 @@ class ProductVariantRepositoryImplTest : RepositoryImplTest<ProductVariant>() {
     private val productRepository: ProductRepository by lazy {
         ProductRepositoryImpl(
             productDao = get<ProductDao>(),
-            aisleProductDao = get(),
             productMapper = ProductMapper()
         )
     }

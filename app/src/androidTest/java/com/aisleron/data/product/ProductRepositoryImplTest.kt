@@ -36,7 +36,6 @@ class ProductRepositoryImplTest : RepositoryImplTest<Product>() {
     override fun initRepository(): BaseRepository<Product> =
         ProductRepositoryImpl(
             productDao = get<ProductDao>(),
-            aisleProductDao = get<AisleProductDao>(),
             productMapper = ProductMapper()
         )
 

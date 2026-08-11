@@ -19,8 +19,8 @@ package com.aisleron.data.product
 
 import com.aisleron.data.base.Mapper
 import com.aisleron.data.base.SyncEntity
-import com.aisleron.domain.product.Product
 import com.aisleron.domain.preferences.TrackingMode
+import com.aisleron.domain.product.Product
 
 class ProductMapper : Mapper<ProductEntity, Product> {
     override fun toModel(value: ProductEntity) = Product(
@@ -43,7 +43,7 @@ class ProductMapper : Mapper<ProductEntity, Product> {
         qtyIncrement = value.qtyIncrement,
         unitOfMeasure = value.unitOfMeasure,
         trackingMode = value.trackingMode,
-        syncId = syncMetadata?.syncId,
+        syncId = syncMetadata?.syncId ?: SyncEntity.generateSyncId(),
         isRemoved = syncMetadata?.isRemoved ?: false,
         lastModifiedAt = System.currentTimeMillis(),
         serverUpdatedAt = syncMetadata?.serverUpdatedAt

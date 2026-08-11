@@ -15,28 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.base
+package com.aisleron.data.migration
 
-import java.util.UUID
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
-/**
- * Base fields required by a cloud sync entity.
- *
- * Sync entities need the following indices added to in the Room annotations:
- * indices = [
- *         Index(value = ["syncId"], unique = true),
- *         Index(value = ["isRemoved", "id"]),
- *         Index(value = ["lastModifiedAt"])
- *     ]
- */
+class Migration6To7 : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE Location ADD COLUMN expanded INTEGER NOT NULL DEFAULT 1")
 
-interface SyncEntity {
-    val syncId: String?
-    val isRemoved: Boolean
-    val lastModifiedAt: Long
-    val serverUpdatedAt: Long?
-
-    companion object {
-        fun generateSyncId(): String = UUID.randomUUID().toString()
+        // Initial rank is based on id so locations are ranked by order of creation
+        // Not doing this will lead to some really strange behavior when reordering
+        db.execSQL("ALTER TABLE Location ADD COLUMN rank INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("UPDATE Location SET rank = id")
     }
 }

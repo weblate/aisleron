@@ -21,6 +21,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.koin.compiler)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
@@ -300,6 +301,7 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.workmanager)
     implementation(libs.koin.compose)
     implementation(libs.koin.core)
     implementation(libs.koin.core.viewmodel)
@@ -316,6 +318,7 @@ dependencies {
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.kt)
     implementation(libs.supabase.auth.kt)
+    implementation(libs.supabase.postgrest.kt)
 
     // Ktor
     implementation(platform(libs.ktor.bom))

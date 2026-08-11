@@ -17,8 +17,8 @@
 
 package com.aisleron.data
 
-import android.content.ContentValues
 import android.database.Cursor
+import androidx.core.content.contentValuesOf
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
@@ -28,8 +28,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteQueryBuilder
 import androidx.test.platform.app.InstrumentationRegistry
 import com.aisleron.data.base.SyncEntity
+import com.aisleron.data.migration.Migration6To7
+import com.aisleron.data.migration.Migration8To9
 import com.aisleron.domain.FilterType
 import com.aisleron.domain.location.LocationType
+import com.aisleron.domain.loyaltycard.LoyaltyCardProviderType
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +42,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-
+import kotlin.test.assertTrue
 
 class DatabaseMigrationTest {
     private val testDb = "migration-test"
@@ -53,31 +56,107 @@ class DatabaseMigrationTest {
     private fun populateDatabase(db: SupportSQLiteDatabase, version: Int) {
         // You can't use DAO classes because they expect the latest schema.
 
-        val locationValues = ContentValues()
-        locationValues.put("type", LocationType.HOME.toString())
-        locationValues.put("defaultFilter", FilterType.NEEDED.toString())
-        locationValues.put("name", "Home")
-        locationValues.put("pinned", false)
-        if (version >= 7) locationValues.put("rank", 1)
-
         val locationId = db.insert(
-            "Location", android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL, locationValues
+            "Location",
+            android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+            contentValuesOf(
+                "type" to LocationType.HOME.toString(),
+                "defaultFilter" to FilterType.NEEDED.toString(),
+                "name" to "Home",
+                "pinned" to false
+            ).apply {
+                if (version >= 7) put("rank", 1)
+                if (version >= 9) put("syncId", "locationSyncId")
+            }
         )
 
-        val aisleValues = ContentValues()
-        aisleValues.put("name", "No Aisle")
-        aisleValues.put("locationId", locationId)
-        aisleValues.put("rank", 1)
-        aisleValues.put("isDefault", true)
+        val aisleId = db.insert(
+            "Aisle",
+            android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+            contentValuesOf(
+                "name" to "No Aisle",
+                "locationId" to locationId,
+                "rank" to 1,
+                "isDefault" to true
+            ).apply {
+                if (version >= 9) put("syncId", "aisleSyncId")
+            }
+        )
 
-        db.insert("Aisle", android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL, aisleValues)
+        val productId = db.insert(
+            "Product",
+            android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+            contentValuesOf(
+                "name" to "Migration Test Product",
+                "inStock" to true
+            ).apply {
+                if (version >= 5) put("qtyNeeded", 10)
+                if (version >= 9) put("syncId", "productSyncId")
+            }
+        )
 
-        val productValues = ContentValues()
-        productValues.put("name", "Migration Test Product")
-        productValues.put("inStock", true)
-        if (version >= 5) productValues.put("qtyNeeded", 10)
+        db.insert(
+            "AisleProduct",
+            android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+            contentValuesOf(
+                "aisleId" to aisleId,
+                "productId" to productId,
+                "rank" to 100
+            ).apply {
+                if (version >= 9) put("syncId", "aisleProductSyncId")
+            }
+        )
 
-        db.insert("Product", android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL, productValues)
+        if (version >= 3) {
+            val loyaltyCardId = db.insert(
+                "LoyaltyCard",
+                android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+                contentValuesOf(
+                    "name" to "A Loyalty Card for testing",
+                    "provider" to LoyaltyCardProviderType.CATIMA.name,
+                    "intent" to "testIntent"
+                ).apply {
+                    if (version >= 9) put("syncId", "loyaltyCardSyncId")
+                }
+            )
+
+            db.insert(
+                "LocationLoyaltyCard",
+                android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+                contentValuesOf(
+                    "locationId" to locationId,
+                    "loyaltyCardId" to loyaltyCardId
+
+                ).apply {
+                    if (version >= 9) put("syncId", "ocationLoyaltyCardSyncId")
+                }
+            )
+        }
+
+        if (version >= 5) {
+            db.insert(
+                "Note",
+                android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+                contentValuesOf(
+                    "noteText" to "A note for testing"
+                ).apply {
+                    if (version >= 9) put("syncId", "noteSyncId")
+                }
+            )
+        }
+
+        if (version >= 8) {
+            db.insert(
+                "ProductVariant",
+                android.database.sqlite.SQLiteDatabase.CONFLICT_FAIL,
+                contentValuesOf(
+                    "productId" to productId,
+                    "barcode" to "123456789"
+                ).apply {
+                    if (version >= 9) put("syncId", "productVariantSyncId")
+                }
+            )
+        }
     }
 
     @Test
@@ -217,16 +296,15 @@ class DatabaseMigrationTest {
     @Test
     @Throws(IOException::class)
     fun migrate6to7() {
-        helper.createDatabase(testDb, 6).apply {
-            populateDatabase(this, 6)
-            close()
+        helper.createDatabase(testDb, 6).use { db ->
+            populateDatabase(db, 6)
         }
 
-        val db = helper.runMigrationsAndValidate(testDb, 7, true, AisleronDatabase.MIGRATION_6_7)
-
-        db.apply {
+        helper.runMigrationsAndValidate(
+            testDb, 7, true, Migration6To7()
+        ).use { db ->
             val queryLocation = SupportSQLiteQueryBuilder.builder("Location")
-            val cursorLocation: Cursor = query(queryLocation.create())
+            val cursorLocation: Cursor = db.query(queryLocation.create())
             cursorLocation.moveToFirst()
 
             // Check expanded exists on Location
@@ -239,8 +317,6 @@ class DatabaseMigrationTest {
             assertEquals(id, rank)
 
             cursorLocation.close()
-
-            close()
         }
     }
 
@@ -303,8 +379,73 @@ class DatabaseMigrationTest {
         }
     }
 
+    private fun checkSyncIdPopulatedV9(tableName: String, db: SupportSQLiteDatabase) {
+        val count = db.compileStatement(
+            "SELECT COUNT(*) FROM `$tableName` WHERE syncId IS NULL OR syncId = ''"
+        ).simpleQueryForLong()
+
+        assertEquals(0L, count)
+    }
+
+    private fun assertAisleProductForeignKeysExistV9(db: SupportSQLiteDatabase) {
+        val foreignKeys = mutableListOf<String>()
+
+        db.query("PRAGMA foreign_key_list('AisleProduct')").use { cursor ->
+            val tableIndex = cursor.getColumnIndex("table")
+            val fromIndex = cursor.getColumnIndex("from")
+
+            while (cursor.moveToNext()) {
+                val parentTable = cursor.getString(tableIndex)
+                val childColumn = cursor.getString(fromIndex)
+                foreignKeys.add("$childColumn -> $parentTable")
+            }
+        }
+
+        // Assert both foreign keys exist
+        assertTrue(foreignKeys.contains("aisleId -> Aisle"))
+        assertTrue(foreignKeys.contains("productId -> Product"))
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate8to9() {
+        helper.createDatabase(testDb, 8).use { db ->
+            populateDatabase(db, 8)
+
+            db.execSQL(
+                """
+                INSERT INTO AisleProduct (aisleId, productId, rank) VALUES
+                (1, 999, 100),
+                (999, 1, 100),
+                (999, 999, 100)
+                """.trimIndent()
+            )
+        }
+
+        helper.runMigrationsAndValidate(
+            testDb, 9, true, Migration8To9()
+        ).use { db ->
+            val count = db.compileStatement(
+                "SELECT COUNT(*) FROM AisleProduct WHERE aisleId = 999 or productId =999"
+            ).simpleQueryForLong()
+
+            assertEquals(0L, count)
+
+            assertAisleProductForeignKeysExistV9(db)
+
+            checkSyncIdPopulatedV9("Product", db)
+            checkSyncIdPopulatedV9("Location", db)
+            checkSyncIdPopulatedV9("Aisle", db)
+            checkSyncIdPopulatedV9("AisleProduct", db)
+            checkSyncIdPopulatedV9("Note", db)
+            checkSyncIdPopulatedV9("LoyaltyCard", db)
+            checkSyncIdPopulatedV9("LocationLoyaltyCard", db)
+            checkSyncIdPopulatedV9("ProductVariant", db)
+        }
+    }
+
     private fun validateV8SyncEntity(entity: SyncEntity) {
-        assertNull(entity.syncId)
+        assertNotNull(entity.syncId)
         assertFalse(entity.isRemoved)
         assertEquals(0, entity.lastModifiedAt)
         assertNull(entity.serverUpdatedAt)
@@ -313,9 +454,8 @@ class DatabaseMigrationTest {
     @Test
     @Throws(IOException::class)
     fun migrateAll() = runTest {
-        helper.createDatabase(testDb, 1).apply {
-            populateDatabase(this, 1)
-            close()
+        helper.createDatabase(testDb, 1).use { db ->
+            populateDatabase(db, 1)
         }
 
         val db = Room.databaseBuilder(
@@ -323,7 +463,7 @@ class DatabaseMigrationTest {
             AisleronDatabase::class.java,
             testDb
         )
-            .addMigrations(AisleronDatabase.MIGRATION_6_7)
+            .addMigrations(Migration6To7(), Migration8To9())
             .build()
 
         // LoyaltyCard introduced in V3
@@ -354,7 +494,7 @@ class DatabaseMigrationTest {
         val variants = db.productVariantDao().getByProductId(product.id)
         assertNotNull(variants)
 
-        // Sync Entity fields introduced in V8
+        // Sync Entity fields introduced in V8, seeded in V9
         validateV8SyncEntity(db.aisleDao().getAisles().first())
         validateV8SyncEntity(db.locationDao().getLocations().first())
         validateV8SyncEntity(db.productDao().getProducts().first())
