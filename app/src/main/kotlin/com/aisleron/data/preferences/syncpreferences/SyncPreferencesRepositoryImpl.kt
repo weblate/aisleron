@@ -20,8 +20,13 @@ package com.aisleron.data.preferences.syncpreferences
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 class SyncPreferencesRepositoryImpl(
     private val sharedPreferences: SharedPreferences,
@@ -29,7 +34,7 @@ class SyncPreferencesRepositoryImpl(
     private val defaultKey: String
 ) : SyncPreferencesRepository {
     private fun getSyncService(): SyncServicePreference {
-        val value = sharedPreferences.getString(SYNC_SERVICE, null)
+        val value = sharedPreferences.getString(SyncPreferenceKey.SYNC_SERVICE.keyName, null)
         return SyncServicePreference.fromValue(value)
     }
 
@@ -37,7 +42,9 @@ class SyncPreferencesRepositoryImpl(
         return when (getSyncService()) {
             SyncServicePreference.NONE -> ""
             SyncServicePreference.CUSTOM_SERVICE ->
-                sharedPreferences.getString(CUSTOM_SERVICE_URL, "").orEmpty()
+                sharedPreferences.getString(
+                    SyncPreferenceKey.CUSTOM_SERVICE_URL.keyName, ""
+                ).orEmpty()
         }
     }
 
@@ -45,44 +52,93 @@ class SyncPreferencesRepositoryImpl(
         return when (getSyncService()) {
             SyncServicePreference.NONE -> ""
             SyncServicePreference.CUSTOM_SERVICE ->
-                sharedPreferences.getString(CUSTOM_SERVICE_KEY, "").orEmpty()
+                sharedPreferences.getString(
+                    SyncPreferenceKey.CUSTOM_SERVICE_KEY.keyName, ""
+                ).orEmpty()
         }
     }
 
     private fun getSyncOnMobileData(): Boolean =
-        sharedPreferences.getBoolean(SYNC_ON_MOBILE_DATA, false)
+        sharedPreferences.getBoolean(SyncPreferenceKey.SYNC_ON_MOBILE_DATA.keyName, false)
+
+    private fun getLastSyncedAt(): Long =
+        sharedPreferences.getLong(SyncPreferenceKey.LAST_SYNCED_AT.keyName, 0)
+
+    private fun getLastSyncSuccess(): SyncStatusPreference {
+        val value = sharedPreferences.getString(SyncPreferenceKey.LAST_SYNC_SUCCESS.keyName, null)
+        return SyncStatusPreference.fromValue(value)
+    }
 
     override fun getSyncPreferences(): SyncPreferences =
         SyncPreferences(
             syncServicePreference = getSyncService(),
             serviceUrl = getServiceUrl(),
             serviceKey = getServiceKey(),
-            syncOnMobileData = getSyncOnMobileData()
+            syncOnMobileData = getSyncOnMobileData(),
+            lastSyncedAt = getLastSyncedAt(),
+            lastSyncStatus = getLastSyncSuccess()
         )
+
+    override fun getSyncPreferencesFlow(): Flow<SyncPreferences> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key in SyncPreferenceKey.ALL_KEYS) {
+                trySend(getSyncPreferences())
+            }
+        }
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        trySend(getSyncPreferences())
+
+        // Clean up listener when the flow collection is cancelled
+        awaitClose {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }.distinctUntilChanged()
 
     override fun setCustomServiceDetails(url: String, key: String) {
         sharedPreferences.edit {
-            putString(CUSTOM_SERVICE_URL, url)
-            putString(CUSTOM_SERVICE_KEY, key)
+            putString(SyncPreferenceKey.CUSTOM_SERVICE_URL.keyName, url)
+            putString(SyncPreferenceKey.CUSTOM_SERVICE_KEY.keyName, key)
         }
     }
 
     override fun setSyncOnMobileData(value: Boolean) {
         sharedPreferences.edit {
-            putBoolean(SYNC_ON_MOBILE_DATA, value)
+            putBoolean(SyncPreferenceKey.SYNC_ON_MOBILE_DATA.keyName, value)
         }
     }
 
     override fun setSyncService(value: SyncServicePreference) {
         sharedPreferences.edit {
-            putString(SYNC_SERVICE, value.value)
+            putString(SyncPreferenceKey.SYNC_SERVICE.keyName, value.value)
         }
     }
 
+    override fun setSyncStatus(lastSyncedAt: Long, status: SyncStatusPreference) {
+        sharedPreferences.edit {
+            putLong(SyncPreferenceKey.LAST_SYNCED_AT.keyName, lastSyncedAt)
+            putString(SyncPreferenceKey.LAST_SYNC_SUCCESS.keyName, status.value)
+        }
+    }
+
+    override fun setSyncStatus(status: SyncStatusPreference) {
+        sharedPreferences.edit {
+            putString(SyncPreferenceKey.LAST_SYNC_SUCCESS.keyName, status.value)
+        }
+    }
+}
+
+enum class SyncPreferenceKey(val keyName: String) {
+    SYNC_SERVICE("sync_service"),
+    CUSTOM_SERVICE_URL("custom_service_url"),
+    CUSTOM_SERVICE_KEY("custom_service_key"),
+    SYNC_ON_MOBILE_DATA("sync_on_mobile_data"),
+    LAST_SYNCED_AT("last_synced_at"),
+    LAST_SYNC_SUCCESS("last_sync_success");
+
     companion object {
-        const val SYNC_SERVICE = "sync_service"
-        const val CUSTOM_SERVICE_URL = "custom_service_url"
-        const val CUSTOM_SERVICE_KEY = "custom_service_key"
-        const val SYNC_ON_MOBILE_DATA = "sync_on_mobile_data"
+        val ALL_KEYS: Set<String> by lazy {
+            entries.mapTo(HashSet()) { it.keyName }
+        }
     }
 }

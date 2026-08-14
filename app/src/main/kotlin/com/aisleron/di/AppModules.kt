@@ -29,6 +29,7 @@ val appModules = module {
         repositoryModule,
         useCaseModule,
         viewModelModule,
-        factoryModule
+        factoryModule,
+        syncModule
     )
 }

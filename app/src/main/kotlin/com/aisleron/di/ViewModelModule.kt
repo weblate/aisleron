@@ -132,11 +132,13 @@ val viewModelModule = module {
         AccountPreferencesViewModel(
             signOutUseCase = get(),
             getSyncPreferencesUseCase = get(),
+            getSyncPreferencesFlowUseCase = get(),
             setCustomSyncServiceDetailsUseCase = get(),
             getSessionStatusUseCase = get(),
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
             setSyncServiceUseCase = get(),
+            scheduleOneOffSyncUseCase = get(),
             logger = get()
         )
     }

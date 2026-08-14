@@ -147,11 +147,13 @@ val viewModelTestModule = module {
         AccountPreferencesViewModel(
             signOutUseCase = get(),
             getSyncPreferencesUseCase = get(),
+            getSyncPreferencesFlowUseCase = get(),
             setCustomSyncServiceDetailsUseCase = get(),
             getSessionStatusUseCase = get(),
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
             setSyncServiceUseCase = get(),
+            scheduleOneOffSyncUseCase = get(),
             logger = get(),
             debounceTime = 0,
             TestScope(UnconfinedTestDispatcher())

@@ -25,6 +25,7 @@ import com.aisleron.domain.preferences.PreferenceEnum
 import com.aisleron.domain.preferences.PureBlackStyle
 import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 
 @get:StringRes
 val PreferenceEnum.labelRes: Int
@@ -32,6 +33,13 @@ val PreferenceEnum.labelRes: Int
         is SyncServicePreference -> when (this) {
             SyncServicePreference.NONE -> R.string.preference_none
             SyncServicePreference.CUSTOM_SERVICE -> R.string.sync_service_custom
+        }
+
+        is SyncStatusPreference -> when(this) {
+            SyncStatusPreference.NONE -> R.string.preference_none
+            SyncStatusPreference.SUCCESS -> R.string.sync_status_success
+            SyncStatusPreference.RUNNING -> R.string.sync_status_running
+            SyncStatusPreference.FAILURE -> R.string.sync_status_failed
         }
 
         is PureBlackStyle -> when (this) {

@@ -17,13 +17,11 @@
 
 package com.aisleron.di
 
+import androidx.work.WorkManager
 import com.aisleron.data.log.LoggerImpl
 import com.aisleron.data.sync.SupabaseAuthDelegate
 import com.aisleron.data.sync.SupabaseAuthDelegateImpl
-import com.aisleron.data.sync.SupabaseClientProvider
-import com.aisleron.data.sync.SupabaseSessionManagerImpl
 import com.aisleron.domain.log.Logger
-import com.aisleron.domain.sync.SyncSessionManager
 import com.aisleron.ui.AddEditFragmentListener
 import com.aisleron.ui.AddEditFragmentListenerImpl
 import com.aisleron.ui.ApplicationTitleUpdateListener
@@ -40,7 +38,6 @@ import com.aisleron.ui.resourceprovider.ResourceProvider
 import com.aisleron.ui.resourceprovider.ResourceProviderImpl
 import com.aisleron.ui.settings.LocaleDelegate
 import com.aisleron.ui.settings.LocaleDelegateImpl
-import org.koin.dsl.binds
 import org.koin.dsl.module
 
 val generalModule = module {
@@ -51,19 +48,7 @@ val generalModule = module {
     factory<AddEditFragmentListener> { AddEditFragmentListenerImpl() }
     factory<LoyaltyCardProvider> { CatimaCardProvider(PackageCheckerImpl()) }
     factory<SupabaseAuthDelegate> { SupabaseAuthDelegateImpl() }
-
-    single {
-        SupabaseSessionManagerImpl(
-            syncPreferencesRepository = get(),
-            clientFactory = get(),
-            authDelegate = get(),
-            logger = get()
-        )
-    } binds arrayOf(
-        SyncSessionManager::class,
-        SupabaseClientProvider::class
-    )
-
     single<Logger> { LoggerImpl() }
     factory<LocaleDelegate> { LocaleDelegateImpl() }
+    single<WorkManager> { WorkManager.getInstance(get()) }
 }

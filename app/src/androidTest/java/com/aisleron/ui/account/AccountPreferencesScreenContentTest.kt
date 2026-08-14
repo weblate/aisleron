@@ -17,6 +17,7 @@
 
 package com.aisleron.ui.account
 
+import android.text.format.DateUtils
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -29,13 +30,16 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import com.aisleron.R
 import com.aisleron.di.generalTestModule
 import com.aisleron.di.preferenceTestModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionManager
@@ -44,6 +48,7 @@ import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRep
 import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import com.aisleron.ui.AisleronExceptionMap
 import com.aisleron.ui.ComposeScreenTest
+import com.aisleron.ui.component.preference.labelRes
 import org.junit.Test
 import org.koin.test.get
 import kotlin.test.assertEquals
@@ -52,7 +57,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalTestApi::class)
 class AccountPreferencesScreenContentTest : ComposeScreenTest() {
     override val koinModules = listOf(
-        useCaseModule, preferenceTestModule, generalTestModule, viewModelTestModule
+        useCaseModule, preferenceTestModule, generalTestModule, viewModelTestModule, syncTestModule
     )
 
     @Composable
@@ -63,7 +68,8 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
         onSignInPressed: () -> Unit = {},
         onSignOutPressed: () -> Unit = {},
         onSyncOnMobileDataChanged: ((Boolean) -> Unit) = {},
-        onSyncServiceChanged: ((SyncServicePreference) -> Unit) = {}
+        onSyncServiceChanged: ((SyncServicePreference) -> Unit) = {},
+        onSyncStatusPressed: () -> Unit = {}
     ) {
         AccountPreferencesScreenContent(
             state = state,
@@ -72,23 +78,39 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
             onSignInPressed = onSignInPressed,
             onSignOutPressed = onSignOutPressed,
             onSyncOnMobileDataChanged = onSyncOnMobileDataChanged,
-            onSyncServiceChanged = onSyncServiceChanged
+            onSyncServiceChanged = onSyncServiceChanged,
+            onSyncStatusPressed = onSyncStatusPressed
         )
     }
+
+    private fun getSyncPreferences(
+        syncServicePreference: SyncServicePreference = SyncServicePreference.NONE,
+        serviceUrl: String = "",
+        serviceKey: String = "",
+        syncOnMobileData: Boolean = false,
+        lastSyncedAt: Long = 0L,
+        lastSyncStatus: SyncStatusPreference = SyncStatusPreference.NONE
+    ) = SyncPreferences(
+        syncServicePreference = syncServicePreference,
+        serviceUrl = serviceUrl,
+        serviceKey = serviceKey,
+        syncOnMobileData = syncOnMobileData,
+        lastSyncedAt = lastSyncedAt,
+        lastSyncStatus = lastSyncStatus
+    )
+
+    private fun getSyncPreferencesRepository() =
+        get<SyncPreferencesRepository>() as SyncPreferencesRepositoryTestImpl
 
     @Test
     fun accountPreferences_OnSignOutFailure_DisplaysErrorSnackbar() = runKoinComposeUiTest {
         val exceptionCode = AisleronException.ExceptionCode.SIGN_OUT_EXCEPTION
 
-        val syncServicePreference =
-            get<SyncPreferencesRepository>() as SyncPreferencesRepositoryTestImpl
-
-        syncServicePreference.setSyncPreferences(
-            SyncPreferences(
+        getSyncPreferencesRepository().setSyncPreferences(
+            getSyncPreferences(
                 syncServicePreference = SyncServicePreference.CUSTOM_SERVICE,
                 serviceUrl = "https://sync.aisleron.com",
-                serviceKey = "example-key",
-                syncOnMobileData = false
+                serviceKey = "example-key"
             )
         )
 
@@ -106,7 +128,6 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
             .assertIsEnabled()
             .performClick()
 
-
         val expectedErrorText = getString(
             AisleronExceptionMap().getErrorResourceId(exceptionCode)
         )
@@ -116,13 +137,11 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
 
     @Test
     fun accountPreferences_OnSyncOnMobileDataChanged_PreferenceUpdated() = runKoinComposeUiTest {
-        val syncServicePreference =
-            get<SyncPreferencesRepository>() as SyncPreferencesRepositoryTestImpl
-
         val syncOnMobileDataBefore = false
 
+        val syncServicePreference = getSyncPreferencesRepository()
         syncServicePreference.setSyncPreferences(
-            SyncPreferences(
+            getSyncPreferences(
                 syncServicePreference = SyncServicePreference.CUSTOM_SERVICE,
                 serviceUrl = "https://sync.aisleron.com",
                 serviceKey = "example-key",
@@ -143,17 +162,14 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
 
     @Test
     fun accountPreferences_OnSyncServiceChanged_PreferenceUpdated() = runKoinComposeUiTest {
-        val syncServicePreference =
-            get<SyncPreferencesRepository>() as SyncPreferencesRepositoryTestImpl
-
         val syncServiceBefore = SyncServicePreference.NONE
 
+        val syncServicePreference = getSyncPreferencesRepository()
         syncServicePreference.setSyncPreferences(
-            SyncPreferences(
+            getSyncPreferences(
                 syncServicePreference = syncServiceBefore,
                 serviceUrl = "https://sync.aisleron.com",
-                serviceKey = "example-key",
-                syncOnMobileData = false
+                serviceKey = "example-key"
             )
         )
 
@@ -171,11 +187,35 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
     }
 
     @Test
+    fun accountPreferences_OnSyncStarted_ShowSyncStartedSnackbar() = runKoinComposeUiTest {
+        getSyncPreferencesRepository().setSyncPreferences(
+            getSyncPreferences(
+                syncServicePreference = SyncServicePreference.CUSTOM_SERVICE,
+                serviceUrl = "https://sync.aisleron.com",
+                serviceKey = "example-key"
+            )
+        )
+
+        setContent {
+            AccountPreferencesScreen(onSignInPressed = {})
+        }
+
+        val lastSyncText = getString(R.string.last_sync)
+        onNodeWithText(lastSyncText)
+            .assertIsEnabled()
+            .performClick()
+
+        val expectedSnackbarText = getString(R.string.manual_sync_scheduled)
+
+        onNodeWithText(expectedSnackbarText).assertIsDisplayed()
+    }
+
+    @Test
     fun accountPreferencesContent_AuthenticatedState_DisplaysSignOutAndUserInfo() =
         runComposeUiTest {
             val user = "user@example.com"
             val signOutText = getString(R.string.sign_out)
-            val statusText = getContext().getString(R.string.sync_status_signed_in_as, user)
+            val statusText = getContext().getString(R.string.sync_session_signed_in_as, user)
 
             val state = AccountPreferencesUiState(
                 serviceUrl = "https://sync.aisleron.com",
@@ -360,7 +400,7 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
     fun accountPreferencesContent_SyncStatusIsNotAuthenticated_ShowNotAuthenticatedState() {
         validateStatusDescription(
             SyncSessionStatus.NotAuthenticated,
-            R.string.sync_status_not_authenticated
+            R.string.sync_session_not_authenticated
         )
     }
 
@@ -368,7 +408,7 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
     fun accountPreferencesContent_SyncStatusIsRefreshFailure_ShowRefreshFailureState() {
         validateStatusDescription(
             SyncSessionStatus.RefreshFailure,
-            R.string.sync_status_refresh_failure
+            R.string.sync_session_refresh_failure
         )
     }
 
@@ -413,5 +453,49 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
         }
 
         onNodeWithText(syncServiceAddressText).assertIsDisplayed()
+    }
+
+    @Test
+    fun accountPreferencesContent_ClickLastSync_TriggersSyncStatusPressed() = runComposeUiTest {
+        val lastSyncText = getString(R.string.last_sync)
+        var lastSyncPressed = false
+        val state = AccountPreferencesUiState(
+            serviceUrl = "https://sync.aisleron.com",
+            sessionStatus = SyncSessionStatus.NotAuthenticated
+        )
+
+        setContent {
+            SetAccountPreferencesScreenContent(
+                state = state,
+                onSyncStatusPressed = { lastSyncPressed = true }
+            )
+        }
+
+        onNodeWithText(lastSyncText)
+            .assertIsEnabled()
+            .performClick()
+
+        assertTrue(lastSyncPressed)
+    }
+
+    @Test
+    fun accountPreferencesContent_HasLastSyncStatus_ShowLastSyncStatus() = runComposeUiTest {
+        val lastSyncDate = System.currentTimeMillis()
+        val statusText = DateUtils.formatDateTime(
+            getInstrumentation().targetContext,
+            lastSyncDate,
+            DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME
+        ) + " - ${getString(SyncStatusPreference.SUCCESS.labelRes)}"
+
+        val state = AccountPreferencesUiState(
+            lastSyncDate = lastSyncDate,
+            lastSyncStatus = SyncStatusPreference.SUCCESS
+        )
+
+        setContent {
+            SetAccountPreferencesScreenContent(state = state)
+        }
+
+        onNodeWithText(statusText, substring = true).assertIsDisplayed()
     }
 }

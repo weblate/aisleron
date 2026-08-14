@@ -20,6 +20,7 @@ package com.aisleron.data.sync
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
 
 interface SupabaseClientFactory {
     fun create(url: String, key: String): SupabaseClient
@@ -28,6 +29,9 @@ interface SupabaseClientFactory {
 // The real implementation that holds the inline logic
 class SupabaseClientFactoryImpl : SupabaseClientFactory {
     override fun create(url: String, key: String): SupabaseClient {
-        return createSupabaseClient(url, key) { install(Auth) }
+        return createSupabaseClient(url, key) {
+            install(Auth)
+            install(Postgrest)
+        }
     }
 }

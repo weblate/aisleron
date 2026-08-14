@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025-2026 aisleron.com
+ * Copyright (C) 2026 aisleron.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,24 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.di
+package com.aisleron.domain.preferences.syncpreferences.usecase
 
-import android.app.Application
-import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.androidx.fragment.koin.fragmentFactory
-import org.koin.androidx.workmanager.koin.workManagerFactory
-import org.koin.core.context.startKoin
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import kotlinx.coroutines.flow.Flow
 
-class AisleronApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        startKoin {
-            androidLogger()
-            fragmentFactory()
-            androidContext(this@AisleronApplication)
-            workManagerFactory()
-            modules(appModules)
-        }
-    }
+class GetSyncPreferencesFlowUseCase(private val syncPreferencesRepository: SyncPreferencesRepository) {
+    operator fun invoke(): Flow<SyncPreferences> =
+        syncPreferencesRepository.getSyncPreferencesFlow()
 }

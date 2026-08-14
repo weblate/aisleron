@@ -18,10 +18,15 @@
 package com.aisleron.domain.preferences.syncpreferences
 
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
+import kotlinx.coroutines.flow.Flow
 
 interface SyncPreferencesRepository {
     fun getSyncPreferences(): SyncPreferences
+    fun getSyncPreferencesFlow(): Flow<SyncPreferences>
     fun setCustomServiceDetails(url: String, key: String)
     fun setSyncOnMobileData(value: Boolean)
     fun setSyncService(value: SyncServicePreference)
+    fun setSyncStatus(lastSyncedAt: Long, status: SyncStatusPreference)
+    fun setSyncStatus(status: SyncStatusPreference)
 }

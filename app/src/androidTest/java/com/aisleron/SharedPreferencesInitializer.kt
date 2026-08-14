@@ -20,10 +20,11 @@ package com.aisleron
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import com.aisleron.data.preferences.syncpreferences.SyncPreferencesRepositoryImpl
+import com.aisleron.data.preferences.syncpreferences.SyncPreferenceKey
 import com.aisleron.domain.FilterType
 import com.aisleron.domain.location.LocationType
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 
 class SharedPreferencesInitializer {
 
@@ -146,19 +147,39 @@ class SharedPreferencesInitializer {
     }
 
     fun setSyncService(value: SyncServicePreference) {
-        setPreferenceValue(SyncPreferencesRepositoryImpl.SYNC_SERVICE, value.value)
+        setPreferenceValue(
+            SyncPreferenceKey.SYNC_SERVICE.keyName, value.value
+        )
     }
 
     fun setCustomSyncServiceUrl(value: String) {
-        setPreferenceValue(SyncPreferencesRepositoryImpl.CUSTOM_SERVICE_URL, value)
+        setPreferenceValue(
+            SyncPreferenceKey.CUSTOM_SERVICE_URL.keyName, value
+        )
     }
 
     fun setCustomSyncServiceKey(value: String) {
-        setPreferenceValue(SyncPreferencesRepositoryImpl.CUSTOM_SERVICE_KEY, value)
+        setPreferenceValue(
+            SyncPreferenceKey.CUSTOM_SERVICE_KEY.keyName, value
+        )
     }
 
     fun setSyncOnMobileData(value: Boolean) {
-        setPreferenceValue(SyncPreferencesRepositoryImpl.SYNC_ON_MOBILE_DATA, value)
+        setPreferenceValue(
+            SyncPreferenceKey.SYNC_ON_MOBILE_DATA.keyName, value
+        )
+    }
+
+    fun setLastSyncedAt(value: Long) {
+        setPreferenceValue(
+            SyncPreferenceKey.LAST_SYNCED_AT.keyName, value
+        )
+    }
+
+    fun setLastSyncSuccess(value: SyncStatusPreference) {
+        setPreferenceValue(
+            SyncPreferenceKey.LAST_SYNC_SUCCESS.keyName, value.value
+        )
     }
 
     companion object {

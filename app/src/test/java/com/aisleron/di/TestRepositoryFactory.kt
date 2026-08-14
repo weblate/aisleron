@@ -45,7 +45,6 @@ class TestRepositoryFactory(private val db: AisleronDb) {
     val productRepository: ProductRepository by lazy {
         ProductRepositoryImpl(
             db.productDao(),
-            db.aisleProductDao(),
             ProductMapper()
         )
     }

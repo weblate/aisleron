@@ -23,7 +23,8 @@ import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.base.exceptionCode
 import com.aisleron.domain.log.Logger
 import com.aisleron.domain.preferences.SyncServicePreference
-import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
+import com.aisleron.domain.preferences.SyncStatusPreference
+import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesFlowUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetCustomSyncServiceDetailsUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncOnMobileDataUseCase
@@ -31,6 +32,7 @@ import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncServiceUse
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
+import com.aisleron.domain.sync.usecase.ScheduleOneOffSyncUseCase
 import com.aisleron.domain.sync.usecase.SignOutUseCase
 import com.aisleron.ui.base.UiEvent
 import kotlinx.coroutines.CoroutineScope
@@ -50,23 +52,19 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class AccountPreferencesViewModel(
     private val signOutUseCase: SignOutUseCase,
-    private val getSyncPreferencesUseCase: GetSyncPreferencesUseCase,
+    getSyncPreferencesUseCase: GetSyncPreferencesUseCase,
+    getSyncPreferencesFlowUseCase: GetSyncPreferencesFlowUseCase,
     private val setCustomSyncServiceDetailsUseCase: SetCustomSyncServiceDetailsUseCase,
     getSessionStatusUseCase: GetSessionStatusUseCase,
     private val refreshSessionStatusUseCase: RefreshSessionStatusUseCase,
     private val setSyncOnMobileDataUseCase: SetSyncOnMobileDataUseCase,
     private val setSyncServiceUseCase: SetSyncServiceUseCase,
+    private val scheduleOneOffSyncUseCase: ScheduleOneOffSyncUseCase,
     private val logger: Logger,
     debounceTime: Long = 300,
     coroutineScopeProvider: CoroutineScope? = null
 ) : ViewModel() {
     private val coroutineScope = coroutineScopeProvider ?: this.viewModelScope
-    private var syncPreferences: SyncPreferences = getSyncPreferencesUseCase()
-
-    private val _syncServiceUrl = MutableStateFlow(syncPreferences.serviceUrl)
-    private val _syncOnMobileData = MutableStateFlow(syncPreferences.syncOnMobileData)
-
-    private val _syncService = MutableStateFlow(syncPreferences.syncServicePreference)
     private val _isLoading = MutableStateFlow(false)
     private val _sessionStatusFlow = getSessionStatusUseCase()
         .transformLatest { status ->
@@ -76,31 +74,36 @@ class AccountPreferencesViewModel(
             emit(status)
         }
 
-    private val _signOutError = MutableStateFlow<UiEvent<AisleronException.ExceptionCode>?>(null)
-    val signOutError: StateFlow<UiEvent<AisleronException.ExceptionCode>?> =
-        _signOutError.asStateFlow()
+    private val _uiEvent = MutableStateFlow<UiEvent<UiEffect>?>(null)
+    val uiEvent: StateFlow<UiEvent<UiEffect>?> = _uiEvent.asStateFlow()
 
     val uiState: StateFlow<AccountPreferencesUiState> = combine(
-        _syncServiceUrl,
-        _syncOnMobileData,
-        _syncService,
+        getSyncPreferencesFlowUseCase(),
         _isLoading,
         _sessionStatusFlow
-    ) { url, mobileData, service, loading, status ->
+    ) { preferences, loading, status ->
         AccountPreferencesUiState(
-            serviceUrl = url,
-            syncOnMobileData = mobileData,
-            syncServicePreference = service,
+            serviceUrl = preferences.serviceUrl,
+            syncOnMobileData = preferences.syncOnMobileData,
+            syncServicePreference = preferences.syncServicePreference,
+            lastSyncDate = preferences.lastSyncedAt,
+            lastSyncStatus = preferences.lastSyncStatus,
             isLoading = loading,
             sessionStatus = status
         )
     }.stateIn(
         scope = coroutineScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = AccountPreferencesUiState(
-            serviceUrl = syncPreferences.serviceUrl,
-            syncOnMobileData = syncPreferences.syncOnMobileData
-        )
+        initialValue = run {
+            val initialPrefs = getSyncPreferencesUseCase()
+            AccountPreferencesUiState(
+                serviceUrl = initialPrefs.serviceUrl,
+                syncOnMobileData = initialPrefs.syncOnMobileData,
+                syncServicePreference = initialPrefs.syncServicePreference,
+                lastSyncDate = initialPrefs.lastSyncedAt,
+                lastSyncStatus = initialPrefs.lastSyncStatus,
+            )
+        }
     )
 
     fun signOut() {
@@ -109,7 +112,8 @@ class AccountPreferencesViewModel(
                 _isLoading.value = true
                 signOutUseCase().onFailure { throwable ->
                     logger.e(TAG, throwable.message.orEmpty(), throwable)
-                    _signOutError.value = UiEvent(throwable.exceptionCode)
+                    _uiEvent.value =
+                        UiEvent(UiEffect.SignOutFailure(throwable.exceptionCode))
                 }
             } finally {
                 _isLoading.value = false
@@ -120,30 +124,30 @@ class AccountPreferencesViewModel(
     fun saveSyncServiceDetails(url: String, key: String) {
         setCustomSyncServiceDetailsUseCase(url, key)
         refreshSessionStatusUseCase()
-        refreshSyncPreferences()
     }
 
     fun setSyncOnMobileData(syncOnMobileData: Boolean) {
         setSyncOnMobileDataUseCase(syncOnMobileData)
-        refreshSyncPreferences()
-    }
-
-    private fun refreshSyncPreferences() {
-        // TODO: Remove this method when moving to DataStore preferences
-        syncPreferences = getSyncPreferencesUseCase()
-        _syncServiceUrl.value = syncPreferences.serviceUrl
-        _syncOnMobileData.value = syncPreferences.syncOnMobileData
-        _syncService.value = syncPreferences.syncServicePreference
     }
 
     fun setSyncService(syncServicePreference: SyncServicePreference) {
         setSyncServiceUseCase(syncServicePreference)
         refreshSessionStatusUseCase()
-        refreshSyncPreferences()
+    }
+
+    fun syncNow() {
+        scheduleOneOffSyncUseCase(true)
+        _uiEvent.value = UiEvent(UiEffect.SyncScheduled)
     }
 
     companion object {
         const val TAG = "AccountPreferencesViewModel"
+    }
+
+    sealed interface UiEffect {
+        data object SyncScheduled : UiEffect
+        data class SignOutFailure(val errorCode: AisleronException.ExceptionCode) :
+            UiEffect
     }
 }
 
@@ -152,5 +156,7 @@ data class AccountPreferencesUiState(
     val syncOnMobileData: Boolean = false,
     val syncServicePreference: SyncServicePreference = SyncServicePreference.NONE,
     val isLoading: Boolean = false,
-    val sessionStatus: SyncSessionStatus = SyncSessionStatus.NotConfigured
+    val sessionStatus: SyncSessionStatus = SyncSessionStatus.NotConfigured,
+    val lastSyncDate: Long = 0,
+    val lastSyncStatus: SyncStatusPreference = SyncStatusPreference.NONE
 )

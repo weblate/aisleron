@@ -102,6 +102,7 @@ import com.aisleron.domain.note.usecase.RemoveNoteUseCase
 import com.aisleron.domain.note.usecase.RemoveNoteUseCaseImpl
 import com.aisleron.domain.note.usecase.UpdateNoteUseCase
 import com.aisleron.domain.note.usecase.UpdateNoteUseCaseImpl
+import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesFlowUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetCustomSyncServiceDetailsUseCase
 import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncOnMobileDataUseCase
@@ -130,10 +131,12 @@ import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCase
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCaseImpl
 import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
+import com.aisleron.domain.sync.usecase.ScheduleOneOffSyncUseCase
 import com.aisleron.domain.sync.usecase.SignInWithEmailUseCase
 import com.aisleron.domain.sync.usecase.SignOutUseCase
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.factory
 
 val useCaseModule = module {
 
@@ -475,4 +478,7 @@ val useCaseModule = module {
     factory<SignOutUseCase> { SignOutUseCase(sessionManager = get()) }
     factory<GetSessionStatusUseCase> { GetSessionStatusUseCase(sessionManager = get()) }
     factory<RefreshSessionStatusUseCase> { RefreshSessionStatusUseCase(sessionManager = get()) }
+    factory<ScheduleOneOffSyncUseCase>()
+    factory<GetSyncPreferencesFlowUseCase>()
+
 }

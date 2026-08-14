@@ -70,14 +70,14 @@ fun SignInScreen(
 
 
     LaunchedEffect(uiEvent) {
-        uiEvent?.consumeEvent()?.let { event ->
-            when (event) {
-                is SignInViewModel.SignInEvent.SignInSuccess -> {
+        uiEvent?.consumeEvent()?.let { effect ->
+            when (effect) {
+                is SignInViewModel.UiEffect.SignInSuccess -> {
                     onSignInSuccess()
                 }
 
-                is SignInViewModel.SignInEvent.SignInFailure -> {
-                    val resId = exceptionMap.getErrorResourceId(event.errorCode)
+                is SignInViewModel.UiEffect.SignInFailure -> {
+                    val resId = exceptionMap.getErrorResourceId(effect.errorCode)
                     val message = resources.getString(resId)
                     snackbarHostState.showSnackbar(message = message)
                     // TODO : Error snackbar formatting

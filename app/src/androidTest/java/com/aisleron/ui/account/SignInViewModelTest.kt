@@ -70,7 +70,7 @@ class SignInViewModelTest : KoinTest {
         assertFalse(isLoading.value)
 
         val event = viewModel.signInEvent.value?.consumeEvent()
-        assertIs<SignInViewModel.SignInEvent.SignInSuccess>(event)
+        assertIs<SignInViewModel.UiEffect.SignInSuccess>(event)
 
         val reconsumedEvent = viewModel.signInEvent.value?.consumeEvent()
         assertNull(reconsumedEvent)
@@ -90,7 +90,7 @@ class SignInViewModelTest : KoinTest {
         assertFalse(isLoading.value)
 
         val event = viewModel.signInEvent.value?.consumeEvent()
-        assertIs<SignInViewModel.SignInEvent.SignInFailure>(event)
+        assertIs<SignInViewModel.UiEffect.SignInFailure>(event)
 
         val reconsumedEvent = viewModel.signInEvent.value?.consumeEvent()
         assertNull(reconsumedEvent)

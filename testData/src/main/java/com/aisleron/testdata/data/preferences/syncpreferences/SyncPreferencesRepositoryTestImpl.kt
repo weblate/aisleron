@@ -18,45 +18,70 @@
 package com.aisleron.testdata.data.preferences.syncpreferences
 
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
-    private var _syncPreferences = getDefaultSyncPreferences()
+    private val _syncPreferences = MutableStateFlow(getDefaultSyncPreferences())
 
-    override fun getSyncPreferences(): SyncPreferences = _syncPreferences
+    override fun getSyncPreferences(): SyncPreferences = _syncPreferences.value
+    override fun getSyncPreferencesFlow(): Flow<SyncPreferences> = _syncPreferences.asStateFlow()
 
     override fun setCustomServiceDetails(url: String, key: String) {
-        _syncPreferences = _syncPreferences.copy(
-            serviceUrl = url,
-            serviceKey = key
-        )
+        _syncPreferences.update {
+            it.copy(
+                serviceUrl = url,
+                serviceKey = key
+            )
+        }
     }
 
     override fun setSyncOnMobileData(value: Boolean) {
-        _syncPreferences = _syncPreferences.copy(
-            syncOnMobileData = value
-        )
+        _syncPreferences.update {
+            it.copy(syncOnMobileData = value)
+        }
     }
 
     override fun setSyncService(value: SyncServicePreference) {
-        _syncPreferences = _syncPreferences.copy(
-            syncServicePreference = value
-        )
+        _syncPreferences.update {
+            it.copy(syncServicePreference = value)
+        }
+    }
+
+    override fun setSyncStatus(lastSyncedAt: Long, status: SyncStatusPreference) {
+        _syncPreferences.update {
+            it.copy(
+                lastSyncedAt = lastSyncedAt,
+                lastSyncStatus = status
+            )
+        }
+    }
+
+    override fun setSyncStatus(status: SyncStatusPreference) {
+        _syncPreferences.update {
+            it.copy(lastSyncStatus = status)
+        }
     }
 
     fun setSyncPreferences(syncPreferences: SyncPreferences) {
-        _syncPreferences = syncPreferences
+        _syncPreferences.update { syncPreferences }
     }
 
     fun getDefaultSyncPreferences() = SyncPreferences(
         syncServicePreference = SyncServicePreference.NONE,
         serviceUrl = "",
         serviceKey = "",
-        syncOnMobileData = false
+        syncOnMobileData = false,
+        lastSyncedAt = 0,
+        lastSyncStatus = SyncStatusPreference.NONE
     )
 
     fun resetSyncPreferences() {
-        _syncPreferences = getDefaultSyncPreferences()
+        _syncPreferences.update { getDefaultSyncPreferences() }
     }
 }

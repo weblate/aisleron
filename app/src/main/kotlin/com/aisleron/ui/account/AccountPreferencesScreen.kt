@@ -18,6 +18,7 @@
 package com.aisleron.ui.account
 
 import android.content.res.Configuration
+import android.text.format.DateUtils
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -47,6 +49,7 @@ import com.aisleron.ui.component.preference.ListPreference
 import com.aisleron.ui.component.preference.Preference
 import com.aisleron.ui.component.preference.PreferenceCategory
 import com.aisleron.ui.component.preference.SwitchPreference
+import com.aisleron.ui.component.preference.labelRes
 import com.aisleron.ui.theme.AisleronTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -54,12 +57,12 @@ import org.koin.androidx.compose.koinViewModel
 private fun getSessionStatusDescription(sessionStatus: SyncSessionStatus): String =
     when (sessionStatus) {
         is SyncSessionStatus.Authenticated ->
-            stringResource(R.string.sync_status_signed_in_as, sessionStatus.userId)
+            stringResource(R.string.sync_session_signed_in_as, sessionStatus.userId)
 
-        SyncSessionStatus.NotConfigured -> stringResource(R.string.sync_status_not_configured)
+        SyncSessionStatus.NotConfigured -> stringResource(R.string.sync_session_not_configured)
         SyncSessionStatus.Loading -> stringResource(R.string.loading)
-        SyncSessionStatus.NotAuthenticated -> stringResource(R.string.sync_status_not_authenticated)
-        SyncSessionStatus.RefreshFailure -> stringResource(R.string.sync_status_refresh_failure)
+        SyncSessionStatus.NotAuthenticated -> stringResource(R.string.sync_session_not_authenticated)
+        SyncSessionStatus.RefreshFailure -> stringResource(R.string.sync_session_refresh_failure)
     }
 
 @Composable
@@ -72,14 +75,23 @@ fun AccountPreferencesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val signOutError by viewModel.signOutError.collectAsStateWithLifecycle()
+    val uiEvent by viewModel.uiEvent.collectAsStateWithLifecycle()
 
-    LaunchedEffect(signOutError) {
-        signOutError?.consumeEvent()?.let { errorCode ->
-            val resId = exceptionMap.getErrorResourceId(errorCode)
-            val message = resources.getString(resId)
-            // TODO : Error snackbar formatting
-            snackbarHostState.showSnackbar(message = message)
+    LaunchedEffect(uiEvent) {
+        uiEvent?.consumeEvent()?.let { effect ->
+            when (effect) {
+                is AccountPreferencesViewModel.UiEffect.SyncScheduled -> {
+                    val message = resources.getString(R.string.manual_sync_scheduled)
+                    snackbarHostState.showSnackbar(message = message)
+                }
+
+                is AccountPreferencesViewModel.UiEffect.SignOutFailure -> {
+                    val resId = exceptionMap.getErrorResourceId(effect.errorCode)
+                    val message = resources.getString(resId)
+                    snackbarHostState.showSnackbar(message = message)
+                    // TODO : Error snackbar formatting
+                }
+            }
         }
     }
 
@@ -95,7 +107,9 @@ fun AccountPreferencesScreen(
 
         onSyncServiceChanged = { syncService ->
             viewModel.setSyncService(syncService)
-        }
+        },
+
+        onSyncStatusPressed = { viewModel.syncNow() }
     )
 }
 
@@ -108,7 +122,8 @@ fun AccountPreferencesScreenContent(
     onSignInPressed: () -> Unit,
     onSignOutPressed: () -> Unit,
     onSyncOnMobileDataChanged: ((Boolean) -> Unit),
-    onSyncServiceChanged: ((SyncServicePreference) -> Unit)
+    onSyncServiceChanged: ((SyncServicePreference) -> Unit),
+    onSyncStatusPressed: () -> Unit
 ) {
     var showSyncDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -163,9 +178,26 @@ fun AccountPreferencesScreenContent(
                             }
                         )
 
+                    val context = LocalContext.current
+                    val lastSyncSummary = if (state.lastSyncDate == 0L)
+                        stringResource(R.string.never)
+                    else
+                        DateUtils.formatDateTime(
+                            context,
+                            state.lastSyncDate,
+                            DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME
+                        ) + " - ${stringResource(state.lastSyncStatus.labelRes)}"
+
                     Preference(
                         title = stringResource(R.string.last_sync),
-                        summary = stringResource(R.string.never)
+                        summary = lastSyncSummary,
+                        onClick = { onSyncStatusPressed() },
+                        control = {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_sync_24),
+                                contentDescription = null
+                            )
+                        }
                     )
 
                     SwitchPreference(
@@ -231,7 +263,8 @@ fun AccountPreferencesScreenContentPreview() {
             onSignInPressed = {},
             onSignOutPressed = {},
             onSyncOnMobileDataChanged = {},
-            onSyncServiceChanged = {}
+            onSyncServiceChanged = {},
+            onSyncStatusPressed = {}
         )
     }
 }

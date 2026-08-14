@@ -44,8 +44,8 @@ class SignInViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _signInEvent = MutableStateFlow<UiEvent<SignInEvent>?>(null)
-    val signInEvent: StateFlow<UiEvent<SignInEvent>?> = _signInEvent.asStateFlow()
+    private val _signInEvent = MutableStateFlow<UiEvent<UiEffect>?>(null)
+    val signInEvent: StateFlow<UiEvent<UiEffect>?> = _signInEvent.asStateFlow()
 
     fun signInWithEmail(email: String, password: String) {
         coroutineScope.launch {
@@ -53,11 +53,11 @@ class SignInViewModel(
                 _isLoading.value = true
                 signInWithEmailUseCase(email, password)
                     .onSuccess {
-                        _signInEvent.value = UiEvent(SignInEvent.SignInSuccess)
+                        _signInEvent.value = UiEvent(UiEffect.SignInSuccess)
                     }.onFailure { throwable ->
                         logger.e(TAG, throwable.message.orEmpty(), throwable)
                         _signInEvent.value = UiEvent(
-                            SignInEvent.SignInFailure(throwable.exceptionCode)
+                            UiEffect.SignInFailure(throwable.exceptionCode)
                         )
                     }
             } finally {
@@ -70,8 +70,8 @@ class SignInViewModel(
         const val TAG = "SignInViewModel"
     }
 
-    sealed interface SignInEvent {
-        data object SignInSuccess : SignInEvent
-        data class SignInFailure(val errorCode: AisleronException.ExceptionCode) : SignInEvent
+    sealed interface UiEffect {
+        data object SignInSuccess : UiEffect
+        data class SignInFailure(val errorCode: AisleronException.ExceptionCode) : UiEffect
     }
 }

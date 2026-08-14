@@ -17,12 +17,13 @@
 
 package com.aisleron.ui.account
 
+import com.aisleron.data.sync.SyncSchedulerTestImpl
 import com.aisleron.di.KoinTestRule
 import com.aisleron.di.generalTestModule
 import com.aisleron.di.preferenceTestModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
-import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncSessionManager
@@ -51,7 +52,8 @@ class AccountPreferencesViewModelTest : KoinTest {
     @get:Rule
     val koinTestRule = KoinTestRule(
         modules = listOf(
-            useCaseModule, preferenceTestModule, generalTestModule, viewModelTestModule
+            useCaseModule, preferenceTestModule, generalTestModule, viewModelTestModule,
+            syncTestModule
         )
     )
 
@@ -89,10 +91,10 @@ class AccountPreferencesViewModelTest : KoinTest {
         val uiState = viewModel.uiState
         assertFalse(uiState.value.isLoading)
 
-        val errorCode = viewModel.signOutError.value?.consumeEvent()
-        assertIs<AisleronException.ExceptionCode>(errorCode)
+        val errorCode = viewModel.uiEvent.value?.consumeEvent()
+        assertIs<AccountPreferencesViewModel.UiEffect.SignOutFailure>(errorCode)
 
-        val reconsumedEvent = viewModel.signOutError.value?.consumeEvent()
+        val reconsumedEvent = viewModel.uiEvent.value?.consumeEvent()
         assertNull(reconsumedEvent)
     }
 
@@ -106,7 +108,7 @@ class AccountPreferencesViewModelTest : KoinTest {
 
         assertTrue(sessionManager.signedIn)
 
-        val errorState = viewModel.signOutError
+        val errorState = viewModel.uiEvent
         assertNull(errorState.value)
 
         val uiState = viewModel.uiState
@@ -165,11 +167,13 @@ class AccountPreferencesViewModelTest : KoinTest {
         val vm = AccountPreferencesViewModel(
             signOutUseCase = get(),
             getSyncPreferencesUseCase = get(),
+            getSyncPreferencesFlowUseCase = get(),
             setCustomSyncServiceDetailsUseCase = get(),
             getSessionStatusUseCase = get(),
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
             setSyncServiceUseCase = get(),
+            scheduleOneOffSyncUseCase = get(),
             logger = get()
         )
 
@@ -202,5 +206,13 @@ class AccountPreferencesViewModelTest : KoinTest {
 
         val uiState = viewModel.uiState.first()
         assertEquals(SyncServicePreference.CUSTOM_SERVICE, uiState.syncServicePreference)
+    }
+
+    @Test
+    fun syncNow_SchedulesOneOffForceSync() = runTest {
+        viewModel.syncNow()
+
+        val scheduleType = get<SyncSchedulerTestImpl>().scheduleType
+        assertEquals(SyncSchedulerTestImpl.ScheduleType.ONE_OFF_FORCE_SYNC, scheduleType)
     }
 }
