@@ -58,15 +58,15 @@ import com.aisleron.ui.settings.WelcomePreferences
 import com.aisleron.ui.settings.WelcomePreferencesImpl
 import org.koin.android.ext.android.inject
 import org.koin.androidx.fragment.android.setupKoinFragmentFactory
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class MainActivity : AisleronActivity() {
-
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener
-
     private var actionMode: ActionMode? = null
+    private val viewModel: MainViewModel by viewModel()
 
     val fabHandler: FabHandler by inject()
 
@@ -146,6 +146,8 @@ class MainActivity : AisleronActivity() {
         if (!welcomePreferences.isInitialized()) {
             navigator.navigateToWelcome()
         }
+
+        viewModel.onAppStart()
     }
 
     private fun setDisplayPreferences() {
@@ -248,6 +250,8 @@ class MainActivity : AisleronActivity() {
         }
 
         super.onResume()
+
+        viewModel.onAppResume()
     }
 
     private fun softRestartApp() {

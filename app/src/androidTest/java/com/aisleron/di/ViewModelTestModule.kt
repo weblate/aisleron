@@ -17,6 +17,7 @@
 
 package com.aisleron.di
 
+import com.aisleron.MainViewModel
 import com.aisleron.ui.about.AboutViewModel
 import com.aisleron.ui.account.AccountPreferencesViewModel
 import com.aisleron.ui.account.SignInViewModel
@@ -157,6 +158,14 @@ val viewModelTestModule = module {
             logger = get(),
             debounceTime = 0,
             TestScope(UnconfinedTestDispatcher())
+        )
+    }
+
+    viewModel {
+        MainViewModel(
+            scheduleAdhocSyncUseCase = get(),
+            schedulePeriodicSyncUseCase = get(),
+            coroutineScopeProvider = TestScope(UnconfinedTestDispatcher())
         )
     }
 }
