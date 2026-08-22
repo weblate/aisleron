@@ -17,21 +17,34 @@
 
 package com.aisleron.data.sync
 
+import com.aisleron.domain.preferences.syncpreferences.SyncNetworkConstraint
 import com.aisleron.domain.sync.SyncScheduler
 
 class SyncSchedulerTestImpl : SyncScheduler {
     private var _scheduleType: ScheduleType = ScheduleType.NONE
     val scheduleType: ScheduleType get() = _scheduleType
 
-    override fun schedulePeriodicSync(intervalMinutes: Long) {
+    private lateinit var _networkConstraint: SyncNetworkConstraint
+    val networkConstraint: SyncNetworkConstraint get() = _networkConstraint
+
+    private var _intervalMinutes: Long = 0L
+    val intervalMinutes: Long get() = _intervalMinutes
+
+    override fun schedulePeriodicSync(
+        networkConstraint: SyncNetworkConstraint, intervalMinutes: Long
+    ) {
+        _intervalMinutes = intervalMinutes
+        _networkConstraint = networkConstraint
         _scheduleType = ScheduleType.PERIODIC
     }
 
-    override fun scheduleForceSync() {
+    override fun scheduleForceSync(networkConstraint: SyncNetworkConstraint) {
+        _networkConstraint = networkConstraint
         _scheduleType = ScheduleType.ONE_OFF_FORCE_SYNC
     }
 
-    override fun scheduleAdhocSync() {
+    override fun scheduleAdhocSync(networkConstraint: SyncNetworkConstraint) {
+        _networkConstraint = networkConstraint
         _scheduleType = ScheduleType.ONE_OFF_ADHOC
     }
 

@@ -27,4 +27,17 @@ data class SyncPreferences(
     val syncOnMobileData: Boolean,
     val lastSyncedAt: Long,
     val lastSyncStatus: SyncStatusPreference
-)
+) {
+    fun getRequiredNetworkConstraint(forceSync: Boolean) =
+        when {
+            syncServicePreference == SyncServicePreference.NONE -> SyncNetworkConstraint.NOT_REQUIRED
+            syncOnMobileData || forceSync -> SyncNetworkConstraint.CONNECTED
+            else -> SyncNetworkConstraint.UNMETERED
+        }
+}
+
+enum class SyncNetworkConstraint {
+    NOT_REQUIRED,
+    CONNECTED,
+    UNMETERED
+}

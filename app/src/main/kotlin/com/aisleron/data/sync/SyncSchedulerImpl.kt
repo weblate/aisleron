@@ -26,36 +26,21 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
-import com.aisleron.domain.preferences.SyncServicePreference
-import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncNetworkConstraint
 import com.aisleron.domain.sync.SyncScheduler
 import java.util.concurrent.TimeUnit
 
 class SyncSchedulerImpl(
-    private val workManager: WorkManager,
-    private val syncPreferencesRepository: SyncPreferencesRepository
+    private val workManager: WorkManager
 ) : SyncScheduler {
-    private fun getNetworkType(forceSync: Boolean): NetworkType {
-        val syncPreferences = syncPreferencesRepository.getSyncPreferences()
-        if (syncPreferences.syncServicePreference == SyncServicePreference.NONE)
-            return NetworkType.NOT_REQUIRED
-
-        if (forceSync || syncPreferences.syncOnMobileData)
-            return NetworkType.CONNECTED
-
-        return NetworkType.UNMETERED
-    }
-
-    override fun schedulePeriodicSync(intervalMinutes: Long) {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(getNetworkType(false))
-            .build()
-
+    override fun schedulePeriodicSync(
+        networkConstraint: SyncNetworkConstraint, intervalMinutes: Long,
+    ) {
         val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(
             repeatInterval = intervalMinutes.coerceAtLeast(MIN_PERIODIC_INTERVAL_MINUTES),
             repeatIntervalTimeUnit = TimeUnit.MINUTES
         )
-            .setConstraints(constraints)
+            .applyDefaultConstraints(networkConstraint)
             .applyDefaultBackoff()
             .build()
 
@@ -67,10 +52,10 @@ class SyncSchedulerImpl(
     }
 
     private fun scheduleOneOffSync(
-        constraints: Constraints, workName: String, policy: ExistingWorkPolicy
+        workName: String, policy: ExistingWorkPolicy, networkConstraint: SyncNetworkConstraint
     ) {
         val immediateRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-            .setConstraints(constraints)
+            .applyDefaultConstraints(networkConstraint)
             .applyDefaultBackoff()
             .build()
 
@@ -81,25 +66,15 @@ class SyncSchedulerImpl(
         )
     }
 
-
-    override fun scheduleForceSync() {
+    override fun scheduleForceSync(networkConstraint: SyncNetworkConstraint) {
         // Cancel any background data-change syncs waiting on constraints (e.g. Wi-Fi)
         workManager.cancelUniqueWork(ADHOC_WORK_NAME)
-
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(getNetworkType(forceSync = true))
-            .build()
-
-        scheduleOneOffSync(constraints, FORCE_SYNC_WORK_NAME, ExistingWorkPolicy.KEEP)
+        scheduleOneOffSync(FORCE_SYNC_WORK_NAME, ExistingWorkPolicy.KEEP, networkConstraint)
     }
 
-    override fun scheduleAdhocSync() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(getNetworkType(forceSync = false))
-            .build()
-
+    override fun scheduleAdhocSync(networkConstraint: SyncNetworkConstraint) {
         scheduleOneOffSync(
-            constraints, ADHOC_WORK_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE
+            ADHOC_WORK_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, networkConstraint
         )
     }
 
@@ -109,6 +84,20 @@ class SyncSchedulerImpl(
             backoffDelay = INITIAL_BACKOFF_SECONDS,
             timeUnit = TimeUnit.SECONDS
         )
+    }
+
+    private fun <B : WorkRequest.Builder<B, *>> B.applyDefaultConstraints(networkConstraint: SyncNetworkConstraint): B {
+        val networkType = when (networkConstraint) {
+            SyncNetworkConstraint.NOT_REQUIRED -> NetworkType.NOT_REQUIRED
+            SyncNetworkConstraint.CONNECTED -> NetworkType.CONNECTED
+            SyncNetworkConstraint.UNMETERED -> NetworkType.UNMETERED
+        }
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(networkType)
+            .build()
+
+        return setConstraints(constraints)
     }
 
     companion object {

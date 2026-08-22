@@ -29,6 +29,7 @@ class ScheduleAdhocSyncUseCase(
         val syncPreferences = syncPreferencesRepository.getSyncPreferences()
         if (syncPreferences.syncServicePreference == SyncServicePreference.NONE) return
 
-        syncScheduler.scheduleAdhocSync()
+        val networkConstraint = syncPreferences.getRequiredNetworkConstraint(false)
+        syncScheduler.scheduleAdhocSync(networkConstraint)
     }
 }

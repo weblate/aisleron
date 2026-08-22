@@ -25,8 +25,7 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import com.aisleron.data.sync.SyncSchedulerImpl.Companion.ADHOC_WORK_NAME
 import com.aisleron.data.sync.SyncSchedulerImpl.Companion.FORCE_SYNC_WORK_NAME
 import com.aisleron.data.sync.SyncSchedulerImpl.Companion.SCHEDULED_WORK_NAME
-import com.aisleron.domain.preferences.SyncServicePreference
-import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
+import com.aisleron.domain.preferences.syncpreferences.SyncNetworkConstraint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -37,7 +36,6 @@ import kotlin.test.assertNotNull
 
 class SyncSchedulerImplTest : KoinTest {
     private lateinit var workManager: WorkManager
-    private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
     private lateinit var syncScheduler: SyncSchedulerImpl
 
     @Before
@@ -45,54 +43,42 @@ class SyncSchedulerImplTest : KoinTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         WorkManagerTestInitHelper.initializeTestWorkManager(context)
         workManager = WorkManager.getInstance(context)
-
-        syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
-
-        syncScheduler = SyncSchedulerImpl(
-            workManager = workManager,
-            syncPreferencesRepository = syncPreferencesRepository
-        )
+        syncScheduler = SyncSchedulerImpl(workManager)
     }
 
     @Test
-    fun schedulePeriodicSync_SyncServiceIsNone_EnqueuesWorkWithNotRequiredNetwork() = runTest {
-        syncPreferencesRepository.setSyncService(SyncServicePreference.NONE)
+    fun schedulePeriodicSync_SyncNetworkConstraintIsNotRequired_EnqueuesWorkWithNotRequiredNetwork() =
+        runTest {
+            syncScheduler.schedulePeriodicSync(SyncNetworkConstraint.NOT_REQUIRED, 15L)
 
-        syncScheduler.schedulePeriodicSync(15L)
+            val workInfos = workManager.getWorkInfosForUniqueWorkFlow(SCHEDULED_WORK_NAME).first()
+            val workInfo = workInfos.firstOrNull()
 
-        val workInfos = workManager.getWorkInfosForUniqueWorkFlow(SCHEDULED_WORK_NAME).first()
-        val workInfo = workInfos.firstOrNull()
-
-        assertNotNull(workInfo)
-        assertEquals(WorkInfo.State.ENQUEUED, workInfo.state)
-        assertEquals(
-            NetworkType.NOT_REQUIRED,
-            workInfo.constraints.requiredNetworkType
-        )
-    }
+            assertNotNull(workInfo)
+            assertEquals(WorkInfo.State.ENQUEUED, workInfo.state)
+            assertEquals(
+                NetworkType.NOT_REQUIRED,
+                workInfo.constraints.requiredNetworkType
+            )
+        }
 
     @Test
-    fun schedulePeriodicSync_SyncOnMobileDataDisabled_EnqueuesWorkWithUnmeteredNetwork() = runTest {
-        syncPreferencesRepository.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
-        syncPreferencesRepository.setSyncOnMobileData(false)
+    fun schedulePeriodicSync_SyncNetworkConstraintIsUnmetered_EnqueuesWorkWithUnmeteredNetwork() =
+        runTest {
+            syncScheduler.schedulePeriodicSync(SyncNetworkConstraint.UNMETERED, 15L)
 
-        syncScheduler.schedulePeriodicSync(15L)
+            val workInfos = workManager.getWorkInfosForUniqueWorkFlow(SCHEDULED_WORK_NAME).first()
+            val workInfo = workInfos.firstOrNull()
 
-        val workInfos = workManager.getWorkInfosForUniqueWorkFlow(SCHEDULED_WORK_NAME).first()
-        val workInfo = workInfos.firstOrNull()
-
-        assertEquals(
-            NetworkType.UNMETERED,
-            workInfo?.constraints?.requiredNetworkType
-        )
-    }
+            assertEquals(
+                NetworkType.UNMETERED,
+                workInfo?.constraints?.requiredNetworkType
+            )
+        }
 
     @Test
     fun scheduleAdhocSync_Called_EnqueuesAdhocSync() = runTest {
-        syncPreferencesRepository.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
-        syncPreferencesRepository.setSyncOnMobileData(true)
-
-        syncScheduler.scheduleAdhocSync()
+        syncScheduler.scheduleAdhocSync(SyncNetworkConstraint.CONNECTED)
 
         val adhocWork =
             workManager.getWorkInfosForUniqueWorkFlow(ADHOC_WORK_NAME).first().firstOrNull()
@@ -104,10 +90,7 @@ class SyncSchedulerImplTest : KoinTest {
 
     @Test
     fun scheduleForceSync_Called_EnqueuesForceSync() = runTest {
-        syncPreferencesRepository.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
-        syncPreferencesRepository.setSyncOnMobileData(false)
-
-        syncScheduler.scheduleForceSync()
+        syncScheduler.scheduleForceSync(SyncNetworkConstraint.CONNECTED)
 
         val forceSyncWork =
             workManager.getWorkInfosForUniqueWorkFlow(FORCE_SYNC_WORK_NAME).first().firstOrNull()
@@ -119,10 +102,9 @@ class SyncSchedulerImplTest : KoinTest {
 
     @Test
     fun scheduleForceSync_Called_CancelsDataChangeWorkAndEnqueuesForceSync() = runTest {
-        syncPreferencesRepository.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
-        syncScheduler.scheduleAdhocSync()
+        syncScheduler.scheduleAdhocSync(SyncNetworkConstraint.CONNECTED)
 
-        syncScheduler.scheduleForceSync()
+        syncScheduler.scheduleForceSync(SyncNetworkConstraint.CONNECTED)
 
         val adhocWork =
             workManager.getWorkInfosForUniqueWorkFlow(ADHOC_WORK_NAME).first().firstOrNull()

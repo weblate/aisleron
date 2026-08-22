@@ -19,20 +19,20 @@ package com.aisleron.domain.sync.usecase
 
 import com.aisleron.data.sync.SyncSchedulerTestImpl
 import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class ScheduleForceSyncUseCaseTest {
+class SchedulePeriodicSyncUseCaseTest {
     private lateinit var syncScheduler: SyncSchedulerTestImpl
     private lateinit var syncPreferencesRepository: SyncPreferencesRepositoryTestImpl
-    private lateinit var scheduleForceSyncUseCase: ScheduleForceSyncUseCase
+    private lateinit var schedulePeriodicSyncUseCase: SchedulePeriodicSyncUseCase
 
     @BeforeEach
     fun setUp() {
         syncScheduler = SyncSchedulerTestImpl()
         syncPreferencesRepository = SyncPreferencesRepositoryTestImpl()
-        scheduleForceSyncUseCase = ScheduleForceSyncUseCase(
+        schedulePeriodicSyncUseCase = SchedulePeriodicSyncUseCase(
             syncPreferencesRepository = syncPreferencesRepository,
             syncScheduler = syncScheduler
         )
@@ -40,11 +40,15 @@ class ScheduleForceSyncUseCaseTest {
 
     @Test
     fun invoke_ScheduleForceSync() {
-        scheduleForceSyncUseCase()
+        val syncInterval = 13L
+        schedulePeriodicSyncUseCase(syncInterval)
 
         assertEquals(
-            SyncSchedulerTestImpl.ScheduleType.ONE_OFF_FORCE_SYNC,
+            SyncSchedulerTestImpl.ScheduleType.PERIODIC,
             syncScheduler.scheduleType
         )
+
+        assertEquals(syncInterval, syncScheduler.intervalMinutes)
     }
+
 }

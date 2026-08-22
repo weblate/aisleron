@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.domain.sync
+package com.aisleron.domain.sync.usecase
 
-import com.aisleron.domain.preferences.syncpreferences.SyncNetworkConstraint
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.sync.SyncScheduler
 
-interface SyncScheduler {
-    fun schedulePeriodicSync(networkConstraint: SyncNetworkConstraint, intervalMinutes: Long = 15)
-    fun scheduleForceSync(networkConstraint: SyncNetworkConstraint)
-    fun scheduleAdhocSync(networkConstraint: SyncNetworkConstraint)
+class SchedulePeriodicSyncUseCase(
+    private val syncPreferencesRepository: SyncPreferencesRepository,
+    private val syncScheduler: SyncScheduler
+) {
+    operator fun invoke(intervalMinutes: Long = 15) {
+        val syncPreferences = syncPreferencesRepository.getSyncPreferences()
+        val networkConstraint = syncPreferences.getRequiredNetworkConstraint(false)
+        syncScheduler.schedulePeriodicSync(networkConstraint, intervalMinutes)
+    }
 }

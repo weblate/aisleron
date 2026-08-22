@@ -17,10 +17,16 @@
 
 package com.aisleron.domain.sync.usecase
 
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.sync.SyncScheduler
 
-class ScheduleForceSyncUseCase(private val syncScheduler: SyncScheduler) {
+class ScheduleForceSyncUseCase(
+    private val syncPreferencesRepository: SyncPreferencesRepository,
+    private val syncScheduler: SyncScheduler
+) {
     operator fun invoke() {
-        syncScheduler.scheduleForceSync()
+        val syncPreferences = syncPreferencesRepository.getSyncPreferences()
+        val networkConstraint = syncPreferences.getRequiredNetworkConstraint(true)
+        syncScheduler.scheduleForceSync(networkConstraint)
     }
 }
