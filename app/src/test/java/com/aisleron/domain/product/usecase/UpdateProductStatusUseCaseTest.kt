@@ -17,8 +17,12 @@
 
 package com.aisleron.domain.product.usecase
 
+import com.aisleron.data.sync.SyncSchedulerTestImpl
 import com.aisleron.di.TestDependencyManager
+import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.product.ProductRepository
+import com.aisleron.domain.sync.SyncScheduler
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -57,6 +61,19 @@ class UpdateProductStatusUseCaseTest {
     fun updateProductStatus_ProductDoesNotExist_ReturnNull() = runTest {
         val updatedProduct = updateProductStatusUseCase(1001, true)
         assertNull(updatedProduct)
+    }
+
+    @Test
+    fun updateProductStatus_ChangeSuccessful_ScheduleAdhocSync() = runTest {
+        val syncPreferences = dm.getRepository<SyncPreferencesRepository>()
+        syncPreferences.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
+
+        val product = dm.getRepository<ProductRepository>().getAll().first()
+
+        updateProductStatusUseCase(product.id, !product.inStock)
+
+        val syncScheduler = dm.getGeneral<SyncScheduler>() as SyncSchedulerTestImpl
+        assertEquals(SyncSchedulerTestImpl.ScheduleType.ONE_OFF_ADHOC, syncScheduler.scheduleType)
     }
 
     private companion object {

@@ -18,6 +18,7 @@
 package com.aisleron.domain.product.usecase
 
 import com.aisleron.domain.product.Product
+import com.aisleron.domain.sync.usecase.ScheduleAdhocSyncUseCase
 
 interface UpdateProductQtyNeededUseCase {
     suspend operator fun invoke(id: Int, quantity: Double): Product?
@@ -25,7 +26,8 @@ interface UpdateProductQtyNeededUseCase {
 
 class UpdateProductQtyNeededUseCaseImpl(
     private val getProductUseCase: GetProductUseCase,
-    private val updateProductUseCase: UpdateProductUseCase
+    private val updateProductUseCase: UpdateProductUseCase,
+    private val scheduleAdhocSyncUseCase: ScheduleAdhocSyncUseCase
 ) : UpdateProductQtyNeededUseCase {
     override suspend operator fun invoke(id: Int, quantity: Double): Product? {
         require(quantity >= 0)
@@ -33,6 +35,7 @@ class UpdateProductQtyNeededUseCaseImpl(
         val product = getProductUseCase(id)?.copy(qtyNeeded = quantity)
         if (product != null) {
             updateProductUseCase(product)
+            scheduleAdhocSyncUseCase()
         }
 
         return product

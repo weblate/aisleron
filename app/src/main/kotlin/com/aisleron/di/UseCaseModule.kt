@@ -136,6 +136,7 @@ import com.aisleron.domain.sync.usecase.ScheduleForceSyncUseCase
 import com.aisleron.domain.sync.usecase.SignInWithEmailUseCase
 import com.aisleron.domain.sync.usecase.SignOutUseCase
 import org.koin.android.ext.koin.androidApplication
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.factory
 
@@ -320,19 +321,8 @@ val useCaseModule = module {
         )
     }
 
-    factory<UpdateProductStatusUseCase> {
-        UpdateProductStatusUseCaseImpl(
-            getProductUseCase = get(),
-            updateProductUseCase = get()
-        )
-    }
-
-    factory<UpdateProductQtyNeededUseCase> {
-        UpdateProductQtyNeededUseCaseImpl(
-            getProductUseCase = get(),
-            updateProductUseCase = get()
-        )
-    }
+    factory<UpdateProductStatusUseCaseImpl>() bind UpdateProductStatusUseCase::class
+    factory<UpdateProductQtyNeededUseCaseImpl>() bind UpdateProductQtyNeededUseCase::class
 
     factory<CopyProductUseCase> {
         CopyProductUseCaseImpl(

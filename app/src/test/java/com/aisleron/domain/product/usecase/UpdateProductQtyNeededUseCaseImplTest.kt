@@ -17,11 +17,14 @@
 
 package com.aisleron.domain.product.usecase
 
+import com.aisleron.data.sync.SyncSchedulerTestImpl
 import com.aisleron.di.TestDependencyManager
-import com.aisleron.domain.note.usecase.GetNoteUseCaseImpl
+import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.TrackingMode
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.product.Product
 import com.aisleron.domain.product.ProductRepository
-import com.aisleron.domain.preferences.TrackingMode
+import com.aisleron.domain.sync.SyncScheduler
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -37,15 +40,7 @@ class UpdateProductQtyNeededUseCaseImplTest {
     @BeforeEach
     fun setUp() {
         dm = TestDependencyManager()
-        val productRepository = dm.getRepository<ProductRepository>()
-        updateProductQtyNeededUseCase = UpdateProductQtyNeededUseCaseImpl(
-            GetProductUseCaseImpl(
-                productRepository,
-                GetNoteUseCaseImpl(dm.getRepository())
-            ),
-
-            updateProductUseCase = dm.getUseCase()
-        )
+        updateProductQtyNeededUseCase = dm.getUseCase()
     }
 
     private suspend fun getProduct(initialQty: Double): Product {
@@ -112,5 +107,17 @@ class UpdateProductQtyNeededUseCaseImplTest {
 
         assertNotNull(productAfter)
         assertEquals(newQty, productAfter?.qtyNeeded)
+    }
+
+    @Test
+    fun updateProductQtyNeeded_ChangeSuccessful_ScheduleAdhocSync() = runTest {
+        val syncPreferences = dm.getRepository<SyncPreferencesRepository>()
+        syncPreferences.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
+        val product = getProduct(1.0)
+
+        updateProductQtyNeededUseCase(product.id, 2.0)
+
+        val syncScheduler = dm.getGeneral<SyncScheduler>() as SyncSchedulerTestImpl
+        assertEquals(SyncSchedulerTestImpl.ScheduleType.ONE_OFF_ADHOC, syncScheduler.scheduleType)
     }
 }
