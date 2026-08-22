@@ -173,7 +173,7 @@ class AccountPreferencesViewModelTest : KoinTest {
             refreshSessionStatusUseCase = get(),
             setSyncOnMobileDataUseCase = get(),
             setSyncServiceUseCase = get(),
-            scheduleOneOffSyncUseCase = get(),
+            scheduleForceSyncUseCase = get(),
             logger = get()
         )
 

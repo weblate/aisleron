@@ -32,7 +32,7 @@ import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncServiceUse
 import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
 import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
-import com.aisleron.domain.sync.usecase.ScheduleOneOffSyncUseCase
+import com.aisleron.domain.sync.usecase.ScheduleForceSyncUseCase
 import com.aisleron.domain.sync.usecase.SignOutUseCase
 import com.aisleron.ui.base.UiEvent
 import kotlinx.coroutines.CoroutineScope
@@ -59,7 +59,7 @@ class AccountPreferencesViewModel(
     private val refreshSessionStatusUseCase: RefreshSessionStatusUseCase,
     private val setSyncOnMobileDataUseCase: SetSyncOnMobileDataUseCase,
     private val setSyncServiceUseCase: SetSyncServiceUseCase,
-    private val scheduleOneOffSyncUseCase: ScheduleOneOffSyncUseCase,
+    private val scheduleForceSyncUseCase: ScheduleForceSyncUseCase,
     private val logger: Logger,
     debounceTime: Long = 300,
     coroutineScopeProvider: CoroutineScope? = null
@@ -136,7 +136,7 @@ class AccountPreferencesViewModel(
     }
 
     fun syncNow() {
-        scheduleOneOffSyncUseCase(true)
+        scheduleForceSyncUseCase()
         _uiEvent.value = UiEvent(UiEffect.SyncScheduled)
     }
 

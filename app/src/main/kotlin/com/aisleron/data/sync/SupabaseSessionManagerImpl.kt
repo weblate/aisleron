@@ -68,9 +68,11 @@ class SupabaseSessionManagerImpl(
         val savedUrl = syncPreferences.serviceUrl
         val savedKey = syncPreferences.serviceKey
 
+        // TODO: Test that a new client works as expected
+
         if (
             activeClient != null
-            && activeClient?.supabaseUrl == savedUrl
+            && activeClient?.supabaseHttpUrl == savedUrl
             && activeClient?.supabaseKey == savedKey
         ) return activeClient
 

@@ -241,16 +241,16 @@ dependencies {
     implementation(libs.customview)
     implementation(libs.documentfile)
     implementation(libs.drawerlayout)
-    implementation(libs.jetbrains.kotlinx.serialization.core)
     implementation(libs.kotlin.parcelize.runtime)
     implementation(libs.material)
     implementation(libs.preference.ktx)
     implementation(libs.recyclerview)
     implementation(libs.savedstate)
     implementation(libs.viewpager2)
+    implementation(libs.work.runtime)
 
     // Fragment
-    implementation(libs.fragment.ktx) // 1.9.0 moves to non-ktx
+    implementation(libs.fragment)
     debugImplementation(libs.fragment.testing)
 
     // Jetpack Compose
@@ -269,7 +269,7 @@ dependencies {
     implementation(libs.material3)
     debugImplementation(libs.compose.ui.test.manifest)
     debugImplementation(libs.compose.ui.tooling)
-    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(platform(libs.compose.bom.test))
     androidTestImplementation(libs.compose.ui.test)
     androidTestImplementation(libs.compose.ui.test.junit4)
 
@@ -305,14 +305,18 @@ dependencies {
     implementation(libs.koin.compose)
     implementation(libs.koin.core)
     implementation(libs.koin.core.viewmodel)
-    androidTestImplementation(platform(libs.koin.bom))
+    androidTestImplementation(platform(libs.koin.bom.test))
     androidTestImplementation(libs.koin.test)
 
     // Coroutines
     implementation(platform(libs.kotlinx.coroutines.bom))
     implementation(libs.kotlinx.coroutines.core)
-    testImplementation(platform(libs.kotlinx.coroutines.bom))
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Serialization
+    implementation(platform(libs.kotlinx.serialization.bom))
+    implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
 
     // Supabase
     implementation(platform(libs.supabase.bom))
@@ -344,6 +348,7 @@ dependencies {
     androidTestImplementation(libs.screengrab)
     androidTestImplementation(libs.test.core.ktx)
     androidTestImplementation(libs.uiautomator)
+    androidTestImplementation(libs.work.testing)
 
     debugImplementation(libs.espresso.contrib)
     androidTestImplementation(libs.espresso.core)

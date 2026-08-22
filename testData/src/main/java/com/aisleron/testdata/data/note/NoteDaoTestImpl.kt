@@ -37,6 +37,18 @@ class NoteDaoTestImpl : NoteDao {
         return flowOf(result)
     }
 
+    override suspend fun getModified(modifiedAfterDate: Long): List<NoteEntity> {
+        return noteList.filter { it.lastModifiedAt > modifiedAfterDate }
+    }
+
+    override suspend fun getBySyncId(syncId: String): NoteEntity? {
+        return noteList.find { it.syncId == syncId }
+    }
+
+    override suspend fun purgeRemoved(purgeToDate: Long) {
+        noteList.removeIf { it.lastModifiedAt <= purgeToDate }
+    }
+
     override suspend fun upsert(vararg entity: NoteEntity): List<Long> {
         val result = mutableListOf<Long>()
         entity.forEach {
@@ -65,5 +77,9 @@ class NoteDaoTestImpl : NoteDao {
         entity.forEach { e ->
             noteList.removeIf { it.id == e.id }
         }
+    }
+
+    override suspend fun upsert(entities: List<NoteEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

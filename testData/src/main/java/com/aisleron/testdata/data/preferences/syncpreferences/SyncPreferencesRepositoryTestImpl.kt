@@ -21,6 +21,7 @@ import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository.Companion.REMOTE_ENTITY_LAST_UPDATED_FORMAT
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +29,9 @@ import kotlinx.coroutines.flow.update
 
 class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
     private val _syncPreferences = MutableStateFlow(getDefaultSyncPreferences())
+
+    private val _remoteEntityUpdated = mutableMapOf<String, String>()
+    val remoteEntityUpdated = _remoteEntityUpdated.toMap()
 
     override fun getSyncPreferences(): SyncPreferences = _syncPreferences.value
     override fun getSyncPreferencesFlow(): Flow<SyncPreferences> = _syncPreferences.asStateFlow()
@@ -68,6 +72,19 @@ class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
         }
     }
 
+    override fun getRemoteEntityLastUpdatedIso(entityName: String): String {
+        val keyName = REMOTE_ENTITY_LAST_UPDATED_FORMAT.format(entityName)
+        return _remoteEntityUpdated[keyName] ?: ""
+    }
+
+    override fun setRemoteEntityLastUpdatedIso(
+        entityName: String,
+        serverLastUpdatedAtIso: String
+    ) {
+        val keyName = REMOTE_ENTITY_LAST_UPDATED_FORMAT.format(entityName)
+        _remoteEntityUpdated[keyName] = serverLastUpdatedAtIso
+    }
+
     fun setSyncPreferences(syncPreferences: SyncPreferences) {
         _syncPreferences.update { syncPreferences }
     }
@@ -83,5 +100,6 @@ class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
 
     fun resetSyncPreferences() {
         _syncPreferences.update { getDefaultSyncPreferences() }
+        _remoteEntityUpdated.clear()
     }
 }

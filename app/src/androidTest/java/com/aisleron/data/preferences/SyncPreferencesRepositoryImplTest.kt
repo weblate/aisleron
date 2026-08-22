@@ -26,6 +26,7 @@ import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository.Companion.REMOTE_ENTITY_LAST_UPDATED_FORMAT
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -269,4 +270,40 @@ class SyncPreferencesRepositoryImplTest {
 
         assertEquals(syncSuccess.value, updatedSyncSuccess)
     }
+
+    @Test
+    fun getRemoteEntityLastUpdatedIso_HasNoValue_ReturnsEmptyString() {
+        val entity = "test_entity"
+
+        val preferenceValue = syncPreferencesRepository.getRemoteEntityLastUpdatedIso(entity)
+
+        assertTrue(preferenceValue.isBlank())
+    }
+
+    @Test
+    fun getRemoteEntityLastUpdatedIso_HasValue_ReturnsValue() {
+        val entity = "test_entity"
+        val lastUpdatedIso = "2026-08-18T00:00:00Z"
+        sharedPreferencesInitializer.setRemoteEntityLastUpdatedIso(entity, lastUpdatedIso)
+
+        val preferenceValue = syncPreferencesRepository.getRemoteEntityLastUpdatedIso(entity)
+
+        assertEquals(lastUpdatedIso, preferenceValue)
+    }
+
+    @Test
+    fun setRemoteEntityLastUpdatedIso_SetsPreference() {
+        val entity = "test_entity"
+        val lastUpdatedIso = "2026-08-18T00:00:00Z"
+
+        syncPreferencesRepository.setRemoteEntityLastUpdatedIso(entity, lastUpdatedIso)
+
+        val updatedValue = preferences().getString(
+            REMOTE_ENTITY_LAST_UPDATED_FORMAT.format(entity), ""
+        )
+
+        assertEquals(lastUpdatedIso, updatedValue)
+    }
+
+
 }

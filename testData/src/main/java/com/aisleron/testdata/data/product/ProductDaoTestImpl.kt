@@ -85,7 +85,23 @@ class ProductDaoTestImpl : ProductDao {
         _aisleProductDao?.upsert(*entities.toTypedArray())
     }
 
+    override suspend fun getModified(modifiedAfterDate: Long): List<ProductEntity> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getBySyncId(syncId: String): ProductEntity? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun purgeRemoved(purgeToDate: Long) {
+        TODO("Not yet implemented")
+    }
+
     fun setAisleProductDao(aisleProductDao: AisleProductDao) {
         _aisleProductDao = aisleProductDao
+    }
+
+    override suspend fun upsert(entities: List<ProductEntity>) {
+        TODO("Not yet implemented")
     }
 }

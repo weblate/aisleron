@@ -25,6 +25,7 @@ import com.aisleron.domain.FilterType
 import com.aisleron.domain.location.LocationType
 import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.SyncStatusPreference
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository.Companion.REMOTE_ENTITY_LAST_UPDATED_FORMAT
 
 class SharedPreferencesInitializer {
 
@@ -180,6 +181,14 @@ class SharedPreferencesInitializer {
         setPreferenceValue(
             SyncPreferenceKey.LAST_SYNC_SUCCESS.keyName, value.value
         )
+    }
+
+    fun setRemoteEntityLastUpdatedIso(entityName: String, serverLastUpdatedAtIso: String) {
+        setPreferenceValue(
+            REMOTE_ENTITY_LAST_UPDATED_FORMAT.format(entityName),
+            serverLastUpdatedAtIso
+        )
+
     }
 
     companion object {

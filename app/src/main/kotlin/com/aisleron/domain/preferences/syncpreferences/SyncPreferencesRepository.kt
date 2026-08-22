@@ -29,4 +29,10 @@ interface SyncPreferencesRepository {
     fun setSyncService(value: SyncServicePreference)
     fun setSyncStatus(lastSyncedAt: Long, status: SyncStatusPreference)
     fun setSyncStatus(status: SyncStatusPreference)
+    fun getRemoteEntityLastUpdatedIso(entityName: String): String
+    fun setRemoteEntityLastUpdatedIso(entityName: String, serverLastUpdatedAtIso: String)
+
+    companion object {
+        const val REMOTE_ENTITY_LAST_UPDATED_FORMAT = "remote_%s_last_updated"
+    }
 }

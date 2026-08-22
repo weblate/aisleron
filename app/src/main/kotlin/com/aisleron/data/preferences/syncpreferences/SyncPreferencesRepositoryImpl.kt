@@ -23,6 +23,7 @@ import com.aisleron.domain.preferences.SyncServicePreference
 import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferences
 import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository.Companion.REMOTE_ENTITY_LAST_UPDATED_FORMAT
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -124,6 +125,19 @@ class SyncPreferencesRepositoryImpl(
     override fun setSyncStatus(status: SyncStatusPreference) {
         sharedPreferences.edit {
             putString(SyncPreferenceKey.LAST_SYNC_SUCCESS.keyName, status.value)
+        }
+    }
+
+    private fun remoteEntityLastUpdatedKeyName(entityName: String): String =
+        REMOTE_ENTITY_LAST_UPDATED_FORMAT.format(entityName)
+
+    override fun getRemoteEntityLastUpdatedIso(entityName: String): String =
+        sharedPreferences.getString(remoteEntityLastUpdatedKeyName(entityName), "") ?: ""
+
+
+    override fun setRemoteEntityLastUpdatedIso(entityName: String, serverLastUpdatedAtIso: String) {
+        sharedPreferences.edit {
+            putString(remoteEntityLastUpdatedKeyName(entityName), serverLastUpdatedAtIso)
         }
     }
 }
