@@ -24,6 +24,7 @@ import com.aisleron.domain.location.LocationType
 import kotlin.time.Instant
 
 class LocationDtoMapper(
+    private val locationDao: LocationDao,
     private val noteDao: NoteDao
 ) : DtoMapper<LocationEntity, LocationDto> {
     override suspend fun toDto(entity: LocationEntity): LocationDto {
@@ -42,7 +43,8 @@ class LocationDtoMapper(
         )
     }
 
-    override suspend fun fromDto(dto: LocationDto, existing: LocationEntity?): LocationEntity {
+    override suspend fun fromDto(dto: LocationDto): LocationEntity {
+        val existing = lookupEntityFromDto(dto)
         val localNoteId = dto.noteId?.let { remoteSyncId -> noteDao.getBySyncId(remoteSyncId)?.id }
 
         return LocationEntity(
@@ -60,5 +62,10 @@ class LocationDtoMapper(
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
             serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
         )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: LocationDto): LocationEntity? {
+        locationDao.getBySyncId(dto.id)?.let { return it }
+        return locationDao.getByNaturalKey(dto.name, LocationType.valueOf(dto.type)).firstOrNull()
     }
 }

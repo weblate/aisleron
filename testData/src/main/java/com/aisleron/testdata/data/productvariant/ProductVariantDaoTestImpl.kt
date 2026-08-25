@@ -86,6 +86,10 @@ class ProductVariantDaoTestImpl(
     override suspend fun hasVariants(productId: Int): Boolean =
         activeItems.any { it.productId == productId }
 
+    override fun getByNaturalKey(barcode: String): List<ProductVariantEntity> {
+        return entityList.filter { it.barcode == barcode }
+    }
+
     fun clear() {
         entityList.clear()
     }

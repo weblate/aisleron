@@ -77,4 +77,7 @@ interface AisleDao : BaseDao<AisleEntity>, SyncDao<AisleEntity> {
 
     @Query("DELETE FROM Aisle WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
     override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM Aisle WHERE name = :name COLLATE NOCASE AND locationId = :locationId")
+    fun getByNaturalKey(name: String, locationId: Int): List<AisleEntity>
 }

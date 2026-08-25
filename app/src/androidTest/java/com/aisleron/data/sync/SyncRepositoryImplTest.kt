@@ -38,7 +38,7 @@ class SyncRepositoryImplTest : SyncTest<NoteEntity, NoteDto>() {
         SyncApiTestImpl("notes")
 
     override fun initMapper(): DtoMapper<NoteEntity, NoteDto> =
-        NoteDtoMapper()
+        NoteDtoMapper(noteDao)
 
     override fun initDao(): SyncDao<NoteEntity> =
         get<NoteDao>()
@@ -71,7 +71,7 @@ class SyncRepositoryImplTest : SyncTest<NoteEntity, NoteDto>() {
     override suspend fun validateDtoToEntity(
         dto: NoteDto, compareEntity: NoteEntity
     ): Boolean {
-        val expectedEntity = mapper.fromDto(dto, null).copy(
+        val expectedEntity = mapper.fromDto(dto).copy(
             id = compareEntity.id
         )
 

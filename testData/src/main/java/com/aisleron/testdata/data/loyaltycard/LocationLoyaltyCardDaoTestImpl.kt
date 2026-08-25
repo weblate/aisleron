@@ -56,6 +56,12 @@ class LocationLoyaltyCardDaoTestImpl :
         return entityList.find { it.locationId == locationId && (!it.isRemoved || includeRemoved) }
     }
 
+    override fun getByNaturalKey(
+        locationId: Int, loyaltyCardId: Int
+    ): List<LocationLoyaltyCardEntity> {
+        return entityList.filter { it.locationId == locationId && it.loyaltyCardId == loyaltyCardId }
+    }
+
     override suspend fun upsert(entities: List<LocationLoyaltyCardEntity>) {
         upsert(*entities.toTypedArray())
     }

@@ -22,6 +22,7 @@ import com.aisleron.data.sync.DtoMapper
 import kotlin.time.Instant
 
 class AisleDtoMapper(
+    private val aisleDao: AisleDao,
     private val locationDao: LocationDao
 ) : DtoMapper<AisleEntity, AisleDto> {
 
@@ -42,15 +43,20 @@ class AisleDtoMapper(
         )
     }
 
-    override suspend fun fromDto(dto: AisleDto, existing: AisleEntity?): AisleEntity {
-        val resolvedLocationId = checkNotNull(locationDao.getBySyncId(dto.locationId)?.id) {
+    private suspend fun getLocalLocationId(dto: AisleDto): Int {
+        return checkNotNull(locationDao.getBySyncId(dto.locationId)?.id) {
             "Local location not found for syncId ${dto.locationId}"
         }
+    }
+
+    override suspend fun fromDto(dto: AisleDto): AisleEntity {
+        val existing = lookupEntityFromDto(dto)
+        val localLocationId = getLocalLocationId(dto)
 
         return AisleEntity(
             id = existing?.id ?: 0,
             name = dto.name,
-            locationId = resolvedLocationId,
+            locationId = localLocationId,
             rank = dto.rank,
             isDefault = dto.isDefault,
             expanded = existing?.expanded ?: true,
@@ -59,5 +65,12 @@ class AisleDtoMapper(
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
             serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
         )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: AisleDto): AisleEntity? {
+        aisleDao.getBySyncId(dto.id)?.let { return it }
+
+        val localLocationId = getLocalLocationId(dto)
+        return aisleDao.getByNaturalKey(dto.name, localLocationId).firstOrNull()
     }
 }

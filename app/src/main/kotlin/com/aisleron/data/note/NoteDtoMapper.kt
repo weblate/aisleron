@@ -20,7 +20,7 @@ package com.aisleron.data.note
 import com.aisleron.data.sync.DtoMapper
 import kotlin.time.Instant
 
-class NoteDtoMapper : DtoMapper<NoteEntity, NoteDto> {
+class NoteDtoMapper(private val noteDao: NoteDao) : DtoMapper<NoteEntity, NoteDto> {
     override suspend fun toDto(entity: NoteEntity): NoteDto = NoteDto(
         id = checkNotNull(entity.syncId) { "syncId must be generated prior to push" },
         isDeleted = entity.isRemoved,
@@ -28,12 +28,21 @@ class NoteDtoMapper : DtoMapper<NoteEntity, NoteDto> {
         noteText = entity.noteText
     )
 
-    override suspend fun fromDto(dto: NoteDto, existing: NoteEntity?): NoteEntity = NoteEntity(
-        id = existing?.id ?: 0,
-        noteText = dto.noteText,
-        syncId = dto.id,
-        isRemoved = dto.isDeleted,
-        lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
-        serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
-    )
+    override suspend fun fromDto(dto: NoteDto): NoteEntity {
+        val existing = lookupEntityFromDto(dto)
+
+        return NoteEntity(
+            id = existing?.id ?: 0,
+            noteText = dto.noteText,
+            syncId = dto.id,
+            isRemoved = dto.isDeleted,
+            lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
+            serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
+        )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: NoteDto): NoteEntity? {
+        noteDao.getBySyncId(dto.id)?.let { return it }
+        return noteDao.getByNaturalKey(dto.noteText).firstOrNull()
+    }
 }

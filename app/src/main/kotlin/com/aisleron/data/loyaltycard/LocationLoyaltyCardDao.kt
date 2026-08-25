@@ -46,4 +46,7 @@ interface LocationLoyaltyCardDao :
 
     @Query("DELETE FROM LocationLoyaltyCard WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
     override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM LocationLoyaltyCard WHERE locationId = :locationId AND loyaltyCardId = :loyaltyCardId")
+    fun getByNaturalKey(locationId: Int, loyaltyCardId: Int): List<LocationLoyaltyCardEntity>
 }

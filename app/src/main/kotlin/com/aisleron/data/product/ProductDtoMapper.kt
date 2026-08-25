@@ -21,7 +21,9 @@ import com.aisleron.data.note.NoteDao
 import com.aisleron.data.sync.DtoMapper
 import kotlin.time.Instant
 
-class ProductDtoMapper(private val noteDao: NoteDao) : DtoMapper<ProductEntity, ProductDto> {
+class ProductDtoMapper(
+    private val productDao: ProductDao, private val noteDao: NoteDao
+) : DtoMapper<ProductEntity, ProductDto> {
     override suspend fun toDto(entity: ProductEntity): ProductDto {
         val noteSyncId = entity.noteId?.let { localId -> noteDao.getNote(localId, true)?.syncId }
 
@@ -39,7 +41,8 @@ class ProductDtoMapper(private val noteDao: NoteDao) : DtoMapper<ProductEntity, 
         )
     }
 
-    override suspend fun fromDto(dto: ProductDto, existing: ProductEntity?): ProductEntity {
+    override suspend fun fromDto(dto: ProductDto): ProductEntity {
+        val existing = lookupEntityFromDto(dto)
         val localNoteId = dto.noteId?.let { remoteSyncId -> noteDao.getBySyncId(remoteSyncId)?.id }
 
         return ProductEntity(
@@ -56,5 +59,10 @@ class ProductDtoMapper(private val noteDao: NoteDao) : DtoMapper<ProductEntity, 
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
             serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
         )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: ProductDto): ProductEntity? {
+        productDao.getBySyncId(dto.id)?.let { return it }
+        return productDao.getByNaturalKey(dto.name).firstOrNull()
     }
 }

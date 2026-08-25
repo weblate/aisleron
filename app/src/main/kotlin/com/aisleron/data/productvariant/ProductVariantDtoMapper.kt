@@ -22,6 +22,7 @@ import com.aisleron.data.sync.DtoMapper
 import kotlin.time.Instant
 
 class ProductVariantDtoMapper(
+    private val productVariantDao: ProductVariantDao,
     private val productDao: ProductDao
 ) : DtoMapper<ProductVariantEntity, ProductVariantDto> {
 
@@ -40,12 +41,15 @@ class ProductVariantDtoMapper(
         )
     }
 
-    override suspend fun fromDto(
-        dto: ProductVariantDto, existing: ProductVariantEntity?
-    ): ProductVariantEntity {
-        val localProductId = checkNotNull(productDao.getBySyncId(dto.productId)?.id) {
+    private suspend fun getLocalProductId(dto: ProductVariantDto): Int {
+        return checkNotNull(productDao.getBySyncId(dto.productId)?.id) {
             "Local product not found for syncId ${dto.productId}"
         }
+    }
+
+    override suspend fun fromDto(dto: ProductVariantDto): ProductVariantEntity {
+        val existing = lookupEntityFromDto(dto)
+        val localProductId = getLocalProductId(dto)
 
         return ProductVariantEntity(
             id = existing?.id ?: 0,
@@ -57,5 +61,11 @@ class ProductVariantDtoMapper(
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
             serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
         )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: ProductVariantDto): ProductVariantEntity? {
+        productVariantDao.getBySyncId(dto.id)?.let { return it }
+        return productVariantDao.getByNaturalKey(dto.barcode).firstOrNull()
+
     }
 }

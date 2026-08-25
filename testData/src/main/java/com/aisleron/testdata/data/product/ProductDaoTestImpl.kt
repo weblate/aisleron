@@ -81,6 +81,10 @@ class ProductDaoTestImpl : BaseSyncTestDao<ProductEntity>(), ProductDao {
         _aisleProductDao?.upsert(*entities.toTypedArray())
     }
 
+    override fun getByNaturalKey(name: String): List<ProductEntity> {
+        return entityList.filter { it.name.equals(name, ignoreCase = true) }
+    }
+
     fun setAisleProductDao(aisleProductDao: AisleProductDao) {
         _aisleProductDao = aisleProductDao
     }

@@ -28,13 +28,16 @@ import org.junit.Test
 import org.koin.test.get
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class LoyaltyCardSyncTest : SyncTest<LoyaltyCardEntity, LoyaltyCardDto>() {
+    private val loyaltyCardDao: LoyaltyCardDao get() = dao as LoyaltyCardDao
+
     override fun initSyncApi(): SyncApiTestImpl<LoyaltyCardDto> =
         SyncApiTestImpl("loyalty_cards")
 
     override fun initMapper(): DtoMapper<LoyaltyCardEntity, LoyaltyCardDto> =
-        LoyaltyCardDtoMapper()
+        LoyaltyCardDtoMapper(loyaltyCardDao)
 
     override fun initDao(): SyncDao<LoyaltyCardEntity> =
         get<LoyaltyCardDao>()
@@ -64,7 +67,7 @@ class LoyaltyCardSyncTest : SyncTest<LoyaltyCardEntity, LoyaltyCardDto>() {
             intent = "Intent for Sync Test",
         )
 
-        val id = (dao as LoyaltyCardDao).upsert(entity).first().toInt()
+        val id = loyaltyCardDao.upsert(entity).first().toInt()
 
         return entity.copy(id = id)
     }
@@ -100,7 +103,7 @@ class LoyaltyCardSyncTest : SyncTest<LoyaltyCardEntity, LoyaltyCardDto>() {
     override suspend fun validateDtoToEntity(
         dto: LoyaltyCardDto, compareEntity: LoyaltyCardEntity
     ): Boolean {
-        val expectedEntity = mapper.fromDto(dto, null).copy(
+        val expectedEntity = mapper.fromDto(dto).copy(
             id = compareEntity.id,
         )
 
@@ -109,19 +112,20 @@ class LoyaltyCardSyncTest : SyncTest<LoyaltyCardEntity, LoyaltyCardDto>() {
 
     @Test
     fun fromDto_ExistingEntityProvided_EntityUpdated() = runTest {
+        val syncId = SyncEntity.generateSyncId()
         val existingEntity = addLoyaltyCardEntity(
             lastModifiedAt = 100L,
             serverUpdatedAt = null,
             isRemoved = false,
-            syncId = null
+            syncId = syncId
         )
 
         val dto = addLoyaltyCardDto(
-            SyncEntity.generateSyncId(), "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
+            syncId, "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
             isDeleted = false
         )
 
-        val mappedEntity = mapper.fromDto(dto, existingEntity)
+        val mappedEntity = mapper.fromDto(dto)
 
         assertEquals(existingEntity.id, mappedEntity.id)
     }
@@ -138,5 +142,81 @@ class LoyaltyCardSyncTest : SyncTest<LoyaltyCardEntity, LoyaltyCardDto>() {
         assertFailsWith<IllegalStateException> {
             mapper.toDto(entity)
         }
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnSyncId_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLoyaltyCardEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = dto.id,
+            name = "Not the Same as Dto"
+        )
+
+        loyaltyCardDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnNaturalKey_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLoyaltyCardEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            provider = LoyaltyCardProviderType.valueOf(dto.provider),
+            intent = dto.intent
+        )
+
+        loyaltyCardDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_NoEntityMatch_ReturnsNull() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLoyaltyCardEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            intent = "Not the Same as Dto"
+        )
+
+        loyaltyCardDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertNull(lookupEntity)
     }
 }

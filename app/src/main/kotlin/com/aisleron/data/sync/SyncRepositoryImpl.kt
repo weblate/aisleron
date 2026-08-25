@@ -43,8 +43,7 @@ class SyncRepositoryImpl<Entity : SyncEntity, Dto : SyncDto>(
         if (remoteDto.isEmpty()) return serverLastUpdatedDateIso
 
         val entitiesToSave = remoteDto.map { dto ->
-            val existing = dao.getBySyncId(dto.id)
-            dtoMapper.fromDto(dto, existing)
+            dtoMapper.fromDto(dto)
         }
 
         dao.upsert(entitiesToSave)

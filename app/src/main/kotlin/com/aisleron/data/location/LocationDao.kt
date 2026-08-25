@@ -100,4 +100,7 @@ interface LocationDao : BaseDao<LocationEntity>, SyncDao<LocationEntity> {
 
     @Query("DELETE FROM Location WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
     override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM Location WHERE name = :name COLLATE NOCASE AND type = :locationType")
+    fun getByNaturalKey(name: String, locationType: LocationType): List<LocationEntity>
 }

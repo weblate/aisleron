@@ -62,4 +62,7 @@ interface ProductVariantDao : BaseDao<ProductVariantEntity>, SyncDao<ProductVari
 
     @Query("DELETE FROM ProductVariant WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
     override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM ProductVariant WHERE barcode = :barcode")
+    fun getByNaturalKey(barcode: String): List<ProductVariantEntity>
 }

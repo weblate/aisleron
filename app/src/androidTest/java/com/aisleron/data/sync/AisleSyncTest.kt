@@ -31,6 +31,7 @@ import org.junit.Test
 import org.koin.test.get
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class AisleSyncTest : SyncTest<AisleEntity, AisleDto>() {
     private val aisleDao: AisleDao get() = dao as AisleDao
@@ -39,7 +40,7 @@ class AisleSyncTest : SyncTest<AisleEntity, AisleDto>() {
         SyncApiTestImpl("aisles")
 
     override fun initMapper(): DtoMapper<AisleEntity, AisleDto> =
-        AisleDtoMapper(get<LocationDao>())
+        AisleDtoMapper(aisleDao, get<LocationDao>())
 
     override fun initDao(): SyncDao<AisleEntity> =
         get<AisleDao>()
@@ -84,7 +85,7 @@ class AisleSyncTest : SyncTest<AisleEntity, AisleDto>() {
         serverUpdatedAt: String?,
         clientUpdatedAt: String,
         isDeleted: Boolean
-    ): AisleDto = addAisleDto(id, serverUpdatedAt,clientUpdatedAt, isDeleted)
+    ): AisleDto = addAisleDto(id, serverUpdatedAt, clientUpdatedAt, isDeleted)
 
     private suspend fun addAisleDto(
         id: String,
@@ -117,7 +118,7 @@ class AisleSyncTest : SyncTest<AisleEntity, AisleDto>() {
     override suspend fun validateDtoToEntity(
         dto: AisleDto, compareEntity: AisleEntity
     ): Boolean {
-        val expectedEntity = mapper.fromDto(dto, null).copy(
+        val expectedEntity = mapper.fromDto(dto).copy(
             id = compareEntity.id,
             expanded = compareEntity.expanded
         )
@@ -158,32 +159,111 @@ class AisleSyncTest : SyncTest<AisleEntity, AisleDto>() {
 
     @Test
     fun fromDto_LocationNotFound_ThrowsException() = runTest {
-        val dto = addAisleDto(SyncEntity.generateSyncId(), "", "",
+        val dto = addAisleDto(
+            SyncEntity.generateSyncId(), "", "",
             isDeleted = false,
             withLocation = false
         )
 
         assertFailsWith<IllegalStateException> {
-            mapper.fromDto(dto, null)
+            mapper.fromDto(dto)
         }
     }
 
     @Test
     fun fromDto_ExistingEntityProvided_EntityUpdated() = runTest {
+        val syncId = SyncEntity.generateSyncId()
         val existingEntity = addAisleEntity(
             lastModifiedAt = 100L,
             serverUpdatedAt = null,
             isRemoved = false,
-            syncId = null
+            syncId = syncId
         )
 
         val dto = addAisleDto(
-            SyncEntity.generateSyncId(), "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
+            syncId, "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
             isDeleted = false
         )
 
-        val mappedEntity = mapper.fromDto(dto, existingEntity)
+        val mappedEntity = mapper.fromDto(dto)
 
         assertEquals(existingEntity.id, mappedEntity.id)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnSyncId_ReturnsEntity() = runTest {
+        val dto = addAisleDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addAisleEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = dto.id,
+            name = "Not the Same as Dto"
+        )
+
+        aisleDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnNaturalKey_ReturnsEntity() = runTest {
+        val dto = addAisleDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false,
+            withLocation = true
+        )
+
+        val entity = addAisleEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            name = dto.name,
+            locationId = get<LocationDao>().getBySyncId(dto.locationId)!!.id
+        )
+
+        aisleDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_NoEntityMatch_ReturnsNull() = runTest {
+        val dto = addAisleDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addAisleEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            name = "Not the Same as Dto"
+        )
+
+        aisleDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertNull(lookupEntity)
     }
 }

@@ -59,4 +59,7 @@ interface ProductDao : BaseDao<ProductEntity>, SyncDao<ProductEntity> {
 
     @Query("DELETE FROM Product WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
     override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM Product WHERE name = :name COLLATE NOCASE")
+    fun getByNaturalKey(name: String): List<ProductEntity>
 }

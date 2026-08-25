@@ -63,6 +63,10 @@ class AisleDaoTestImpl(
         }
     }
 
+    override fun getByNaturalKey(name: String, locationId: Int): List<AisleEntity> {
+        return entityList.filter { it.name.equals(name, true) && it.locationId == locationId }
+    }
+
     override suspend fun moveRanks(locationId: Int, fromRank: Int, lastModifiedAt: Long) {
         val locationAisles =
             entityList.filter { it.locationId == locationId && it.rank >= fromRank }

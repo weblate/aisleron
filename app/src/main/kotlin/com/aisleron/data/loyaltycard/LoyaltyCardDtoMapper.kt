@@ -21,7 +21,9 @@ import com.aisleron.data.sync.DtoMapper
 import com.aisleron.domain.loyaltycard.LoyaltyCardProviderType
 import kotlin.time.Instant
 
-class LoyaltyCardDtoMapper : DtoMapper<LoyaltyCardEntity, LoyaltyCardDto> {
+class LoyaltyCardDtoMapper(
+    private val loyaltyCardDao: LoyaltyCardDao
+) : DtoMapper<LoyaltyCardEntity, LoyaltyCardDto> {
 
     override suspend fun toDto(entity: LoyaltyCardEntity): LoyaltyCardDto = LoyaltyCardDto(
         id = checkNotNull(entity.syncId) { "syncId must be generated prior to push" },
@@ -32,16 +34,25 @@ class LoyaltyCardDtoMapper : DtoMapper<LoyaltyCardEntity, LoyaltyCardDto> {
         intent = entity.intent
     )
 
-    override suspend fun fromDto(
-        dto: LoyaltyCardDto, existing: LoyaltyCardEntity?
-    ): LoyaltyCardEntity = LoyaltyCardEntity(
-        id = existing?.id ?: 0,
-        name = dto.name,
-        provider = LoyaltyCardProviderType.valueOf(dto.provider),
-        intent = dto.intent,
-        syncId = dto.id,
-        isRemoved = dto.isDeleted,
-        lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
-        serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
-    )
+    override suspend fun fromDto(dto: LoyaltyCardDto): LoyaltyCardEntity {
+        val existing = lookupEntityFromDto(dto)
+
+        return LoyaltyCardEntity(
+            id = existing?.id ?: 0,
+            name = dto.name,
+            provider = LoyaltyCardProviderType.valueOf(dto.provider),
+            intent = dto.intent,
+            syncId = dto.id,
+            isRemoved = dto.isDeleted,
+            lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
+            serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
+        )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: LoyaltyCardDto): LoyaltyCardEntity? {
+        loyaltyCardDao.getBySyncId(dto.id)?.let { return it }
+        return loyaltyCardDao.getByNaturalKey(
+            LoyaltyCardProviderType.valueOf(dto.provider), dto.intent
+        ).firstOrNull()
+    }
 }

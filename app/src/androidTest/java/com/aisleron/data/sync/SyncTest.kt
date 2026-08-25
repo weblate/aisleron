@@ -68,9 +68,9 @@ abstract class SyncTest<Entity : SyncEntity, Dto : SyncDto> : KoinTest {
 
     @Before
     fun setUp() {
-        syncApi = initSyncApi()
-        mapper = initMapper()
         dao = initDao()
+        mapper = initMapper()
+        syncApi = initSyncApi()
 
         repository = SyncRepositoryImpl(
             syncOrder = 1,

@@ -72,4 +72,7 @@ interface LoyaltyCardDao : BaseDao<LoyaltyCardEntity>, SyncDao<LoyaltyCardEntity
 
     @Query("DELETE FROM LoyaltyCard WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
     override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM LoyaltyCard WHERE provider = :provider AND intent = :intent")
+    fun getByNaturalKey(provider: LoyaltyCardProviderType, intent: String): List<LoyaltyCardEntity>
 }

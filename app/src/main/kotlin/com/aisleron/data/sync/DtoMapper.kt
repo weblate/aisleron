@@ -21,5 +21,6 @@ import com.aisleron.data.base.SyncEntity
 
 interface DtoMapper<Entity : SyncEntity, Dto : SyncDto> {
     suspend fun toDto(entity: Entity): Dto
-    suspend fun fromDto(dto: Dto, existing: Entity?): Entity
+    suspend fun fromDto(dto: Dto): Entity
+    suspend fun lookupEntityFromDto(dto: Dto): Entity?
 }

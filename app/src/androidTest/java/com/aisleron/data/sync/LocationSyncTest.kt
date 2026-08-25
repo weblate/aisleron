@@ -30,13 +30,16 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.koin.test.get
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class LocationSyncTest : SyncTest<LocationEntity, LocationDto>() {
+    private val locationDao: LocationDao get() = dao as LocationDao
+
     override fun initSyncApi(): SyncApiTestImpl<LocationDto> =
         SyncApiTestImpl("locations")
 
     override fun initMapper(): DtoMapper<LocationEntity, LocationDto> =
-        LocationDtoMapper(get<NoteDao>())
+        LocationDtoMapper(locationDao, get<NoteDao>())
 
     override fun initDao(): SyncDao<LocationEntity> =
         get<LocationDao>()
@@ -125,7 +128,7 @@ class LocationSyncTest : SyncTest<LocationEntity, LocationDto>() {
     override suspend fun validateDtoToEntity(
         dto: LocationDto, compareEntity: LocationEntity
     ): Boolean {
-        val expectedEntity = mapper.fromDto(dto, null).copy(
+        val expectedEntity = mapper.fromDto(dto).copy(
             id = compareEntity.id,
             showDefaultAisle = compareEntity.showDefaultAisle,
             expanded = compareEntity.expanded
@@ -152,7 +155,7 @@ class LocationSyncTest : SyncTest<LocationEntity, LocationDto>() {
             withNote = true
         )
 
-        val entity = mapper.fromDto(dto, null)
+        val entity = mapper.fromDto(dto)
 
         val noteId = get<NoteDao>().getBySyncId(dto.noteId!!)?.id
         assertEquals(noteId, entity.noteId)
@@ -160,22 +163,101 @@ class LocationSyncTest : SyncTest<LocationEntity, LocationDto>() {
 
     @Test
     fun fromDto_ExistingEntityProvided_EntityUpdated() = runTest {
+        val syncId = SyncEntity.generateSyncId()
         val existingEntity = addLocationEntity(
             lastModifiedAt = 100L,
             serverUpdatedAt = null,
             isRemoved = false,
             withNote = false,
-            syncId = null
+            syncId = syncId
         )
 
         val dto = addLocationDto(
-            SyncEntity.generateSyncId(), "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
+            syncId, "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
             isDeleted = false,
             withNote = true
         )
 
-        val mappedEntity = mapper.fromDto(dto, existingEntity)
+        val mappedEntity = mapper.fromDto(dto)
 
         assertEquals(existingEntity.id, mappedEntity.id)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnSyncId_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLocationEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+            withNote = false,
+        ).copy(
+            syncId = dto.id,
+            name = "Not the Same as Dto"
+        )
+
+        locationDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnNaturalKey_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLocationEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+            withNote = false,
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            name = dto.name
+        )
+
+        locationDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_NoEntityMatch_ReturnsNull() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLocationEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+            withNote = false,
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            name = "Not the Same as Dto"
+        )
+
+        locationDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertNull(lookupEntity)
     }
 }

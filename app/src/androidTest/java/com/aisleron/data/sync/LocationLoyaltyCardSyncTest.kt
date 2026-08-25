@@ -32,7 +32,9 @@ import com.aisleron.domain.loyaltycard.LoyaltyCardProviderType
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.koin.test.get
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class LocationLoyaltyCardSyncTest : SyncTest<LocationLoyaltyCardEntity, LocationLoyaltyCardDto>() {
     private val locationLoyaltyCardDao: LocationLoyaltyCardDao get() = dao as LocationLoyaltyCardDao
@@ -41,7 +43,9 @@ class LocationLoyaltyCardSyncTest : SyncTest<LocationLoyaltyCardEntity, Location
         SyncApiTestImpl("location_loyalty_cards")
 
     override fun initMapper(): DtoMapper<LocationLoyaltyCardEntity, LocationLoyaltyCardDto> =
-        LocationLoyaltyCardDtoMapper(get<LocationDao>(), get<LoyaltyCardDao>())
+        LocationLoyaltyCardDtoMapper(
+            locationLoyaltyCardDao, get<LocationDao>(), get<LoyaltyCardDao>()
+        )
 
     override fun initDao(): SyncDao<LocationLoyaltyCardEntity> =
         get<LocationLoyaltyCardDao>()
@@ -110,7 +114,7 @@ class LocationLoyaltyCardSyncTest : SyncTest<LocationLoyaltyCardEntity, Location
     override suspend fun validateDtoToEntity(
         dto: LocationLoyaltyCardDto, compareEntity: LocationLoyaltyCardEntity
     ): Boolean {
-        val expectedEntity = mapper.fromDto(dto, null).copy(
+        val expectedEntity = mapper.fromDto(dto).copy(
             locationId = compareEntity.locationId
         )
 
@@ -180,7 +184,7 @@ class LocationLoyaltyCardSyncTest : SyncTest<LocationLoyaltyCardEntity, Location
         ).copy(locationId = SyncEntity.generateSyncId())
 
         assertFailsWith<IllegalStateException> {
-            mapper.fromDto(dto, null)
+            mapper.fromDto(dto)
         }
     }
 
@@ -192,7 +196,7 @@ class LocationLoyaltyCardSyncTest : SyncTest<LocationLoyaltyCardEntity, Location
         ).copy(loyaltyCardId = SyncEntity.generateSyncId())
 
         assertFailsWith<IllegalStateException> {
-            mapper.fromDto(dto, null)
+            mapper.fromDto(dto)
         }
     }
 
@@ -203,5 +207,79 @@ class LocationLoyaltyCardSyncTest : SyncTest<LocationLoyaltyCardEntity, Location
         assertFailsWith<IllegalStateException> {
             mapper.toDto(entity)
         }
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnSyncId_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLocationLoyaltyCardEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+        ).copy(
+            syncId = dto.id,
+        )
+
+        locationLoyaltyCardDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnNaturalKey_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLocationLoyaltyCardEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            locationId = get<LocationDao>().getBySyncId(dto.locationId)!!.id,
+            loyaltyCardId = get<LoyaltyCardDao>().getBySyncId(dto.loyaltyCardId)!!.id
+        )
+
+        locationLoyaltyCardDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_NoEntityMatch_ReturnsNull() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addLocationLoyaltyCardEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+        ).copy(
+            syncId = SyncEntity.generateSyncId()
+        )
+
+        locationLoyaltyCardDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertNull(lookupEntity)
     }
 }

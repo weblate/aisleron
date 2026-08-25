@@ -87,6 +87,10 @@ class AisleProductDaoTestImpl(
         return entityList.filter { it.aisleId == aisleId }.maxOfOrNull { it.rank } ?: 0
     }
 
+    override fun getByNaturalKey(aisleId: Int, productId: Int): List<AisleProductEntity> {
+        return entityList.filter { it.aisleId == aisleId && it.productId == productId }
+    }
+
     override suspend fun upsert(vararg entity: AisleProductEntity): List<Long> {
         val result = mutableListOf<Long>()
         entity.forEach {

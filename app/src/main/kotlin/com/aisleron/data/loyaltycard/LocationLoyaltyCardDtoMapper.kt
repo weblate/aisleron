@@ -19,10 +19,10 @@ package com.aisleron.data.loyaltycard
 
 import com.aisleron.data.location.LocationDao
 import com.aisleron.data.sync.DtoMapper
-import kotlin.checkNotNull
 import kotlin.time.Instant
 
 class LocationLoyaltyCardDtoMapper(
+    private val locationLoyaltyCardDao: LocationLoyaltyCardDao,
     private val locationDao: LocationDao,
     private val loyaltyCardDao: LoyaltyCardDao
 ) : DtoMapper<LocationLoyaltyCardEntity, LocationLoyaltyCardDto> {
@@ -47,17 +47,21 @@ class LocationLoyaltyCardDtoMapper(
         )
     }
 
-    override suspend fun fromDto(
-        dto: LocationLoyaltyCardDto,
-        existing: LocationLoyaltyCardEntity?
-    ): LocationLoyaltyCardEntity {
-        val localLocationId = checkNotNull(locationDao.getBySyncId(dto.locationId)?.id) {
+    private suspend fun getLocalLocationId(dto: LocationLoyaltyCardDto): Int {
+        return checkNotNull(locationDao.getBySyncId(dto.locationId)?.id) {
             "Local location not found for syncId ${dto.locationId}"
         }
+    }
 
-        val localLoyaltyCardId = checkNotNull(loyaltyCardDao.getBySyncId(dto.loyaltyCardId)?.id) {
+    private suspend fun getLocalLoyaltyCardId(dto: LocationLoyaltyCardDto): Int {
+        return checkNotNull(loyaltyCardDao.getBySyncId(dto.loyaltyCardId)?.id) {
             "Local loyalty card not found for syncId ${dto.loyaltyCardId}"
         }
+    }
+
+    override suspend fun fromDto(dto: LocationLoyaltyCardDto): LocationLoyaltyCardEntity {
+        val localLocationId = getLocalLocationId(dto)
+        val localLoyaltyCardId = getLocalLoyaltyCardId(dto)
 
         return LocationLoyaltyCardEntity(
             locationId = localLocationId,
@@ -67,5 +71,14 @@ class LocationLoyaltyCardDtoMapper(
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),
             serverUpdatedAt = dto.serverUpdatedAt?.let { Instant.parse(it).toEpochMilliseconds() }
         )
+    }
+
+    override suspend fun lookupEntityFromDto(dto: LocationLoyaltyCardDto): LocationLoyaltyCardEntity? {
+        locationLoyaltyCardDao.getBySyncId(dto.id)?.let { return it }
+
+        val localLocationId = getLocalLocationId(dto)
+        val localLoyaltyCardId = getLocalLoyaltyCardId(dto)
+        return locationLoyaltyCardDao.getByNaturalKey(localLocationId, localLoyaltyCardId)
+            .firstOrNull()
     }
 }

@@ -150,6 +150,12 @@ class LocationDaoTestImpl(
         return activeItems.first { it.type == LocationType.HOME }
     }
 
+    override fun getByNaturalKey(name: String, locationType: LocationType): List<LocationEntity> {
+        return entityList.filter {
+            it.name.equals(name, ignoreCase = true) && it.type == locationType
+        }
+    }
+
     override suspend fun upsert(entities: List<LocationEntity>) {
         upsert(*entities.toTypedArray())
     }

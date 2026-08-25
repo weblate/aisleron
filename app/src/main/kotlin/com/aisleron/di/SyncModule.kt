@@ -103,7 +103,7 @@ private val locationSyncModule = module {
 }
 
 private val aisleSyncModule = module {
-    single<AisleDtoMapper> { AisleDtoMapper(get()) }
+    single<AisleDtoMapper>()
 
     single<SyncApi<AisleDto>>(named("aisleSyncApi")) {
         SupabaseSyncApi(
@@ -145,7 +145,7 @@ private val productSyncModule = module {
 }
 
 private val aisleProductSyncModule = module {
-    single<AisleProductDtoMapper> { AisleProductDtoMapper(get(), get()) }
+    single<AisleProductDtoMapper>()
 
     single<SyncApi<AisleProductDto>>(named("aisleProductSyncApi")) {
         SupabaseSyncApi(
@@ -166,7 +166,7 @@ private val aisleProductSyncModule = module {
 }
 
 private val productVariantSyncModule = module {
-    single<ProductVariantDtoMapper> { ProductVariantDtoMapper(get()) }
+    single<ProductVariantDtoMapper>()
 
     single<SyncApi<ProductVariantDto>>(named("productVariantSyncApi")) {
         SupabaseSyncApi(
@@ -208,7 +208,7 @@ private val loyaltyCardSyncModule = module {
 }
 
 private val locationLoyaltyCardSyncModule = module {
-    single<LocationLoyaltyCardDtoMapper> { LocationLoyaltyCardDtoMapper(get(), get()) }
+    single<LocationLoyaltyCardDtoMapper>()
 
     single<SyncApi<LocationLoyaltyCardDto>>(named("locationLoyaltyCardSyncApi")) {
         SupabaseSyncApi(

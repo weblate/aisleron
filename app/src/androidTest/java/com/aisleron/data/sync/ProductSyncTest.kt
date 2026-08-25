@@ -29,13 +29,16 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.koin.test.get
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ProductSyncTest : SyncTest<ProductEntity, ProductDto>() {
+    private val productDao: ProductDao get() = dao as ProductDao
+
     override fun initSyncApi(): SyncApiTestImpl<ProductDto> =
         SyncApiTestImpl("products")
 
     override fun initMapper(): DtoMapper<ProductEntity, ProductDto> =
-        ProductDtoMapper(get<NoteDao>())
+        ProductDtoMapper(productDao,get<NoteDao>())
 
     override fun initDao(): SyncDao<ProductEntity> =
         get<ProductDao>()
@@ -81,7 +84,7 @@ class ProductSyncTest : SyncTest<ProductEntity, ProductDto>() {
             trackingMode = TrackingMode.DEFAULT
         )
 
-        val id = (dao as ProductDao).upsert(entity).first().toInt()
+        val id = productDao.upsert(entity).first().toInt()
 
         return entity.copy(id = id)
     }
@@ -124,7 +127,7 @@ class ProductSyncTest : SyncTest<ProductEntity, ProductDto>() {
     override suspend fun validateDtoToEntity(
         dto: ProductDto, compareEntity: ProductEntity
     ): Boolean {
-        val expectedEntity = mapper.fromDto(dto, null).copy(
+        val expectedEntity = mapper.fromDto(dto).copy(
             id = compareEntity.id,
         )
 
@@ -149,7 +152,7 @@ class ProductSyncTest : SyncTest<ProductEntity, ProductDto>() {
             withNote = true
         )
 
-        val entity = mapper.fromDto(dto, null)
+        val entity = mapper.fromDto(dto)
 
         val noteId = get<NoteDao>().getBySyncId(dto.noteId!!)?.id
         assertEquals(noteId, entity.noteId)
@@ -157,22 +160,101 @@ class ProductSyncTest : SyncTest<ProductEntity, ProductDto>() {
 
     @Test
     fun fromDto_ExistingEntityProvided_EntityUpdated() = runTest {
+        val syncId = SyncEntity.generateSyncId()
         val existingEntity = addProductEntity(
             lastModifiedAt = 100L,
             serverUpdatedAt = null,
             isRemoved = false,
             withNote = false,
-            syncId = null
+            syncId = syncId
         )
 
         val dto = addProductDto(
-            SyncEntity.generateSyncId(), "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
+            syncId, "2026-08-18T00:00:00Z", "2026-08-18T05:00:00Z",
             isDeleted = false,
             withNote = true
         )
 
-        val mappedEntity = mapper.fromDto(dto, existingEntity)
+        val mappedEntity = mapper.fromDto(dto)
 
         assertEquals(existingEntity.id, mappedEntity.id)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnSyncId_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addProductEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+            withNote = false,
+        ).copy(
+            syncId = dto.id,
+            name = "Not the Same as Dto"
+        )
+
+        productDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_EntityMatchesOnNaturalKey_ReturnsEntity() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addProductEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+            withNote = false,
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            name = dto.name
+        )
+
+        productDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertEquals(entity, lookupEntity)
+    }
+
+    @Test
+    fun lookupEntityFromDto_NoEntityMatch_ReturnsNull() = runTest {
+        val dto = addDto(
+            SyncEntity.generateSyncId(),
+            "2026-08-18T05:00:00Z",
+            "2026-08-18T05:00:00Z",
+            false
+        )
+
+        val entity = addProductEntity(
+            lastModifiedAt = 0,
+            serverUpdatedAt = 0,
+            isRemoved = false,
+            withNote = false,
+        ).copy(
+            syncId = SyncEntity.generateSyncId(),
+            name = "Not the Same as Dto"
+        )
+
+        productDao.upsert(entity)
+
+        val lookupEntity = mapper.lookupEntityFromDto(dto)
+
+        assertNull(lookupEntity)
     }
 }

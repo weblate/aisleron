@@ -59,6 +59,12 @@ class LoyaltyCardDaoTestImpl(
         locationLoyaltyCardDao.upsert(entity)
     }
 
+    override fun getByNaturalKey(
+        provider: LoyaltyCardProviderType, intent: String
+    ): List<LoyaltyCardEntity> {
+        return entityList.filter { it.provider == provider && it.intent == intent }
+    }
+
     override suspend fun upsert(vararg entity: LoyaltyCardEntity): List<Long> {
         val result = mutableListOf<Long>()
         entity.forEach {
