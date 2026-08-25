@@ -168,7 +168,7 @@ class SupabaseSessionManagerImplTest {
         url: String, key: String, errorOnClose: Boolean = false
     ): SupabaseClient {
         val client = mockk<SupabaseClient> {
-            every { supabaseUrl } returns url
+            every { supabaseHttpUrl } returns url
             every { supabaseKey } returns key
         }
 
