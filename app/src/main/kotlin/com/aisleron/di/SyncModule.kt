@@ -17,12 +17,30 @@
 
 package com.aisleron.di
 
+import com.aisleron.data.aisle.AisleDao
+import com.aisleron.data.aisle.AisleDto
+import com.aisleron.data.aisle.AisleDtoMapper
+import com.aisleron.data.aisleproduct.AisleProductDao
+import com.aisleron.data.aisleproduct.AisleProductDto
+import com.aisleron.data.aisleproduct.AisleProductDtoMapper
+import com.aisleron.data.location.LocationDao
+import com.aisleron.data.location.LocationDto
+import com.aisleron.data.location.LocationDtoMapper
+import com.aisleron.data.loyaltycard.LocationLoyaltyCardDao
+import com.aisleron.data.loyaltycard.LocationLoyaltyCardDto
+import com.aisleron.data.loyaltycard.LocationLoyaltyCardDtoMapper
+import com.aisleron.data.loyaltycard.LoyaltyCardDao
+import com.aisleron.data.loyaltycard.LoyaltyCardDto
+import com.aisleron.data.loyaltycard.LoyaltyCardDtoMapper
 import com.aisleron.data.note.NoteDao
 import com.aisleron.data.note.NoteDto
 import com.aisleron.data.note.NoteDtoMapper
 import com.aisleron.data.product.ProductDao
 import com.aisleron.data.product.ProductDto
 import com.aisleron.data.product.ProductDtoMapper
+import com.aisleron.data.productvariant.ProductVariantDao
+import com.aisleron.data.productvariant.ProductVariantDto
+import com.aisleron.data.productvariant.ProductVariantDtoMapper
 import com.aisleron.data.sync.SupabaseClientProvider
 import com.aisleron.data.sync.SupabaseSessionManagerImpl
 import com.aisleron.data.sync.SupabaseSyncApi
@@ -63,6 +81,48 @@ private val noteSyncModule = module {
     } bind SyncRepository::class
 }
 
+private val locationSyncModule = module {
+    single<LocationDtoMapper>()
+
+    single<SyncApi<LocationDto>>(named("locationSyncApi")) {
+        SupabaseSyncApi(
+            clientProvider = get(),
+            serializer = LocationDto.serializer(),
+            entityName = "locations"
+        )
+    }
+
+    single(named("locationSync")) {
+        SyncRepositoryImpl(
+            syncOrder = 200,
+            dao = get<LocationDao>(),
+            syncApi = get(named("locationSyncApi")),
+            dtoMapper = get<LocationDtoMapper>()
+        )
+    } bind SyncRepository::class
+}
+
+private val aisleSyncModule = module {
+    single<AisleDtoMapper> { AisleDtoMapper(get()) }
+
+    single<SyncApi<AisleDto>>(named("aisleSyncApi")) {
+        SupabaseSyncApi(
+            clientProvider = get(),
+            serializer = AisleDto.serializer(),
+            entityName = "aisles"
+        )
+    }
+
+    single(named("aisleSync")) {
+        SyncRepositoryImpl(
+            syncOrder = 300,
+            dao = get<AisleDao>(),
+            syncApi = get(named("aisleSyncApi")),
+            dtoMapper = get<AisleDtoMapper>()
+        )
+    } bind SyncRepository::class
+}
+
 private val productSyncModule = module {
     single<ProductDtoMapper>()
 
@@ -76,17 +136,109 @@ private val productSyncModule = module {
 
     single(named("productSync")) {
         SyncRepositoryImpl(
-            syncOrder = 200,
+            syncOrder = 400,
             dao = get<ProductDao>(),
             syncApi = get(named("productSyncApi")),
             dtoMapper = get<ProductDtoMapper>()
         )
     } bind SyncRepository::class
+}
 
+private val aisleProductSyncModule = module {
+    single<AisleProductDtoMapper> { AisleProductDtoMapper(get(), get()) }
+
+    single<SyncApi<AisleProductDto>>(named("aisleProductSyncApi")) {
+        SupabaseSyncApi(
+            clientProvider = get(),
+            serializer = AisleProductDto.serializer(),
+            entityName = "aisle_products"
+        )
+    }
+
+    single(named("aisleProductSync")) {
+        SyncRepositoryImpl(
+            syncOrder = 500,
+            dao = get<AisleProductDao>(),
+            syncApi = get(named("aisleProductSyncApi")),
+            dtoMapper = get<AisleProductDtoMapper>()
+        )
+    } bind SyncRepository::class
+}
+
+private val productVariantSyncModule = module {
+    single<ProductVariantDtoMapper> { ProductVariantDtoMapper(get()) }
+
+    single<SyncApi<ProductVariantDto>>(named("productVariantSyncApi")) {
+        SupabaseSyncApi(
+            clientProvider = get(),
+            serializer = ProductVariantDto.serializer(),
+            entityName = "product_variants"
+        )
+    }
+
+    single(named("productVariantSync")) {
+        SyncRepositoryImpl(
+            syncOrder = 600,
+            dao = get<ProductVariantDao>(),
+            syncApi = get(named("productVariantSyncApi")),
+            dtoMapper = get<ProductVariantDtoMapper>()
+        )
+    } bind SyncRepository::class
+}
+
+private val loyaltyCardSyncModule = module {
+    single<LoyaltyCardDtoMapper>()
+
+    single<SyncApi<LoyaltyCardDto>>(named("loyaltyCardSyncApi")) {
+        SupabaseSyncApi(
+            clientProvider = get(),
+            serializer = LoyaltyCardDto.serializer(),
+            entityName = "loyalty_cards"
+        )
+    }
+
+    single(named("loyaltyCardSync")) {
+        SyncRepositoryImpl(
+            syncOrder = 700,
+            dao = get<LoyaltyCardDao>(),
+            syncApi = get(named("loyaltyCardSyncApi")),
+            dtoMapper = get<LoyaltyCardDtoMapper>()
+        )
+    } bind SyncRepository::class
+}
+
+private val locationLoyaltyCardSyncModule = module {
+    single<LocationLoyaltyCardDtoMapper> { LocationLoyaltyCardDtoMapper(get(), get()) }
+
+    single<SyncApi<LocationLoyaltyCardDto>>(named("locationLoyaltyCardSyncApi")) {
+        SupabaseSyncApi(
+            clientProvider = get(),
+            serializer = LocationLoyaltyCardDto.serializer(),
+            entityName = "location_loyalty_cards"
+        )
+    }
+
+    single(named("locationLoyaltyCardSync")) {
+        SyncRepositoryImpl(
+            syncOrder = 800,
+            dao = get<LocationLoyaltyCardDao>(),
+            syncApi = get(named("locationLoyaltyCardSyncApi")),
+            dtoMapper = get<LocationLoyaltyCardDtoMapper>()
+        )
+    } bind SyncRepository::class
 }
 
 val syncModule = module {
-    includes(noteSyncModule, productSyncModule)
+    includes(
+        noteSyncModule,
+        locationSyncModule,
+        aisleSyncModule,
+        productSyncModule,
+        aisleProductSyncModule,
+        productVariantSyncModule,
+        loyaltyCardSyncModule,
+        locationLoyaltyCardSyncModule
+    )
 
     single<SupabaseSessionManagerImpl>() binds arrayOf(
         SyncSessionManager::class,

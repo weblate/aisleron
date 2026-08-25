@@ -15,42 +15,46 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.product
+package com.aisleron.data.location
 
 import com.aisleron.data.note.NoteDao
 import com.aisleron.data.sync.DtoMapper
+import com.aisleron.domain.FilterType
+import com.aisleron.domain.location.LocationType
 import kotlin.time.Instant
 
-class ProductDtoMapper(private val noteDao: NoteDao) : DtoMapper<ProductEntity, ProductDto> {
-    override suspend fun toDto(entity: ProductEntity): ProductDto {
+class LocationDtoMapper(
+    private val noteDao: NoteDao
+) : DtoMapper<LocationEntity, LocationDto> {
+    override suspend fun toDto(entity: LocationEntity): LocationDto {
         val noteSyncId = entity.noteId?.let { localId -> noteDao.getNote(localId, true)?.syncId }
 
-        return ProductDto(
+        return LocationDto(
             id = checkNotNull(entity.syncId) { "syncId must be generated prior to push" },
-            name = entity.name,
-            inStock = entity.inStock,
-            qtyNeeded = entity.qtyNeeded,
-            noteId = noteSyncId,
-            qtyIncrement = entity.qtyIncrement,
-            unitOfMeasure = entity.unitOfMeasure,
-            trackingMode = entity.trackingMode,
             isDeleted = entity.isRemoved,
-            clientUpdatedAt = Instant.fromEpochMilliseconds(entity.lastModifiedAt).toString()
+            clientUpdatedAt = Instant.fromEpochMilliseconds(entity.lastModifiedAt).toString(),
+            type = entity.type.name,
+            defaultFilter = entity.defaultFilter.name,
+            name = entity.name,
+            pinned = entity.pinned,
+            noteId = noteSyncId,
+            rank = entity.rank
         )
     }
 
-    override suspend fun fromDto(dto: ProductDto, existing: ProductEntity?): ProductEntity {
+    override suspend fun fromDto(dto: LocationDto, existing: LocationEntity?): LocationEntity {
         val localNoteId = dto.noteId?.let { remoteSyncId -> noteDao.getBySyncId(remoteSyncId)?.id }
 
-        return ProductEntity(
+        return LocationEntity(
             id = existing?.id ?: 0,
+            type = LocationType.valueOf(dto.type),
+            defaultFilter = FilterType.valueOf(dto.defaultFilter),
             name = dto.name,
-            inStock = dto.inStock,
-            qtyNeeded = dto.qtyNeeded,
+            pinned = dto.pinned,
+            showDefaultAisle = existing?.showDefaultAisle ?: true,
             noteId = localNoteId,
-            qtyIncrement = dto.qtyIncrement,
-            unitOfMeasure = dto.unitOfMeasure,
-            trackingMode = dto.trackingMode,
+            expanded = existing?.expanded ?: true,
+            rank = dto.rank,
             syncId = dto.id,
             isRemoved = dto.isDeleted,
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),

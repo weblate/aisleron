@@ -19,15 +19,13 @@ package com.aisleron.testdata.data.note
 
 import com.aisleron.data.note.NoteDao
 import com.aisleron.data.note.NoteEntity
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class NoteDaoTestImpl : NoteDao {
-    private val noteList = mutableListOf<NoteEntity>()
-    private val activeItems: List<NoteEntity> get() = noteList.filter { !it.isRemoved }
-
+class NoteDaoTestImpl : BaseSyncTestDao<NoteEntity>(), NoteDao {
     override suspend fun getNote(noteId: Int, includeRemoved: Boolean): NoteEntity? {
-        return noteList.find { it.id == noteId && (!it.isRemoved || includeRemoved) }
+        return entityList.find { it.id == noteId && (!it.isRemoved || includeRemoved) }
     }
 
     override suspend fun getNotes(): List<NoteEntity> = activeItems
@@ -37,26 +35,14 @@ class NoteDaoTestImpl : NoteDao {
         return flowOf(result)
     }
 
-    override suspend fun getModified(modifiedAfterDate: Long): List<NoteEntity> {
-        return noteList.filter { it.lastModifiedAt > modifiedAfterDate }
-    }
-
-    override suspend fun getBySyncId(syncId: String): NoteEntity? {
-        return noteList.find { it.syncId == syncId }
-    }
-
-    override suspend fun purgeRemoved(purgeToDate: Long) {
-        noteList.removeIf { it.lastModifiedAt <= purgeToDate }
-    }
-
     override suspend fun upsert(vararg entity: NoteEntity): List<Long> {
         val result = mutableListOf<Long>()
         entity.forEach {
             val existingEntity = getNote(it.id, true)
             val id = existingEntity?.let {
-                noteList.removeAt(noteList.indexOf(existingEntity))
+                entityList.removeAt(entityList.indexOf(existingEntity))
                 existingEntity.id
-            } ?: ((noteList.maxOfOrNull { e -> e.id } ?: 0) + 1)
+            } ?: ((entityList.maxOfOrNull { e -> e.id } ?: 0) + 1)
 
             val newEntity = NoteEntity(
                 id = id,
@@ -67,16 +53,11 @@ class NoteDaoTestImpl : NoteDao {
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            noteList.add(newEntity)
+            entityList.add(newEntity)
             result.add(existingEntity?.let { -1 } ?: newEntity.id.toLong())
         }
-        return result
-    }
 
-    override suspend fun delete(vararg entity: NoteEntity) {
-        entity.forEach { e ->
-            noteList.removeIf { it.id == e.id }
-        }
+        return result
     }
 
     override suspend fun upsert(entities: List<NoteEntity>) {

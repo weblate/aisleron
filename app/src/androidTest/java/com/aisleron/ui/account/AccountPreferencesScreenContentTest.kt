@@ -83,20 +83,14 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
         )
     }
 
-    private fun getSyncPreferences(
-        syncServicePreference: SyncServicePreference = SyncServicePreference.NONE,
-        serviceUrl: String = "",
-        serviceKey: String = "",
-        syncOnMobileData: Boolean = false,
-        lastSyncedAt: Long = 0L,
-        lastSyncStatus: SyncStatusPreference = SyncStatusPreference.NONE
-    ) = SyncPreferences(
-        syncServicePreference = syncServicePreference,
-        serviceUrl = serviceUrl,
-        serviceKey = serviceKey,
-        syncOnMobileData = syncOnMobileData,
-        lastSyncedAt = lastSyncedAt,
-        lastSyncStatus = lastSyncStatus
+    private fun getDefaultSyncPreferences() = SyncPreferences(
+        syncServicePreference = SyncServicePreference.NONE,
+        serviceUrl = "",
+        serviceKey = "",
+        syncOnMobileData = false,
+        lastSyncedAt = 0L,
+        lastSyncStatus = SyncStatusPreference.NONE,
+        remoteLastSyncedAt = 0L
     )
 
     private fun getSyncPreferencesRepository() =
@@ -107,7 +101,7 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
         val exceptionCode = AisleronException.ExceptionCode.SIGN_OUT_EXCEPTION
 
         getSyncPreferencesRepository().setSyncPreferences(
-            getSyncPreferences(
+            getDefaultSyncPreferences().copy(
                 syncServicePreference = SyncServicePreference.CUSTOM_SERVICE,
                 serviceUrl = "https://sync.aisleron.com",
                 serviceKey = "example-key"
@@ -141,7 +135,7 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
 
         val syncServicePreference = getSyncPreferencesRepository()
         syncServicePreference.setSyncPreferences(
-            getSyncPreferences(
+            getDefaultSyncPreferences().copy(
                 syncServicePreference = SyncServicePreference.CUSTOM_SERVICE,
                 serviceUrl = "https://sync.aisleron.com",
                 serviceKey = "example-key",
@@ -166,7 +160,7 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
 
         val syncServicePreference = getSyncPreferencesRepository()
         syncServicePreference.setSyncPreferences(
-            getSyncPreferences(
+            getDefaultSyncPreferences().copy(
                 syncServicePreference = syncServiceBefore,
                 serviceUrl = "https://sync.aisleron.com",
                 serviceKey = "example-key"
@@ -189,7 +183,7 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
     @Test
     fun accountPreferences_OnSyncStarted_ShowSyncStartedSnackbar() = runKoinComposeUiTest {
         getSyncPreferencesRepository().setSyncPreferences(
-            getSyncPreferences(
+            getDefaultSyncPreferences().copy(
                 syncServicePreference = SyncServicePreference.CUSTOM_SERVICE,
                 serviceUrl = "https://sync.aisleron.com",
                 serviceKey = "example-key"

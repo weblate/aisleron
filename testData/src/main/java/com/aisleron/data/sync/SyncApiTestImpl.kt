@@ -40,7 +40,6 @@ class SyncApiTestImpl<Dto : SyncDto>(override val entityName: String) : SyncApi<
         _pushCallCount += 1
         _failWithException?.let { throw it }
 
-        _remoteDtoList.clear()
         _remoteDtoList.addAll(dto)
     }
 

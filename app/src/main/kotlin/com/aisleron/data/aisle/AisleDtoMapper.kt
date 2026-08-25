@@ -15,42 +15,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.product
+package com.aisleron.data.aisle
 
-import com.aisleron.data.note.NoteDao
+import com.aisleron.data.location.LocationDao
 import com.aisleron.data.sync.DtoMapper
 import kotlin.time.Instant
 
-class ProductDtoMapper(private val noteDao: NoteDao) : DtoMapper<ProductEntity, ProductDto> {
-    override suspend fun toDto(entity: ProductEntity): ProductDto {
-        val noteSyncId = entity.noteId?.let { localId -> noteDao.getNote(localId, true)?.syncId }
+class AisleDtoMapper(
+    private val locationDao: LocationDao
+) : DtoMapper<AisleEntity, AisleDto> {
 
-        return ProductDto(
+    override suspend fun toDto(entity: AisleEntity): AisleDto {
+        val locationSyncId =
+            checkNotNull(locationDao.getLocation(entity.locationId, true)?.syncId) {
+                "Location syncId missing for local locationId ${entity.locationId}"
+            }
+
+        return AisleDto(
             id = checkNotNull(entity.syncId) { "syncId must be generated prior to push" },
-            name = entity.name,
-            inStock = entity.inStock,
-            qtyNeeded = entity.qtyNeeded,
-            noteId = noteSyncId,
-            qtyIncrement = entity.qtyIncrement,
-            unitOfMeasure = entity.unitOfMeasure,
-            trackingMode = entity.trackingMode,
             isDeleted = entity.isRemoved,
-            clientUpdatedAt = Instant.fromEpochMilliseconds(entity.lastModifiedAt).toString()
+            clientUpdatedAt = Instant.fromEpochMilliseconds(entity.lastModifiedAt).toString(),
+            name = entity.name,
+            locationId = locationSyncId,
+            rank = entity.rank,
+            isDefault = entity.isDefault
         )
     }
 
-    override suspend fun fromDto(dto: ProductDto, existing: ProductEntity?): ProductEntity {
-        val localNoteId = dto.noteId?.let { remoteSyncId -> noteDao.getBySyncId(remoteSyncId)?.id }
+    override suspend fun fromDto(dto: AisleDto, existing: AisleEntity?): AisleEntity {
+        val resolvedLocationId = checkNotNull(locationDao.getBySyncId(dto.locationId)?.id) {
+            "Local location not found for syncId ${dto.locationId}"
+        }
 
-        return ProductEntity(
+        return AisleEntity(
             id = existing?.id ?: 0,
             name = dto.name,
-            inStock = dto.inStock,
-            qtyNeeded = dto.qtyNeeded,
-            noteId = localNoteId,
-            qtyIncrement = dto.qtyIncrement,
-            unitOfMeasure = dto.unitOfMeasure,
-            trackingMode = dto.trackingMode,
+            locationId = resolvedLocationId,
+            rank = dto.rank,
+            isDefault = dto.isDefault,
+            expanded = existing?.expanded ?: true,
             syncId = dto.id,
             isRemoved = dto.isDeleted,
             lastModifiedAt = Instant.parse(dto.clientUpdatedAt).toEpochMilliseconds(),

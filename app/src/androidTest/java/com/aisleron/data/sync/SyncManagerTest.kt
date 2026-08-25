@@ -17,6 +17,7 @@
 
 package com.aisleron.data.sync
 
+import com.aisleron.data.base.SyncEntity
 import com.aisleron.data.note.NoteDao
 import com.aisleron.data.note.NoteDto
 import com.aisleron.data.note.NoteEntity
@@ -68,7 +69,7 @@ class SyncManagerTest : KoinTest {
         syncPreferencesRepository.setSyncStatus(SyncStatusPreference.NONE)
     }
 
-    private suspend fun getNoteEntity(
+    private suspend fun addNoteEntity(
         lastModifiedAt: Long = 0, serverUpdatedAt: Long? = null, isRemoved: Boolean = false
     ): NoteEntity {
         val noteText = "Note to test Sync"
@@ -87,7 +88,7 @@ class SyncManagerTest : KoinTest {
 
     @Test
     fun syncAll_WhenServicePreferenceIsNotNone_ExecutesPushPullAndPurge() = runTest {
-        val removedId = getNoteEntity(lastModifiedAt = 1000L, isRemoved = true).id
+        val removedId = addNoteEntity(lastModifiedAt = 1000L, isRemoved = true).id
         assertNotNull(dao.getNote(removedId, true))
 
         val result = syncManager.syncAll()
@@ -104,7 +105,7 @@ class SyncManagerTest : KoinTest {
     @Test
     fun syncAll_WhenServicePreferenceIsNone_ExecutesPurgeOnly() = runTest {
         syncPreferencesRepository.setSyncService(SyncServicePreference.NONE)
-        val removedId = getNoteEntity(lastModifiedAt = 1000L, isRemoved = true).id
+        val removedId = addNoteEntity(lastModifiedAt = 1000L, isRemoved = true).id
         assertNotNull(dao.getNote(removedId, true))
 
         val result = syncManager.syncAll()
@@ -134,8 +135,8 @@ class SyncManagerTest : KoinTest {
 
     @Test
     fun syncAll_OnFailure_ReturnsFailureAndUpdatesStatusToFailure() = runTest {
-        val expectedLastSyncedAt = 1700000000L
-        syncPreferencesRepository.setSyncStatus(expectedLastSyncedAt, SyncStatusPreference.NONE)
+        val expectedRemoteLastSyncedAt = 1700000000L
+        syncPreferencesRepository.setRemoteLastSyncedAt(expectedRemoteLastSyncedAt)
         val exceptionMessage = "Test Sync Manager Fail state"
         api.failWith(Exception(exceptionMessage))
 
@@ -146,7 +147,7 @@ class SyncManagerTest : KoinTest {
 
         val prefs = syncPreferencesRepository.getSyncPreferences()
         assertEquals(SyncStatusPreference.FAILURE, prefs.lastSyncStatus)
-        assertEquals(expectedLastSyncedAt, prefs.lastSyncedAt)
+        assertEquals(expectedRemoteLastSyncedAt, prefs.remoteLastSyncedAt)
     }
 
     @Test
@@ -172,10 +173,10 @@ class SyncManagerTest : KoinTest {
 
     @Test
     fun syncAll_WithGivenLastSyncedAt_PushesFromLastSyncedAt() = runTest {
-        syncPreferencesRepository.setSyncStatus(1700L, SyncStatusPreference.NONE)
+        syncPreferencesRepository.setRemoteLastSyncedAt(1700L)
 
-        getNoteEntity(lastModifiedAt = 1600L)
-        getNoteEntity(lastModifiedAt = 1800L)
+        addNoteEntity(lastModifiedAt = 1600L)
+        addNoteEntity(lastModifiedAt = 1800L)
         assertEquals(2, dao.getNotes().size)
 
         val result = syncManager.syncAll()
@@ -194,5 +195,27 @@ class SyncManagerTest : KoinTest {
         assertTrue(result.isSuccess)
         assertEquals(1, api.fetchSinceCallCount)
         assertEquals(expectedIso, api.fetchSinceArg)
+    }
+
+    @Test
+    fun syncAll_IsInitialSync_ReconcileExistingRecords() = runTest {
+        syncPreferencesRepository.setRemoteLastSyncedAt(0L)
+        val entity = addNoteEntity(lastModifiedAt = 1600L)
+
+        val dto = NoteDto(
+            id = SyncEntity.generateSyncId(),
+            serverUpdatedAt = "2026-08-18T05:00:00Z",
+            noteText = entity.noteText,
+            isDeleted = false,
+            clientUpdatedAt = "2026-08-17T05:00:00Z"
+        )
+
+        api.push(listOf(dto))
+
+        syncManager.syncAll()
+
+        assertEquals(2, api.pushCallCount)
+        assertEquals(1, api.remoteDtoList.size)
+        assertEquals(1, dao.getNotes().size)
     }
 }

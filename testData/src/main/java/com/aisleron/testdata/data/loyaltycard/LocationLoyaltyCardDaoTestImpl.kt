@@ -19,11 +19,10 @@ package com.aisleron.testdata.data.loyaltycard
 
 import com.aisleron.data.loyaltycard.LocationLoyaltyCardDao
 import com.aisleron.data.loyaltycard.LocationLoyaltyCardEntity
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 
-class LocationLoyaltyCardDaoTestImpl : LocationLoyaltyCardDao {
-    private val locationLoyaltyCardList = mutableListOf<LocationLoyaltyCardEntity>()
-    private val activeItems: List<LocationLoyaltyCardEntity>
-        get() = locationLoyaltyCardList.filter { !it.isRemoved }
+class LocationLoyaltyCardDaoTestImpl :
+    BaseSyncTestDao<LocationLoyaltyCardEntity>(), LocationLoyaltyCardDao {
 
     fun getAll() = activeItems
 
@@ -32,7 +31,7 @@ class LocationLoyaltyCardDaoTestImpl : LocationLoyaltyCardDao {
         entity.forEach {
             val existingEntity = getLocationLoyaltyCard(it.locationId, true)
             existingEntity?.let {
-                locationLoyaltyCardList.removeAt(locationLoyaltyCardList.indexOf(existingEntity))
+                entityList.removeAt(entityList.indexOf(existingEntity))
             }
 
             val newEntity = LocationLoyaltyCardEntity(
@@ -44,19 +43,20 @@ class LocationLoyaltyCardDaoTestImpl : LocationLoyaltyCardDao {
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            locationLoyaltyCardList.add(newEntity)
+            entityList.add(newEntity)
             result.add(newEntity.locationId.toLong())
         }
-        return result
-    }
 
-    override suspend fun delete(vararg entity: LocationLoyaltyCardEntity) {
-        locationLoyaltyCardList.removeIf { it in entity }
+        return result
     }
 
     override suspend fun getLocationLoyaltyCard(
         locationId: Int, includeRemoved: Boolean
     ): LocationLoyaltyCardEntity? {
-        return locationLoyaltyCardList.find { it.locationId == locationId && (!it.isRemoved || includeRemoved) }
+        return entityList.find { it.locationId == locationId && (!it.isRemoved || includeRemoved) }
+    }
+
+    override suspend fun upsert(entities: List<LocationLoyaltyCardEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

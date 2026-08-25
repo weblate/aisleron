@@ -29,7 +29,8 @@ class SyncPreferencesTest {
         serviceKey = "",
         syncOnMobileData = false,
         lastSyncedAt = 0L,
-        lastSyncStatus = SyncStatusPreference.NONE
+        lastSyncStatus = SyncStatusPreference.NONE,
+        remoteLastSyncedAt = 0L
     )
 
     @Test

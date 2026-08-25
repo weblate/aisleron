@@ -23,13 +23,14 @@ import com.aisleron.data.location.LocationWithAisles
 import com.aisleron.data.location.LocationWithAislesWithProducts
 import com.aisleron.domain.location.LocationType
 import com.aisleron.testdata.data.aisle.AisleDaoTestImpl
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 
-class LocationDaoTestImpl(private val aisleDao: AisleDaoTestImpl) : LocationDao {
-    private val locationList = mutableListOf<LocationEntity>()
-    private val activeItems: List<LocationEntity> get() = locationList.filter { !it.isRemoved }
+class LocationDaoTestImpl(
+    private val aisleDao: AisleDaoTestImpl
+) : BaseSyncTestDao<LocationEntity>(), LocationDao {
 
     override suspend fun upsert(vararg entity: LocationEntity): List<Long> {
         val result = mutableListOf<Long>()
@@ -37,10 +38,10 @@ class LocationDaoTestImpl(private val aisleDao: AisleDaoTestImpl) : LocationDao 
             val id: Int
             val existingEntity = getLocation(it.id, true)
             if (existingEntity == null) {
-                id = (locationList.maxOfOrNull { e -> e.id } ?: 0) + 1
+                id = (entityList.maxOfOrNull { e -> e.id } ?: 0) + 1
             } else {
                 id = existingEntity.id
-                locationList.removeAt(locationList.indexOf(existingEntity))
+                entityList.removeAt(entityList.indexOf(existingEntity))
             }
 
             val newEntity = LocationEntity(
@@ -59,18 +60,15 @@ class LocationDaoTestImpl(private val aisleDao: AisleDaoTestImpl) : LocationDao 
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            locationList.add(newEntity)
+            entityList.add(newEntity)
             result.add(newEntity.id.toLong())
         }
+
         return result
     }
 
-    override suspend fun delete(vararg entity: LocationEntity) {
-        locationList.removeIf { it in entity }
-    }
-
     override suspend fun getLocation(locationId: Int, includeRemoved: Boolean): LocationEntity? {
-        return locationList.find { it.id == locationId && (!it.isRemoved || includeRemoved) }
+        return entityList.find { it.id == locationId && (!it.isRemoved || includeRemoved) }
     }
 
     override suspend fun getLocations(): List<LocationEntity> = activeItems
@@ -89,8 +87,8 @@ class LocationDaoTestImpl(private val aisleDao: AisleDaoTestImpl) : LocationDao 
         val locations = activeItems.filter { it.type == locationType && it.rank >= fromRank }
         locations.forEach {
             val newLocation = it.copy(rank = it.rank + 1, lastModifiedAt = lastModifiedAt)
-            locationList.removeAt(locationList.indexOf(it))
-            locationList.add(newLocation)
+            entityList.removeAt(entityList.indexOf(it))
+            entityList.add(newLocation)
         }
     }
 
@@ -150,5 +148,9 @@ class LocationDaoTestImpl(private val aisleDao: AisleDaoTestImpl) : LocationDao 
 
     override suspend fun getHome(): LocationEntity {
         return activeItems.first { it.type == LocationType.HOME }
+    }
+
+    override suspend fun upsert(entities: List<LocationEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

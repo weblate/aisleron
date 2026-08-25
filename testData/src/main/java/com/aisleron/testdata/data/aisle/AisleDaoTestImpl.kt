@@ -21,14 +21,14 @@ import com.aisleron.data.aisle.AisleDao
 import com.aisleron.data.aisle.AisleEntity
 import com.aisleron.data.aisle.AisleWithProducts
 import com.aisleron.testdata.data.aisleproduct.AisleProductDaoTestImpl
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 
-class AisleDaoTestImpl(private val aisleProductDao: AisleProductDaoTestImpl) : AisleDao {
-
-    private val aisleList = mutableListOf<AisleEntity>()
-    private val activeItems: List<AisleEntity> get() = aisleList.filter { !it.isRemoved }
+class AisleDaoTestImpl(
+    private val aisleProductDao: AisleProductDaoTestImpl
+) : BaseSyncTestDao<AisleEntity>(), AisleDao {
 
     override suspend fun getAisle(aisleId: Int, includeRemoved: Boolean): AisleEntity? {
-        return aisleList.find { it.id == aisleId && (!it.isRemoved || includeRemoved) }
+        return entityList.find { it.id == aisleId && (!it.isRemoved || includeRemoved) }
     }
 
     override suspend fun getAisles(): List<AisleEntity> = activeItems
@@ -64,11 +64,13 @@ class AisleDaoTestImpl(private val aisleProductDao: AisleProductDaoTestImpl) : A
     }
 
     override suspend fun moveRanks(locationId: Int, fromRank: Int, lastModifiedAt: Long) {
-        val locationAisles = aisleList.filter { it.locationId == locationId && it.rank >= fromRank }
+        val locationAisles =
+            entityList.filter { it.locationId == locationId && it.rank >= fromRank }
+
         locationAisles.forEach {
             val newAisle = it.copy(rank = it.rank + 1, lastModifiedAt = lastModifiedAt)
-            aisleList.removeAt(aisleList.indexOf(it))
-            aisleList.add(newAisle)
+            entityList.removeAt(entityList.indexOf(it))
+            entityList.add(newAisle)
         }
     }
 
@@ -83,7 +85,7 @@ class AisleDaoTestImpl(private val aisleProductDao: AisleProductDaoTestImpl) : A
             val id: Int
             val existingEntity = getAisle(it.id, true)
             if (existingEntity == null) {
-                id = (aisleList.maxOfOrNull { a -> a.id } ?: 0) + 1
+                id = (entityList.maxOfOrNull { a -> a.id } ?: 0) + 1
             } else {
                 id = existingEntity.id
                 delete(existingEntity)
@@ -102,13 +104,14 @@ class AisleDaoTestImpl(private val aisleProductDao: AisleProductDaoTestImpl) : A
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            aisleList.add(newEntity)
+            entityList.add(newEntity)
             result.add(newEntity.id.toLong())
         }
+
         return result
     }
 
-    override suspend fun delete(vararg entity: AisleEntity) {
-        aisleList.removeIf { it in entity }
+    override suspend fun upsert(entities: List<AisleEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

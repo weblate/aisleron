@@ -85,6 +85,12 @@ class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
         _remoteEntityUpdated[keyName] = serverLastUpdatedAtIso
     }
 
+    override fun setRemoteLastSyncedAt(remoteLastSyncedAt: Long) {
+        _syncPreferences.update {
+            it.copy(remoteLastSyncedAt = remoteLastSyncedAt)
+        }
+    }
+
     fun setSyncPreferences(syncPreferences: SyncPreferences) {
         _syncPreferences.update { syncPreferences }
     }
@@ -94,8 +100,9 @@ class SyncPreferencesRepositoryTestImpl : SyncPreferencesRepository {
         serviceUrl = "",
         serviceKey = "",
         syncOnMobileData = false,
-        lastSyncedAt = 0,
-        lastSyncStatus = SyncStatusPreference.NONE
+        lastSyncedAt = 0L,
+        lastSyncStatus = SyncStatusPreference.NONE,
+        remoteLastSyncedAt = 0L
     )
 
     fun resetSyncPreferences() {

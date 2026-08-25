@@ -70,6 +70,10 @@ class SyncPreferencesRepositoryImpl(
         return SyncStatusPreference.fromValue(value)
     }
 
+    private fun getRemoteLastSyncedAt(): Long =
+        sharedPreferences.getLong(SyncPreferenceKey.REMOTE_LAST_SYNCED_AT.keyName, 0)
+
+
     override fun getSyncPreferences(): SyncPreferences =
         SyncPreferences(
             syncServicePreference = getSyncService(),
@@ -77,7 +81,8 @@ class SyncPreferencesRepositoryImpl(
             serviceKey = getServiceKey(),
             syncOnMobileData = getSyncOnMobileData(),
             lastSyncedAt = getLastSyncedAt(),
-            lastSyncStatus = getLastSyncSuccess()
+            lastSyncStatus = getLastSyncSuccess(),
+            remoteLastSyncedAt = getRemoteLastSyncedAt()
         )
 
     override fun getSyncPreferencesFlow(): Flow<SyncPreferences> = callbackFlow {
@@ -140,6 +145,12 @@ class SyncPreferencesRepositoryImpl(
             putString(remoteEntityLastUpdatedKeyName(entityName), serverLastUpdatedAtIso)
         }
     }
+
+    override fun setRemoteLastSyncedAt(remoteLastSyncedAt: Long) {
+        sharedPreferences.edit {
+            putLong(SyncPreferenceKey.REMOTE_LAST_SYNCED_AT.keyName, remoteLastSyncedAt)
+        }
+    }
 }
 
 enum class SyncPreferenceKey(val keyName: String) {
@@ -148,7 +159,8 @@ enum class SyncPreferenceKey(val keyName: String) {
     CUSTOM_SERVICE_KEY("custom_service_key"),
     SYNC_ON_MOBILE_DATA("sync_on_mobile_data"),
     LAST_SYNCED_AT("last_synced_at"),
-    LAST_SYNC_SUCCESS("last_sync_success");
+    LAST_SYNC_SUCCESS("last_sync_success"),
+    REMOTE_LAST_SYNCED_AT("last_remote_synced_at");
 
     companion object {
         val ALL_KEYS: Set<String> by lazy {

@@ -20,19 +20,18 @@ package com.aisleron.testdata.data.aisleproduct
 import com.aisleron.data.aisleproduct.AisleProductDao
 import com.aisleron.data.aisleproduct.AisleProductEntity
 import com.aisleron.data.aisleproduct.AisleProductRank
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 import com.aisleron.testdata.data.product.ProductDaoTestImpl
 
-class AisleProductDaoTestImpl(private val productDao: ProductDaoTestImpl) : AisleProductDao {
-
-    private val aisleProductList = mutableListOf<AisleProductEntity>()
-    private val activeItems: List<AisleProductEntity> get() = aisleProductList.filter { !it.isRemoved }
-
+class AisleProductDaoTestImpl(
+    private val productDao: ProductDaoTestImpl
+) : BaseSyncTestDao<AisleProductEntity>(), AisleProductDao {
 
     override suspend fun getAisleProduct(
         aisleProductId: Int, includeRemoved: Boolean
     ): AisleProductRank? {
         val aisleProduct =
-            aisleProductList.find { it.id == aisleProductId && (!it.isRemoved || includeRemoved) }
+            entityList.find { it.id == aisleProductId && (!it.isRemoved || includeRemoved) }
 
         var result: AisleProductRank? = null
         aisleProduct?.let {
@@ -63,11 +62,11 @@ class AisleProductDaoTestImpl(private val productDao: ProductDaoTestImpl) : Aisl
     }
 
     override suspend fun moveRanks(aisleId: Int, fromRank: Int) {
-        val aisleProducts = aisleProductList.filter { it.aisleId == aisleId && it.rank >= fromRank }
+        val aisleProducts = entityList.filter { it.aisleId == aisleId && it.rank >= fromRank }
         aisleProducts.forEach {
             val newAisleProduct = it.copy(rank = it.rank + 1)
-            aisleProductList.removeAt(aisleProductList.indexOf(it))
-            aisleProductList.add(newAisleProduct)
+            entityList.removeAt(entityList.indexOf(it))
+            entityList.add(newAisleProduct)
         }
     }
 
@@ -85,16 +84,16 @@ class AisleProductDaoTestImpl(private val productDao: ProductDaoTestImpl) : Aisl
     }
 
     override suspend fun getMaxRank(aisleId: Int): Int {
-        return aisleProductList.filter { it.aisleId == aisleId }.maxOfOrNull { it.rank } ?: 0
+        return entityList.filter { it.aisleId == aisleId }.maxOfOrNull { it.rank } ?: 0
     }
 
     override suspend fun upsert(vararg entity: AisleProductEntity): List<Long> {
         val result = mutableListOf<Long>()
         entity.forEach {
             val id: Int
-            val existingEntity = aisleProductList.find { ap -> ap.id == it.id }
+            val existingEntity = entityList.find { ap -> ap.id == it.id }
             if (existingEntity == null) {
-                id = (aisleProductList.maxOfOrNull { ap -> ap.id } ?: 0) + 1
+                id = (entityList.maxOfOrNull { ap -> ap.id } ?: 0) + 1
             } else {
                 id = existingEntity.id
                 delete(existingEntity)
@@ -111,13 +110,14 @@ class AisleProductDaoTestImpl(private val productDao: ProductDaoTestImpl) : Aisl
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            aisleProductList.add(newEntity)
+            entityList.add(newEntity)
             result.add(newEntity.id.toLong())
         }
+
         return result
     }
 
-    override suspend fun delete(vararg entity: AisleProductEntity) {
-        aisleProductList.removeIf { it in entity }
+    override suspend fun upsert(entities: List<AisleProductEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

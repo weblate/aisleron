@@ -21,16 +21,9 @@ import com.aisleron.data.note.NoteDao
 import com.aisleron.data.note.NoteDto
 import com.aisleron.data.note.NoteDtoMapper
 import com.aisleron.data.note.NoteEntity
-import com.aisleron.di.KoinTestRule
-import com.aisleron.di.daoTestModule
-import com.aisleron.di.syncTestModule
-import com.aisleron.testdata.data.note.NoteDaoTestImpl
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.koin.test.KoinTest
 import org.koin.test.get
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -38,31 +31,54 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SyncRepositoryImplTest : KoinTest {
-    private lateinit var repository: SyncRepositoryImpl<NoteEntity, NoteDto>
-    private lateinit var dao: NoteDaoTestImpl
-    private lateinit var syncApi: SyncApiTestImpl<NoteDto>
-    private lateinit var mapper: NoteDtoMapper
+class SyncRepositoryImplTest : SyncTest<NoteEntity, NoteDto>() {
+    private val noteDao: NoteDao get() = dao as NoteDao
 
-    @get:Rule
-    val koinTestRule = KoinTestRule(modules = listOf(daoTestModule, syncTestModule))
+    override fun initSyncApi(): SyncApiTestImpl<NoteDto> =
+        SyncApiTestImpl("notes")
 
-    @Before
-    fun setUp() {
-        mapper = get()
-        dao = get<NoteDao>() as NoteDaoTestImpl
-        syncApi = (get<SyncApi<NoteDto>>() as SyncApiTestImpl<NoteDto>)
-            .apply { initSyncApi() }
+    override fun initMapper(): DtoMapper<NoteEntity, NoteDto> =
+        NoteDtoMapper()
 
-        repository = SyncRepositoryImpl(
-            syncOrder = 1,
-            dao = dao,
-            syncApi = syncApi,
-            dtoMapper = mapper
+    override fun initDao(): SyncDao<NoteEntity> =
+        get<NoteDao>()
+
+    override suspend fun addEntity(
+        lastModifiedAt: Long,
+        serverUpdatedAt: Long?,
+        isRemoved: Boolean
+    ): NoteEntity = addNoteEntity(lastModifiedAt, serverUpdatedAt, isRemoved)
+
+    override suspend fun addDto(
+        id: String,
+        serverUpdatedAt: String?,
+        clientUpdatedAt: String,
+        isDeleted: Boolean
+    ): NoteDto {
+        val dto = NoteDto(
+            id = id,
+            isDeleted = isDeleted,
+            clientUpdatedAt = clientUpdatedAt,
+            serverUpdatedAt = serverUpdatedAt,
+            noteText = "Note for Sync Test",
         )
+
+        syncApi.push(listOf(dto))
+
+        return dto
     }
 
-    private suspend fun getNoteEntity(
+    override suspend fun validateDtoToEntity(
+        dto: NoteDto, compareEntity: NoteEntity
+    ): Boolean {
+        val expectedEntity = mapper.fromDto(dto, null).copy(
+            id = compareEntity.id
+        )
+
+        return expectedEntity == compareEntity
+    }
+
+    private suspend fun addNoteEntity(
         lastModifiedAt: Long = 0, serverUpdatedAt: Long? = null, isRemoved: Boolean = false
     ): NoteEntity {
         val noteText = "Note to test Sync"
@@ -74,9 +90,9 @@ class SyncRepositoryImplTest : KoinTest {
             isRemoved = isRemoved
         )
 
-        val noteId = dao.upsert(noteEntity).first().toInt()
+        val id = noteDao.upsert(noteEntity).first().toInt()
 
-        return noteEntity.copy(id = noteId)
+        return noteEntity.copy(id = id)
     }
 
     @Test
@@ -89,20 +105,9 @@ class SyncRepositoryImplTest : KoinTest {
      * */
 
     @Test
-    fun push_LocalNewOrModifiedEntitiesExist_PushesMappedDtoToApi() = runTest {
-        val lastSyncTimestamp = 1000L
-        val localEntity = getNoteEntity(lastModifiedAt = 1500L)
-        val expectedDto = mapper.toDto(localEntity)
-
-        repository.push(lastSyncTimestamp)
-
-        assertEquals(listOf(expectedDto), syncApi.remoteDtoList)
-    }
-
-    @Test
     fun push_NoLocalModifiedEntities_DoesNotCallApiPush() = runTest {
         val lastSyncTimestamp = 1000L
-        getNoteEntity(lastModifiedAt = 500L)
+        addNoteEntity(lastModifiedAt = 500L)
 
         repository.push(lastSyncTimestamp)
 
@@ -112,7 +117,7 @@ class SyncRepositoryImplTest : KoinTest {
     @Test
     fun push_LocalTombstoneEntitiesExist_PushesDeleteDtoToApi() = runTest {
         val lastSyncTimestamp = 1000L
-        val localEntity = getNoteEntity(lastModifiedAt = 1500L, isRemoved = true)
+        val localEntity = addNoteEntity(lastModifiedAt = 1500L, isRemoved = true)
         val expectedDto = mapper.toDto(localEntity)
 
         repository.push(lastSyncTimestamp)
@@ -158,7 +163,7 @@ class SyncRepositoryImplTest : KoinTest {
         assertEquals(lastSyncIso, syncApi.fetchSinceArg)
         assertEquals("2026-08-18T10:00:00Z", resultTimestamp)
 
-        assertEquals(2, dao.getNotes().size)
+        assertEquals(2, noteDao.getNotes().size)
         assertNotNull(dao.getBySyncId("remote-1"))
         assertNotNull(dao.getBySyncId("remote-2"))
         assertNull(dao.getBySyncId("remote-3"))
@@ -199,7 +204,7 @@ class SyncRepositoryImplTest : KoinTest {
 
         assertEquals(lastSyncIso, syncApi.fetchSinceArg)
         assertEquals(lastSyncIso, resultTimestamp)
-        assertTrue(dao.getNotes().isEmpty())
+        assertTrue(noteDao.getNotes().isEmpty())
     }
 
     @Test
@@ -219,24 +224,7 @@ class SyncRepositoryImplTest : KoinTest {
         val resultTimestamp = repository.pull(lastSyncIso)
 
         assertEquals(lastSyncIso, resultTimestamp)
-        assertEquals(1, dao.getNotes().size)
+        assertEquals(1, noteDao.getNotes().size)
         assertNotNull(dao.getBySyncId("null-date-1"))
-    }
-
-    /**
-     * Purge Removed Tests
-     */
-
-    @Test
-    fun purgeRemoved_PurgeToDateProvided_CallsDaoPurgeRemoved() = runTest {
-        val purgeToDate = 5000L
-        val note = getNoteEntity(lastModifiedAt = 5000L, isRemoved = true)
-
-        assertNotNull(dao.getNote(note.id, true))
-
-        repository.purgeRemoved(purgeToDate)
-
-        assertNull(dao.getNote(note.id, true))
-
     }
 }

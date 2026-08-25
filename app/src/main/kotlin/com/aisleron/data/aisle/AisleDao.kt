@@ -21,9 +21,10 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 
 @Dao
-interface AisleDao : BaseDao<AisleEntity> {
+interface AisleDao : BaseDao<AisleEntity>, SyncDao<AisleEntity> {
     /**
      * Aisle
      */
@@ -64,4 +65,16 @@ interface AisleDao : BaseDao<AisleEntity> {
     @Transaction
     @Query("SELECT * FROM Aisle WHERE isRemoved = 0")
     suspend fun getAislesWithProducts(): List<AisleWithProducts>
+
+    /**
+     * Sync Queries
+     */
+    @Query("SELECT * FROM Aisle WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<AisleEntity>
+
+    @Query("SELECT * FROM Aisle WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): AisleEntity?
+
+    @Query("DELETE FROM Aisle WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
 }

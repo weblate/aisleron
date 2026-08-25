@@ -305,5 +305,14 @@ class SyncPreferencesRepositoryImplTest {
         assertEquals(lastUpdatedIso, updatedValue)
     }
 
+    @Test
+    fun setRemoteLastSyncedAt_ValueProvided_SetRemoteLastSyncedAtPreferenceSet() {
+        sharedPreferencesInitializer.setRemoteLastSyncedAt(0)
+        val newValue = 1000L
 
+        syncPreferencesRepository.setRemoteLastSyncedAt(newValue)
+
+        val valueAfter = syncPreferencesRepository.getSyncPreferences().remoteLastSyncedAt
+        assertEquals(newValue, valueAfter)
+    }
 }

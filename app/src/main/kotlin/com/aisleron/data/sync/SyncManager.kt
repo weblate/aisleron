@@ -40,7 +40,16 @@ class SyncManager(
         return runCatchingUnlessCancelled {
             syncPreferencesRepository.setSyncStatus(SyncStatusPreference.RUNNING)
             if (prefs.syncServicePreference != SyncServicePreference.NONE) {
-                val lastSyncedAt = prefs.lastSyncedAt
+                val lastSyncedAt = prefs.remoteLastSyncedAt
+
+                // TODO: Uncomment this
+                /*if (lastSyncedAt == 0L) {
+                    // Do an initial pull if this is the first sync on the device.
+                    // Otherwise, duplicate entries are created.
+
+                    sortedRepositories.forEach {it.pull("") }
+                }*/
+
                 sortedRepositories.forEach { it.push(lastSyncedAt) }
 
                 sortedRepositories.forEach {
@@ -52,13 +61,15 @@ class SyncManager(
                         it.remoteEntityName, updatedServerUpdatedDate
                     )
                 }
+
+                syncPreferencesRepository.setRemoteLastSyncedAt(syncStartTime)
             }
 
             sortedRepositories.forEach { it.purgeRemoved(syncStartTime) }
             syncPreferencesRepository.setSyncStatus(syncStartTime, SyncStatusPreference.SUCCESS)
         }.onFailure { throwable ->
             logger.e(TAG, throwable.message ?: "Sync operation failed", throwable.cause)
-            syncPreferencesRepository.setSyncStatus(SyncStatusPreference.FAILURE)
+            syncPreferencesRepository.setSyncStatus(syncStartTime, SyncStatusPreference.FAILURE)
         }
     }
 

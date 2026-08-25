@@ -26,7 +26,8 @@ data class SyncPreferences(
     val serviceKey: String,
     val syncOnMobileData: Boolean,
     val lastSyncedAt: Long,
-    val lastSyncStatus: SyncStatusPreference
+    val lastSyncStatus: SyncStatusPreference,
+    val remoteLastSyncedAt: Long
 ) {
     fun getRequiredNetworkConstraint(forceSync: Boolean) =
         when {

@@ -21,9 +21,10 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 
 @Dao
-interface AisleProductDao : BaseDao<AisleProductEntity> {
+interface AisleProductDao : BaseDao<AisleProductEntity>, SyncDao<AisleProductEntity> {
     @Transaction
     @Query("SELECT * FROM AisleProduct WHERE id = :aisleProductId AND (isRemoved = 0 OR :includeRemoved = 1)")
     suspend fun getAisleProduct(aisleProductId: Int, includeRemoved: Boolean): AisleProductRank?
@@ -55,4 +56,16 @@ interface AisleProductDao : BaseDao<AisleProductEntity> {
 
     @Query("SELECT COALESCE(MAX(rank), 0) FROM AisleProduct WHERE aisleId = :aisleId")
     suspend fun getMaxRank(aisleId: Int): Int
+
+    /**
+     * Sync Queries
+     */
+    @Query("SELECT * FROM AisleProduct WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<AisleProductEntity>
+
+    @Query("SELECT * FROM AisleProduct WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): AisleProductEntity?
+
+    @Query("DELETE FROM AisleProduct WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
 }

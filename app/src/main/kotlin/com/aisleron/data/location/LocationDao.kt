@@ -21,11 +21,12 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 import com.aisleron.domain.location.LocationType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface LocationDao : BaseDao<LocationEntity> {
+interface LocationDao : BaseDao<LocationEntity>, SyncDao<LocationEntity> {
 
     /**
      * Location
@@ -87,4 +88,16 @@ interface LocationDao : BaseDao<LocationEntity> {
      */
     @Query("SELECT * FROM Location WHERE type = 'HOME' AND isRemoved = 0")
     suspend fun getHome(): LocationEntity
+
+    /**
+     * Sync Queries
+     */
+    @Query("SELECT * FROM Location WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<LocationEntity>
+
+    @Query("SELECT * FROM Location WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): LocationEntity?
+
+    @Query("DELETE FROM Location WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
 }

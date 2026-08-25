@@ -188,7 +188,12 @@ class SharedPreferencesInitializer {
             REMOTE_ENTITY_LAST_UPDATED_FORMAT.format(entityName),
             serverLastUpdatedAtIso
         )
+    }
 
+    fun setRemoteLastSyncedAt(value: Long) {
+        setPreferenceValue(
+            SyncPreferenceKey.REMOTE_LAST_SYNCED_AT.keyName, value
+        )
     }
 
     companion object {

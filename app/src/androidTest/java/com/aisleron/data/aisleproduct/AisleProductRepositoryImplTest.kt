@@ -18,6 +18,7 @@
 package com.aisleron.data.aisleproduct
 
 import com.aisleron.data.RepositoryImplTest
+import com.aisleron.domain.aisle.AisleRepository
 import com.aisleron.domain.aisleproduct.AisleProduct
 import com.aisleron.domain.aisleproduct.AisleProductRepository
 import com.aisleron.domain.base.BaseRepository
@@ -40,17 +41,20 @@ class AisleProductRepositoryImplTest : RepositoryImplTest<AisleProduct>() {
     )
 
     override suspend fun getSingleNewItem(): AisleProduct {
+        val aisle = get<AisleRepository>().getAll().first()
         val product = get<ProductRepository>().getAll().first()
 
         return AisleProduct(
             id = -1,
             rank = 999,
-            aisleId = 101,
+            aisleId = aisle.id,
             product = product
         )
     }
 
     override suspend fun getMultipleNewItems(): List<AisleProduct> {
+        val aisle = get<AisleRepository>().getAll().first()
+
         val product1 = get<ProductRepository>().getAll().first()
         val product2 = get<ProductRepository>().getAll().last()
 
@@ -58,26 +62,27 @@ class AisleProductRepositoryImplTest : RepositoryImplTest<AisleProduct>() {
             AisleProduct(
                 id = 0,
                 rank = 998,
-                aisleId = 101,
+                aisleId = aisle.id,
                 product = product1
             ),
 
             AisleProduct(
                 id = 0,
                 rank = 999,
-                aisleId = 101,
+                aisleId = aisle.id,
                 product = product2
             )
         )
     }
 
     override suspend fun getInvalidItem(): AisleProduct {
+        val aisle = get<AisleRepository>().getAll().first()
         val product = get<ProductRepository>().getAll().first()
 
         return AisleProduct(
             id = 0,
             rank = 999,
-            aisleId = 101,
+            aisleId = aisle.id,
             product = product
         )
     }
