@@ -281,10 +281,10 @@
     <string name="sign_in">Sign in</string>
     <string name="sign_in_title">Sign In</string>
     <string name="sign_out">Sign out</string>
-    <string name="sync_status_not_configured">Sync service not configured</string>
-    <string name="sync_status_not_authenticated">Not authenticated</string>
-    <string name="sync_status_refresh_failure">Failed to refresh credentials</string>
-    <string name="sync_status_signed_in_as">Signed in as %1$s</string>
+    <string name="sync_session_not_configured">Sync service not configured</string>
+    <string name="sync_session_not_authenticated">Not authenticated</string>
+    <string name="sync_session_refresh_failure">Failed to refresh credentials</string>
+    <string name="sync_session_signed_in_as">Signed in as %1$s</string>
     <string name="last_sync">Last sync</string>
     <string name="sync_on_mobile_data">Sync on mobile data</string>
     <string name="manage_account">Manage Account</string>
@@ -300,6 +300,8 @@
     <string name="sync_service_sign_up_message">Sign in to the Aisleron Sync service to keep your shopping lists up to date across all your devices.</string>
     <string name="aisleron_sync_subtitle">Sync through the shops!</string>
     <string name="sync_service_custom">Custom sync service</string>
-
-
+    <string name="manual_sync_scheduled">Manual sync scheduled</string>
+    <string name="sync_status_success">Success</string>
+    <string name="sync_status_running">Running</string>
+    <string name="sync_status_failed">Failed</string>
 </resources>
