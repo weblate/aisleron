@@ -40,6 +40,12 @@ class SyncApiTestImpl<Dto : SyncDto>(override val entityName: String) : SyncApi<
         _pushCallCount += 1
         _failWithException?.let { throw it }
 
+        val dtoIds = dto.map { it.id }.toSet()
+
+        _remoteDtoList.removeAll { remoteDto ->
+            remoteDto.id in dtoIds
+        }
+
         _remoteDtoList.addAll(dto)
     }
 

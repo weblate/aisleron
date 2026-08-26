@@ -42,13 +42,14 @@ class SyncManager(
             if (prefs.syncServicePreference != SyncServicePreference.NONE) {
                 val lastSyncedAt = prefs.remoteLastSyncedAt
 
-                // TODO: Uncomment this
-                /*if (lastSyncedAt == 0L) {
-                    // Do an initial pull if this is the first sync on the device.
-                    // Otherwise, duplicate entries are created.
-
-                    sortedRepositories.forEach {it.pull("") }
-                }*/
+                if (lastSyncedAt == 0L) {
+                    // Do an initial clean-up and pull if this is the first sync on the device.
+                    // Otherwise, duplicate entries could be created.
+                    sortedRepositories.forEach {
+                        it.purgeRemoved(syncStartTime)
+                        it.pull("")
+                    }
+                }
 
                 sortedRepositories.forEach { it.push(lastSyncedAt) }
 

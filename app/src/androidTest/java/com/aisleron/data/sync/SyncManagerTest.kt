@@ -88,6 +88,7 @@ class SyncManagerTest : KoinTest {
 
     @Test
     fun syncAll_WhenServicePreferenceIsNotNone_ExecutesPushPullAndPurge() = runTest {
+        syncPreferencesRepository.setRemoteLastSyncedAt(100L)
         val removedId = addNoteEntity(lastModifiedAt = 1000L, isRemoved = true).id
         assertNotNull(dao.getNote(removedId, true))
 
@@ -152,6 +153,7 @@ class SyncManagerTest : KoinTest {
 
     @Test
     fun syncAll_OnPull_UpdatesRemoteEntityLastUpdatedIso() = runTest {
+        syncPreferencesRepository.setRemoteLastSyncedAt(100L)
         val initialIso = syncPreferencesRepository.getRemoteEntityLastUpdatedIso("notes")
 
         val remoteDto1 = NoteDto(
@@ -189,6 +191,7 @@ class SyncManagerTest : KoinTest {
     fun syncAll_WithGivenLastServerUpdatedDate_PullsFromLastServerUpdatedDate() = runTest {
         val expectedIso = "2026-01-01T00:00:00Z"
         syncPreferencesRepository.setRemoteEntityLastUpdatedIso("notes", expectedIso)
+        syncPreferencesRepository.setRemoteLastSyncedAt(1000L)
 
         val result = syncManager.syncAll()
 
@@ -215,7 +218,7 @@ class SyncManagerTest : KoinTest {
         syncManager.syncAll()
 
         assertEquals(2, api.pushCallCount)
-        assertEquals(1, api.remoteDtoList.size)
         assertEquals(1, dao.getNotes().size)
+        assertEquals(1, api.remoteDtoList.size)
     }
 }
