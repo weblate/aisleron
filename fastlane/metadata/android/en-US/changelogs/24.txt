@@ -1,5 +1,2 @@
 Enhancements:
-* Register and sign in to the Aisleron sync service.
-
-Bug Fixes:
-*
+* Added the ability to keep shopping lists up to date across multiple devices using a self-managed sync service. See the Aisleron Sync Service documentation for details.

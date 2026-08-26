@@ -7,13 +7,15 @@ Key Features:
 * Show on Lock Screen: No need to unlock your screen at the end of each aisle. Your shopping list will be displayed over the lock screen for convenience.
 * Easy Editing: Long-press any item to edit or delete it.
 * Loyalty Cards: Integrate with Catima — Loyalty Card Wallet to quickly open your store loyalty card.
+* Multiple Views: View your shopping list at home, per shop, or across all shops.
+* Multiple Devices: Keep shopping lists up to date across multiple devices using a self-managed sync service.
 
 Why you’ll love it:
 * Stay organized by shopping smarter.
 * Reduce time spent navigating the store.
 * Never forget an item again — track everything you need with ease.
-* Light and Dark themes.
+* Beautiful Light and Dark themes with dynamic colors and Pure Black modes.
 * Free, no ads.
-* Everything is done on the local device, no sharing of location data or shopping habits.
+* No location tracking or sharing of shopping habits.
 
 Get started today and make your shopping trips faster and more efficient!

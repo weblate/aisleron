@@ -1,6 +1,8 @@
 # Aisleron Shopping List
 
-Streamline your shopping with this intuitive, easy-to-use shopping list app. Whether you're preparing for a weekly grocery run or shopping for a special occasion, this app helps you stay organized and efficient.
+Streamline your shopping with this intuitive, easy-to-use shopping list app. Whether you're
+preparing for a weekly grocery run or shopping for a special occasion, this app helps you stay
+organized and efficient.
 
 <p>
   <img src="https://aisleron.com/assets/images/featureGraphic.png"  alt="Aisleron Feature Graphic"/>
@@ -8,28 +10,35 @@ Streamline your shopping with this intuitive, easy-to-use shopping list app. Whe
 
 ## Key Features:
 
-* Create Custom Shops & Aisles: Add your favorite stores, categorize items by aisles, and easily organize your shopping list based on your local layout.
-* Smart Product Management: Add products to your list and assign them to the appropriate area in your home. Rearrange products by aisle within each store to match your shopping route.
-* Swipe-to-Track: Keep track of your shopping progress with a simple swipe. Swipe left or right to mark items as "Needed" or "In Stock."
-* Show on Lock Screen: No need to unlock your screen at the end of each aisle. Your shopping list will be displayed over the lock screen for convenience.
+* Create Custom Shops & Aisles: Add your favorite stores, categorize items by aisles, and easily
+  organize your shopping list based on your local layout.
+* Smart Product Management: Add products to your list and assign them to the appropriate area in
+  your home. Rearrange products by aisle within each store to match your shopping route.
+* Swipe-to-Track: Keep track of your shopping progress with a simple swipe. Swipe left or right to
+  mark items as "Needed" or "In Stock."
+* Show on Lock Screen: No need to unlock your screen at the end of each aisle. Your shopping list
+  will be displayed over the lock screen for convenience.
 * Easy Editing: Long-press any item to edit or delete it
-* Loyalty Cards: Integrate with [Catima — Loyalty Card Wallet](https://catima.app/) to quickly open your store loyalty card.
+* Loyalty Cards: Integrate with [Catima — Loyalty Card Wallet](https://catima.app/) to quickly open
+  your store loyalty card.
 * Multiple Views: View your shopping list at home, per shop, or across all shops.
+* Multiple Devices: Keep shopping lists up to date across multiple devices using
+  a [self-managed sync service](https://aisleron.com/docs/sync-service/).
 
 ## Why you'll love it:
 
 * Stay organized by shopping smarter.
 * Reduce time spent navigating the store.
 * Never forget an item again — track everything you need with ease.
-* Light and Dark themes.
+* Beautiful Light and Dark themes with dynamic colors and Pure Black modes.
 * Free, no ads.
-* Everything is done on the local device, no sharing of location data or shopping habits.
+* No location tracking or sharing of shopping habits.
 
 Get started today and make your shopping trips faster and more efficient!
 
 ## Documentation
 
-Documentation is available at [Aisleron.com](https://aisleron.com/docs/documentation/) 
+Documentation is available at [Aisleron.com](https://aisleron.com/docs/documentation/)
 
 ## Screenshots
 
@@ -65,4 +74,6 @@ Contribute to translations on
 the [Aisleron Hosted Weblate page](https://hosted.weblate.org/projects/aisleron-shopping-list/).
 
 ## Licensing
-This project is licensed under the AGPL 3.0 with an App Store Exception. See the LICENSE file for details.
+
+This project is licensed under the AGPL 3.0 with an App Store Exception. See the LICENSE file for
+details.
