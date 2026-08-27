@@ -69,6 +69,7 @@ import com.aisleron.di.fragmentModule
 import com.aisleron.di.generalModule
 import com.aisleron.di.preferenceModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.FilterType
@@ -87,7 +88,9 @@ import com.aisleron.domain.loyaltycard.LoyaltyCardProviderType
 import com.aisleron.domain.loyaltycard.usecase.AddLoyaltyCardToLocationUseCase
 import com.aisleron.domain.loyaltycard.usecase.AddLoyaltyCardUseCase
 import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.TrackingMode
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.product.ProductRepository
 import com.aisleron.domain.product.usecase.UpdateProductQtyNeededUseCase
 import com.aisleron.domain.product.usecase.UpdateProductStatusUseCase
@@ -134,7 +137,8 @@ class CaptureScreenshots : KoinTest {
             useCaseModule,
             generalModule,
             preferenceModule,
-            factoryModule
+            factoryModule,
+            syncTestModule
         )
     )
 
@@ -914,6 +918,22 @@ class CaptureScreenshots : KoinTest {
     fun screenshot_SignIn() = runComposeUiScreenshotTest {
         setContentScreen(Destination.SignIn)
         takeScreenshot("alr-370-100-sign-in")
+    }
+
+    @Test
+    fun screenshot_AccountPreferencesConnected() = runComposeUiScreenshotTest {
+        val prefsRepo = get<SyncPreferencesRepository>()
+        prefsRepo.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
+        prefsRepo.setCustomServiceDetails("https://aisleron.example.com", "abc123")
+        prefsRepo.setSyncStatus(1787814089000, SyncStatusPreference.SUCCESS)
+
+        val syncSessionManager = get<SyncSessionManager>() as SyncSessionManagerTestImpl
+        syncSessionManager.setSignedIn(true)
+        syncSessionManager.setFutureStatus(SyncSessionStatus.Authenticated("user@example.com"))
+        syncSessionManager.refreshStatus()
+
+        setContentScreen(Destination.AccountPreferences)
+        takeScreenshot("alr-370-200-account-preferences-connected")
     }
 }
 
