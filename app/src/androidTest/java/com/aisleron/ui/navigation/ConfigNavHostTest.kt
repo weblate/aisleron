@@ -30,6 +30,7 @@ import com.aisleron.R
 import com.aisleron.di.KoinTestRule
 import com.aisleron.di.generalTestModule
 import com.aisleron.di.preferenceModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.sync.SyncSessionManager
@@ -48,7 +49,8 @@ class ConfigNavHostTest : KoinTest {
             viewModelTestModule,
             useCaseModule,
             generalTestModule,
-            preferenceModule
+            preferenceModule,
+            syncTestModule
         )
     )
 

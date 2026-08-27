@@ -71,6 +71,7 @@ import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
+import java.lang.Thread.sleep
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -350,6 +351,8 @@ class ShopListFragmentTest : KoinTest {
         onView(withText(copyLocation.name)).perform(longClick())
         openActionBarOverflowOrOptionsMenu(getInstrumentation().targetContext)
         onView(withText(android.R.string.copy)).perform(click())
+
+        sleep(100)
 
         // Verify that the Copy dialog is shown
         onView(withText(copyDialogTitle))

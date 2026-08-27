@@ -49,6 +49,7 @@ import com.aisleron.di.generalTestModule
 import com.aisleron.di.inMemoryDatabaseTestModule
 import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.aisle.AisleRepository
@@ -115,7 +116,8 @@ class WelcomeFragmentTest : KoinTest {
                 preferenceTestModule,
                 fragmentModule,
                 generalTestModule,
-                factoryModule
+                factoryModule,
+                syncTestModule
             )
         )
 
@@ -141,7 +143,8 @@ class WelcomeFragmentTest : KoinTest {
                 fragmentModule,
                 generalTestModule,
                 inMemoryDatabaseTestModule,
-                factoryModule
+                factoryModule,
+                syncTestModule
             )
         )
         SharedPreferencesInitializer().setIsInitialized(true)
@@ -266,7 +269,8 @@ class WelcomeFragmentTest : KoinTest {
                 fragmentModule,
                 generalTestModule,
                 inMemoryDatabaseTestModule,
-                factoryModule
+                factoryModule,
+                syncTestModule
             )
         )
 

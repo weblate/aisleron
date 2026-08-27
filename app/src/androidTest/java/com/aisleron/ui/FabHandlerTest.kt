@@ -37,6 +37,7 @@ import com.aisleron.di.fragmentModule
 import com.aisleron.di.generalTestModule
 import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.ui.resourceprovider.ResourceProviderTestImpl
@@ -67,7 +68,8 @@ class FabHandlerTest : KoinTest {
             useCaseModule,
             generalTestModule,
             preferenceTestModule,
-            factoryModule
+            factoryModule,
+            syncTestModule
         )
     )
 
@@ -183,7 +185,9 @@ class FabHandlerTest : KoinTest {
         onView(withId(R.id.fab_add_product)).check(matches(isDisplayed()))
 
         scenario.onActivity {
-            fabHandler.setFabItems(it, FabHandler.FabOption.ADD_PRODUCT, FabHandler.FabOption.ADD_SHOP)
+            fabHandler.setFabItems(
+                it, FabHandler.FabOption.ADD_PRODUCT, FabHandler.FabOption.ADD_SHOP
+            )
         }
 
         onView(withId(R.id.fab)).perform(click())

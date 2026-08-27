@@ -20,7 +20,9 @@ package com.aisleron.ui.shoppinglist
 import com.aisleron.di.KoinTestRule
 import com.aisleron.di.daoTestModule
 import com.aisleron.di.factoryModule
+import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.FilterType
@@ -81,7 +83,13 @@ class ShoppingListViewModelTest : KoinTest {
     @get:Rule
     val koinTestRule = KoinTestRule(
         modules = listOf(
-            daoTestModule, viewModelTestModule, repositoryModule, useCaseModule, factoryModule
+            daoTestModule,
+            viewModelTestModule,
+            repositoryModule,
+            useCaseModule,
+            factoryModule,
+            preferenceTestModule,
+            syncTestModule
         )
     )
 

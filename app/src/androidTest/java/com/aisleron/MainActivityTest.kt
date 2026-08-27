@@ -60,6 +60,7 @@ import com.aisleron.di.fragmentModule
 import com.aisleron.di.generalTestModule
 import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.FilterType
@@ -98,7 +99,8 @@ class MainActivityTest : KoinTest {
             useCaseModule,
             generalTestModule,
             preferenceTestModule,
-            factoryModule
+            factoryModule,
+            syncTestModule
         )
     )
 

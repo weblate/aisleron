@@ -62,7 +62,9 @@ import com.aisleron.di.KoinTestRule
 import com.aisleron.di.daoTestModule
 import com.aisleron.di.factoryModule
 import com.aisleron.di.generalTestModule
+import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.FilterType
@@ -132,7 +134,9 @@ class ShoppingListFragmentTest : KoinTest {
             repositoryModule,
             useCaseModule,
             generalTestModule,
-            factoryModule
+            factoryModule,
+            preferenceTestModule,
+            syncTestModule
         )
     )
 
