@@ -21,10 +21,11 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ProductVariantDao : BaseDao<ProductVariantEntity> {
+interface ProductVariantDao : BaseDao<ProductVariantEntity>, SyncDao<ProductVariantEntity> {
     @Query("SELECT * FROM ProductVariant WHERE isRemoved = 0 ORDER BY createdAt ASC")
     suspend fun getAll(): List<ProductVariantEntity>
 
@@ -49,4 +50,19 @@ interface ProductVariantDao : BaseDao<ProductVariantEntity> {
 
     @Query("SELECT EXISTS(SELECT 1 FROM ProductVariant WHERE productId = :productId AND isRemoved = 0 LIMIT 1)")
     suspend fun hasVariants(productId: Int): Boolean
+
+    /**
+     * Sync Queries
+     */
+    @Query("SELECT * FROM ProductVariant WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<ProductVariantEntity>
+
+    @Query("SELECT * FROM ProductVariant WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): ProductVariantEntity?
+
+    @Query("DELETE FROM ProductVariant WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM ProductVariant WHERE barcode = :barcode")
+    fun getByNaturalKey(barcode: String): List<ProductVariantEntity>
 }

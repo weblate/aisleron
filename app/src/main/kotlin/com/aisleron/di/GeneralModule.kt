@@ -17,6 +17,11 @@
 
 package com.aisleron.di
 
+import androidx.work.WorkManager
+import com.aisleron.data.log.LoggerImpl
+import com.aisleron.data.sync.SupabaseAuthDelegate
+import com.aisleron.data.sync.SupabaseAuthDelegateImpl
+import com.aisleron.domain.log.Logger
 import com.aisleron.ui.AddEditFragmentListener
 import com.aisleron.ui.AddEditFragmentListenerImpl
 import com.aisleron.ui.ApplicationTitleUpdateListener
@@ -31,6 +36,8 @@ import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorImpl
 import com.aisleron.ui.resourceprovider.ResourceProvider
 import com.aisleron.ui.resourceprovider.ResourceProviderImpl
+import com.aisleron.ui.settings.LocaleDelegate
+import com.aisleron.ui.settings.LocaleDelegateImpl
 import org.koin.dsl.module
 
 val generalModule = module {
@@ -40,4 +47,8 @@ val generalModule = module {
     factory<ApplicationTitleUpdateListener> { ApplicationTitleUpdateListenerImpl() }
     factory<AddEditFragmentListener> { AddEditFragmentListenerImpl() }
     factory<LoyaltyCardProvider> { CatimaCardProvider(PackageCheckerImpl()) }
+    factory<SupabaseAuthDelegate> { SupabaseAuthDelegateImpl() }
+    single<Logger> { LoggerImpl() }
+    factory<LocaleDelegate> { LocaleDelegateImpl() }
+    single<WorkManager> { WorkManager.getInstance(get()) }
 }

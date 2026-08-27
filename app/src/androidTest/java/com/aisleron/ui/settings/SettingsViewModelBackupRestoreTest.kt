@@ -36,7 +36,6 @@ import com.aisleron.testdata.data.maintenance.DatabaseMaintenanceDbNameTestImpl
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,6 +45,7 @@ import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
 import java.net.URI
+import kotlin.test.assertEquals
 
 @RunWith(value = Parameterized::class)
 class SettingsViewModelBackupRestoreTest(
@@ -113,7 +113,7 @@ class SettingsViewModelBackupRestoreTest(
 
         val preferenceHandler = vm.preferenceHandlerFactory(preferenceOption, preference)
 
-        Assert.assertTrue(preferenceHandler.javaClass == clazz)
+        assertEquals(preferenceHandler.javaClass, clazz)
     }
 
     @Test
@@ -124,7 +124,7 @@ class SettingsViewModelBackupRestoreTest(
         vm.setPreferenceValue(preferenceOption, setPreferenceValue)
 
         val preferenceValue = preference.sharedPreferences?.getString(preference.key, "")
-        Assert.assertEquals(setPreferenceValue, preferenceValue)
+        assertEquals(setPreferenceValue, preferenceValue)
     }
 
     @Test
@@ -138,7 +138,7 @@ class SettingsViewModelBackupRestoreTest(
 
         val preferenceValue = vm.getPreferenceValue(preferenceOption)
 
-        Assert.assertEquals(getPreferenceValue, preferenceValue)
+        assertEquals(getPreferenceValue, preferenceValue)
     }
 
     @Test
@@ -148,12 +148,12 @@ class SettingsViewModelBackupRestoreTest(
 
         vm.handleOnPreferenceClick(preferenceOption, Uri.parse("DummyUri"))
 
-        Assert.assertEquals(
+        assertEquals(
             SettingsViewModel.UiState.Success(preferenceHandler.getSuccessMessage()),
             vm.uiState.value
         )
 
-        Assert.assertEquals(
+        assertEquals(
             preferenceHandler.getSuccessMessage(),
             (vm.uiState.value as SettingsViewModel.UiState.Success).message
         )
@@ -186,24 +186,24 @@ class SettingsViewModelBackupRestoreTest(
         vm.handleOnPreferenceClick(preferenceOption, Uri.parse("DummyUri"))
 
         if (preferenceOption == SettingsFragment.PreferenceOption.BACKUP_FOLDER) {
-            Assert.assertEquals(
+            assertEquals(
                 SettingsViewModel.UiState.Success(preferenceHandler.getSuccessMessage()),
                 vm.uiState.value
             )
         } else {
-            Assert.assertEquals(
+            assertEquals(
                 SettingsViewModel.UiState.Error(
                     AisleronException.ExceptionCode.INVALID_DB_NAME_EXCEPTION, errorMessage
                 ),
                 vm.uiState.value
             )
 
-            Assert.assertEquals(
+            assertEquals(
                 errorMessage,
                 (vm.uiState.value as SettingsViewModel.UiState.Error).errorMessage
             )
 
-            Assert.assertEquals(
+            assertEquals(
                 AisleronException.ExceptionCode.INVALID_DB_NAME_EXCEPTION,
                 (vm.uiState.value as SettingsViewModel.UiState.Error).errorCode
             )
@@ -237,24 +237,24 @@ class SettingsViewModelBackupRestoreTest(
         vm.handleOnPreferenceClick(preferenceOption, Uri.parse("DummyUri"))
 
         if (preferenceOption == SettingsFragment.PreferenceOption.BACKUP_FOLDER) {
-            Assert.assertEquals(
+            assertEquals(
                 SettingsViewModel.UiState.Success(preferenceHandler.getSuccessMessage()),
                 vm.uiState.value
             )
         } else {
-            Assert.assertEquals(
+            assertEquals(
                 SettingsViewModel.UiState.Error(
                     AisleronException.ExceptionCode.GENERIC_EXCEPTION, errorMessage
                 ),
                 vm.uiState.value
             )
 
-            Assert.assertEquals(
+            assertEquals(
                 errorMessage,
                 (vm.uiState.value as SettingsViewModel.UiState.Error).errorMessage
             )
 
-            Assert.assertEquals(
+            assertEquals(
                 AisleronException.ExceptionCode.GENERIC_EXCEPTION,
                 (vm.uiState.value as SettingsViewModel.UiState.Error).errorCode
             )

@@ -30,9 +30,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toUri
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -45,6 +43,7 @@ import com.aisleron.domain.base.AisleronException
 import com.aisleron.domain.location.LocationType
 import com.aisleron.ui.AisleronExceptionMap
 import com.aisleron.ui.AisleronFragment
+import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.widgets.ErrorSnackBar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -52,7 +51,10 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 
-class SettingsFragment : PreferenceFragmentCompat(), AisleronFragment {
+class SettingsFragment(
+    private val navigator: MainNavigator,
+    private val localeDelegate: LocaleDelegate
+) : PreferenceFragmentCompat(), AisleronFragment {
 
     enum class PreferenceOption(val key: String) {
         BACKUP_FOLDER("backup_folder"),
@@ -79,9 +81,13 @@ class SettingsFragment : PreferenceFragmentCompat(), AisleronFragment {
 
         findPreference<ListPreference>("language")?.setOnPreferenceChangeListener { _, newValue ->
             val languageTag = newValue as String
-            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageTag)
-            AppCompatDelegate.setApplicationLocales(appLocale)
+            localeDelegate.setLocaleFromTag(languageTag)
 
+            true
+        }
+
+        findPreference<Preference>("account_sync")?.setOnPreferenceClickListener {
+            navigator.navigateToAccountPreferences()
             true
         }
 
@@ -96,7 +102,7 @@ class SettingsFragment : PreferenceFragmentCompat(), AisleronFragment {
 
     private fun syncLanguageSelection() {
         val listPreference = findPreference<ListPreference>("language") ?: return
-        val currentLocaleTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        val currentLocaleTag = localeDelegate.getLocaleTag()
 
         val bestMatch = when {
             listPreference.entryValues.contains(currentLocaleTag) -> currentLocaleTag

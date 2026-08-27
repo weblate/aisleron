@@ -19,6 +19,7 @@ package com.aisleron.di
 
 import com.aisleron.ui.menu.NavigationDrawerFragment
 import com.aisleron.ui.product.ProductFragment
+import com.aisleron.ui.settings.SettingsFragment
 import com.aisleron.ui.shop.ShopFragment
 import com.aisleron.ui.shoplist.ShopListFragment
 import com.aisleron.ui.shopmenu.ShopMenuFragment
@@ -83,4 +84,10 @@ val fragmentModule = module {
         )
     }
 
+    fragment {
+        SettingsFragment(
+            navigator = get(),
+            localeDelegate = get()
+        )
+    }
 }

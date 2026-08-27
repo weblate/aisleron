@@ -34,13 +34,15 @@ import com.aisleron.domain.product.usecase.GetProductUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class CopyEntityViewModelTest : KoinTest {
     private lateinit var viewModel: CopyEntityViewModel
@@ -73,11 +75,9 @@ class CopyEntityViewModelTest : KoinTest {
         vm.copyEntity(CopyEntityType.Location(1), "Dummy Name")
 
         val uiState = vm.uiState.value
-        Assert.assertTrue(uiState is CopyEntityViewModel.CopyUiState.Error)
-        with(uiState as CopyEntityViewModel.CopyUiState.Error) {
-            Assert.assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, this.errorCode)
-            Assert.assertEquals(exceptionMessage, this.errorMessage)
-        }
+        assertTrue(uiState is CopyEntityViewModel.CopyUiState.Error)
+        assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, uiState.errorCode)
+        assertEquals(exceptionMessage, uiState.errorMessage)
     }
 
     @Test
@@ -85,12 +85,8 @@ class CopyEntityViewModelTest : KoinTest {
         viewModel.copyEntity(CopyEntityType.Product(-1), "Dummy Name")
 
         val uiState = viewModel.uiState.value
-        Assert.assertTrue(uiState is CopyEntityViewModel.CopyUiState.Error)
-        with(uiState as CopyEntityViewModel.CopyUiState.Error) {
-            Assert.assertEquals(
-                AisleronException.ExceptionCode.INVALID_PRODUCT_EXCEPTION, this.errorCode
-            )
-        }
+        assertTrue(uiState is CopyEntityViewModel.CopyUiState.Error)
+        assertEquals(AisleronException.ExceptionCode.INVALID_PRODUCT_EXCEPTION, uiState.errorCode)
     }
 
     @Test
@@ -103,10 +99,8 @@ class CopyEntityViewModelTest : KoinTest {
         val copiedEntity = get<ProductRepository>().getByName(copyName)
 
         val uiState = viewModel.uiState.value
-        Assert.assertTrue(uiState is CopyEntityViewModel.CopyUiState.Success)
-        with(uiState as CopyEntityViewModel.CopyUiState.Success) {
-            Assert.assertEquals(this.newId, copiedEntity?.id)
-        }
+        assertTrue(uiState is CopyEntityViewModel.CopyUiState.Success)
+        assertEquals(uiState.newId, copiedEntity?.id)
     }
 
     @Test
@@ -114,12 +108,10 @@ class CopyEntityViewModelTest : KoinTest {
         viewModel.copyEntity(CopyEntityType.Location(-1), "Dummy Name")
 
         val uiState = viewModel.uiState.value
-        Assert.assertTrue(uiState is CopyEntityViewModel.CopyUiState.Error)
-        with(uiState as CopyEntityViewModel.CopyUiState.Error) {
-            Assert.assertEquals(
-                AisleronException.ExceptionCode.INVALID_LOCATION_EXCEPTION, this.errorCode
-            )
-        }
+        assertTrue(uiState is CopyEntityViewModel.CopyUiState.Error)
+        assertEquals(
+            AisleronException.ExceptionCode.INVALID_LOCATION_EXCEPTION, uiState.errorCode
+        )
     }
 
     @Test
@@ -132,10 +124,8 @@ class CopyEntityViewModelTest : KoinTest {
         val copiedEntity = get<LocationRepository>().getByName(copyName)
 
         val uiState = viewModel.uiState.value
-        Assert.assertTrue(uiState is CopyEntityViewModel.CopyUiState.Success)
-        with(uiState as CopyEntityViewModel.CopyUiState.Success) {
-            Assert.assertEquals(this.newId, copiedEntity?.id)
-        }
+        assertTrue(uiState is CopyEntityViewModel.CopyUiState.Success)
+        assertEquals(uiState.newId, copiedEntity?.id)
     }
 
     @Test
@@ -147,7 +137,7 @@ class CopyEntityViewModelTest : KoinTest {
             get<GetLocationUseCase>()
         )
 
-        Assert.assertNotNull(vm)
+        assertNotNull(vm)
     }
 
 }

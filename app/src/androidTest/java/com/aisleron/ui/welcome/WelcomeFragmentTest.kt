@@ -49,15 +49,15 @@ import com.aisleron.di.generalTestModule
 import com.aisleron.di.inMemoryDatabaseTestModule
 import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.aisle.AisleRepository
 import com.aisleron.domain.location.LocationRepository
+import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.product.Product
 import com.aisleron.domain.product.ProductRepository
-import com.aisleron.domain.preferences.TrackingMode
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
-import com.aisleron.ui.FabHandlerTestImpl
 import com.aisleron.ui.bundles.Bundler
 import com.aisleron.ui.navigation.MainNavigator
 import com.aisleron.ui.navigation.MainNavigatorImpl
@@ -69,7 +69,6 @@ import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -82,7 +81,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WelcomeFragmentTest : KoinTest {
-    private lateinit var fabHandler: FabHandlerTestImpl
     private lateinit var navigator: MainNavigatorTestImpl
 
     @get:Rule
@@ -107,7 +105,6 @@ class WelcomeFragmentTest : KoinTest {
 
     @Before
     fun setUp() {
-        fabHandler = FabHandlerTestImpl()
         navigator = get<MainNavigator>() as MainNavigatorTestImpl
         SharedPreferencesInitializer().clearPreferences()
     }
@@ -119,7 +116,8 @@ class WelcomeFragmentTest : KoinTest {
                 preferenceTestModule,
                 fragmentModule,
                 generalTestModule,
-                factoryModule
+                factoryModule,
+                syncTestModule
             )
         )
 
@@ -145,7 +143,8 @@ class WelcomeFragmentTest : KoinTest {
                 fragmentModule,
                 generalTestModule,
                 inMemoryDatabaseTestModule,
-                factoryModule
+                factoryModule,
+                syncTestModule
             )
         )
         SharedPreferencesInitializer().setIsInitialized(true)
@@ -181,10 +180,11 @@ class WelcomeFragmentTest : KoinTest {
         val aisleCountAfter = get<AisleRepository>().getAll().count()
         assertEquals(aisleCountBefore, aisleCountAfter)
 
-        Assert.assertEquals(R.id.nav_in_stock, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.InStockDestination
+        assertEquals(expectedDestination, navigator.destination)
 
-        Assert.assertFalse(initialisedBefore)
-        Assert.assertTrue(welcomePreferences.isInitialized())
+        assertFalse(initialisedBefore)
+        assertTrue(welcomePreferences.isInitialized())
     }
 
     @Test
@@ -208,10 +208,11 @@ class WelcomeFragmentTest : KoinTest {
         val aisleCountAfter = get<AisleRepository>().getAll().count()
         assertTrue(aisleCountBefore < aisleCountAfter)
 
-        Assert.assertEquals(R.id.nav_in_stock, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.InStockDestination
+        assertEquals(expectedDestination, navigator.destination)
 
-        Assert.assertFalse(initialisedBefore)
-        Assert.assertTrue(welcomePreferences.isInitialized())
+        assertFalse(initialisedBefore)
+        assertTrue(welcomePreferences.isInitialized())
     }
 
     @Test
@@ -253,10 +254,11 @@ class WelcomeFragmentTest : KoinTest {
         val welcomeOption = onView(withId(R.id.txt_welcome_import_db))
         welcomeOption.perform(click())
 
-        Assert.assertEquals(R.id.nav_settings, navigator.destination)
+        val expectedDestination = MainNavigatorTestImpl.TestDestination.SettingsDestination
+        assertEquals(expectedDestination, navigator.destination)
 
-        Assert.assertFalse(initialisedBefore)
-        Assert.assertTrue(welcomePreferences.isInitialized())
+        assertFalse(initialisedBefore)
+        assertTrue(welcomePreferences.isInitialized())
     }
 
     @Test
@@ -267,7 +269,8 @@ class WelcomeFragmentTest : KoinTest {
                 fragmentModule,
                 generalTestModule,
                 inMemoryDatabaseTestModule,
-                factoryModule
+                factoryModule,
+                syncTestModule
             )
         )
 

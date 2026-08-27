@@ -17,7 +17,6 @@
 
 package com.aisleron.di
 
-import com.aisleron.domain.TransactionRunner
 import com.aisleron.domain.aisle.usecase.AddAisleUseCase
 import com.aisleron.domain.aisle.usecase.AddAisleUseCaseImpl
 import com.aisleron.domain.aisle.usecase.GetAisleMaxRankUseCase
@@ -104,6 +103,8 @@ import com.aisleron.domain.product.usecase.GetProductUseCaseImpl
 import com.aisleron.domain.product.usecase.IsProductNameUniqueUseCase
 import com.aisleron.domain.product.usecase.RemoveProductUseCase
 import com.aisleron.domain.product.usecase.RemoveProductUseCaseImpl
+import com.aisleron.domain.product.usecase.UpdateProductQtyNeededUseCase
+import com.aisleron.domain.product.usecase.UpdateProductQtyNeededUseCaseImpl
 import com.aisleron.domain.product.usecase.UpdateProductStatusUseCase
 import com.aisleron.domain.product.usecase.UpdateProductStatusUseCaseImpl
 import com.aisleron.domain.product.usecase.UpdateProductUseCase
@@ -112,9 +113,12 @@ import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCaseImpl
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCase
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCaseImpl
-import com.aisleron.testdata.data.TransactionRunnerTestImpl
+import com.aisleron.domain.sync.usecase.ScheduleAdhocSyncUseCase
 
-class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
+class TestUseCaseFactory(
+    private val repositoryFactory: TestRepositoryFactory,
+    private val testGeneralFactory: TestGeneralFactory
+) {
     /**
      * Aisle Use Cases
      */
@@ -277,7 +281,7 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
         SortLocationTypeByNameUseCaseImpl(
             repositoryFactory.locationRepository,
             sortLocationByNameUseCase = sortLocationByNameUseCase,
-            transactionRunner = transactionRunner
+            transactionRunner = testGeneralFactory.transactionRunner
         )
     }
 
@@ -327,7 +331,7 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
         AddNoteUseCaseImpl(
             repositoryFactory.noteRepository,
             addNoteToParentUseCase = addNoteToParentUseCase,
-            transactionRunner = transactionRunner
+            transactionRunner = testGeneralFactory.transactionRunner
         )
     }
 
@@ -382,7 +386,7 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
         RemoveNoteUseCaseImpl(
             repositoryFactory.noteRepository,
             removeNoteFromParentUseCase = removeNoteFromParentUseCase,
-            transactionRunner = transactionRunner
+            transactionRunner = testGeneralFactory.transactionRunner
         )
     }
 
@@ -396,7 +400,7 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
             addAisleProductsUseCase = addAisleProductUseCase,
             isProductNameUniqueUseCase = isProductNameUniqueUseCase,
             getAisleProductMaxRankUseCase = getAisleProductMaxRankUseCase,
-            transactionRunner = transactionRunner
+            transactionRunner = testGeneralFactory.transactionRunner
         )
     }
 
@@ -406,7 +410,7 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
             repositoryFactory.aisleProductRepository,
             isProductNameUniqueUseCase = isProductNameUniqueUseCase,
             copyNoteUseCase = copyNoteUseCase,
-            transactionRunner = transactionRunner
+            transactionRunner = testGeneralFactory.transactionRunner
         )
     }
 
@@ -438,14 +442,23 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
         RemoveProductUseCaseImpl(
             repositoryFactory.productRepository,
             removeNoteUseCase = removeNoteUseCase,
-            transactionRunner = transactionRunner
+            transactionRunner = testGeneralFactory.transactionRunner
+        )
+    }
+
+    val updateProductQtyNeededUseCase: UpdateProductQtyNeededUseCase by lazy {
+        UpdateProductQtyNeededUseCaseImpl(
+            getProductUseCase = getProductUseCase,
+            updateProductUseCase = updateProductUseCase,
+            scheduleAdhocSyncUseCase = scheduleAdhocSyncUseCase
         )
     }
 
     val updateProductStatusUseCase: UpdateProductStatusUseCase by lazy {
         UpdateProductStatusUseCaseImpl(
             getProductUseCase = getProductUseCase,
-            updateProductUseCase = updateProductUseCase
+            updateProductUseCase = updateProductUseCase,
+            scheduleAdhocSyncUseCase = scheduleAdhocSyncUseCase
         )
     }
 
@@ -483,10 +496,13 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
     }
 
     /**
-     * Other
+     * Sync Use Cases
      */
-    private val transactionRunner: TransactionRunner by lazy {
-        TransactionRunnerTestImpl()
+    val scheduleAdhocSyncUseCase: ScheduleAdhocSyncUseCase by lazy {
+        ScheduleAdhocSyncUseCase(
+            repositoryFactory.syncPreferencesRepository,
+            syncScheduler = testGeneralFactory.syncScheduler
+        )
     }
 
     inline fun <reified T> get(): T {
@@ -554,6 +570,7 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
             GetProductMappingsUseCase::class -> getProductMappingsUseCase as T
             IsProductNameUniqueUseCase::class -> isProductNameUniqueUseCase as T
             RemoveProductUseCase::class -> removeProductUseCase as T
+            UpdateProductQtyNeededUseCase::class -> updateProductQtyNeededUseCase as T
             UpdateProductStatusUseCase::class -> updateProductStatusUseCase as T
             UpdateProductUseCase::class -> updateProductUseCase as T
 
@@ -562,6 +579,9 @@ class TestUseCaseFactory(private val repositoryFactory: TestRepositoryFactory) {
 
             // Shopping List Use Cases
             GetShoppingListUseCase::class -> getShoppingListUseCase as T
+
+            // Sync Use Cases
+            ScheduleAdhocSyncUseCase::class -> scheduleAdhocSyncUseCase as T
 
             else -> throw IllegalArgumentException("Unknown use case ${T::class}")
         }

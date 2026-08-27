@@ -33,6 +33,10 @@ class ProductVariantMapper : Mapper<ProductVariantEntity, ProductVariant> {
         id = value.id,
         productId = value.productId,
         barcode = value.barcode,
-        createdAt = value.createdAt
+        createdAt = value.createdAt,
+        syncId = syncMetadata?.syncId ?: SyncEntity.generateSyncId(),
+        isRemoved = syncMetadata?.isRemoved ?: false,
+        lastModifiedAt = System.currentTimeMillis(),
+        serverUpdatedAt = syncMetadata?.serverUpdatedAt
     )
 }

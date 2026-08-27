@@ -20,28 +20,15 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("org.jetbrains.kotlin.plugin.parcelize")
-    id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.koin.compiler)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.dependency.analysis)
 
-    id("com.autonomousapps.dependency-analysis")
-}
-
-apply(file("../gradle/jacoco.gradle.kts"))
-
-object Versions {
-    const val COROUTINES = "1.11.0"
-    const val JUNIT = "6.1.0"
-    const val ESPRESSO = "3.7.0"
-    const val FRAGMENT = "1.8.9"
-    const val LIFECYCLE = "2.10.0" // 2.11.0 requires android 17
-    const val ROOM = "2.8.4"
-    const val KOIN = "4.2.1"
-    const val NAVIGATION = "2.9.8"
-    const val COMPOSE = "1.11.3"
-    // const val NAVIGATION3 = "1.1.3"
+    id("test-coverage")
 }
 
 // Keep this list aligned with the values in the language_codes array in arrays.xml and with locale_config.xml
@@ -88,6 +75,7 @@ android {
             }
         }
     }
+
     namespace = "com.aisleron"
     compileSdk = 36
 
@@ -95,13 +83,26 @@ android {
         applicationId = "com.aisleron"
         minSdk = 24
         targetSdk = 36
-        versionCode = 23
-        versionName = "2026.5.0"
+        versionCode = 24
+        versionName = "2026.6.0"
         base.archivesName = "$applicationId-$versionName"
 
         testInstrumentationRunner = "com.aisleron.di.KoinInstrumentationTestRunner"
 
         testInstrumentationRunnerArguments["notPackage"] = "com.aisleron.screenshots"
+    }
+
+    val syncServiceProperties = Properties()
+    val syncServicePropertiesFile = rootProject.file("syncservice.properties")
+
+    if (syncServicePropertiesFile.exists()) {
+        FileInputStream(syncServicePropertiesFile).use { stream ->
+            syncServiceProperties.load(stream)
+        }
+    }
+
+    fun getSyncServiceProperty(key: String, defaultValue: String = ""): String {
+        return syncServiceProperties.getProperty(key) ?: defaultValue
     }
 
     buildTypes {
@@ -114,6 +115,18 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("release")
+
+            buildConfigField(
+                "String",
+                "SUPABASE_URL",
+                getSyncServiceProperty("RELEASE_SUPABASE_URL")
+            )
+
+            buildConfigField(
+                "String",
+                "SUPABASE_ANON_KEY",
+                getSyncServiceProperty("RELEASE_SUPABASE_ANON_KEY")
+            )
         }
 
         debug {
@@ -122,6 +135,18 @@ android {
             enableUnitTestCoverage = true
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
+
+            buildConfigField(
+                "String",
+                "SUPABASE_URL",
+                getSyncServiceProperty("DEBUG_SUPABASE_URL", "http://10.0.2.2:54321")
+            )
+
+            buildConfigField(
+                "String",
+                "SUPABASE_ANON_KEY",
+                getSyncServiceProperty("DEBUG_SUPABASE_ANON_KEY", "missing_debug_key")
+            )
         }
     }
 
@@ -151,7 +176,6 @@ android {
     }
 
     configurations.all {
-        // Targets only the Android Test configurations
         resolutionStrategy {
             // 1. Force 3.0 to break the "strictly 2.2" consistent resolution constraint
             force("org.hamcrest:hamcrest:3.0")
@@ -195,6 +219,7 @@ ksp {
 
 tasks.withType<Test> {
     useJUnitPlatform() // Make all tests use JUnit 5
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
 }
 
 java {
@@ -202,103 +227,131 @@ java {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
-
 dependencies {
     // Implementation
-    implementation("androidx.core:core-ktx:1.18.0") // 1.19.0 Requires Android 17, and moves to non-ktx
-    implementation("androidx.activity:activity:1.13.0")
-    implementation("androidx.activity:activity-compose:1.13.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("com.google.android.material:material:1.14.0")
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
-    implementation("androidx.collection:collection:1.6.0")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.drawerlayout:drawerlayout:1.2.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.coordinatorlayout:coordinatorlayout:1.3.0")
-    implementation("androidx.customview:customview:1.2.0")
-    implementation("androidx.annotation:annotation:1.10.0")
-    implementation("androidx.documentfile:documentfile:1.1.0")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.viewpager2:viewpager2:1.1.0")
-    implementation("org.jetbrains.kotlin:kotlin-parcelize-runtime:2.3.0") // Dependency analysis requires 2.3.0
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
+    implementation(libs.activity)
+    implementation(libs.activity.compose)
+    implementation(libs.annotation)
+    implementation(libs.appcompat)
+    implementation(libs.cardview)
+    implementation(libs.collection)
+    implementation(libs.constraintlayout)
+    implementation(libs.coordinatorlayout)
+    implementation(libs.core.ktx) // 1.19.0 Requires Android 17, and moves to non-ktx
+    implementation(libs.customview)
+    implementation(libs.documentfile)
+    implementation(libs.drawerlayout)
+    implementation(libs.kotlin.parcelize.runtime)
+    implementation(libs.material)
+    implementation(libs.preference.ktx)
+    implementation(libs.recyclerview)
+    implementation(libs.savedstate)
+    implementation(libs.viewpager2)
+    implementation(libs.work.runtime)
 
     // Fragment
-    implementation("androidx.fragment:fragment-ktx:${Versions.FRAGMENT}") // 1.9.0 moves to non-ktx
-    debugImplementation("androidx.fragment:fragment-testing:${Versions.FRAGMENT}")
+    implementation(libs.fragment)
+    debugImplementation(libs.fragment.testing)
 
     // Jetpack Compose
-    implementation("androidx.compose.material3:material3:1.4.0")
-    implementation("androidx.compose.animation:animation:${Versions.COMPOSE}")
-    implementation("androidx.compose.foundation:foundation:${Versions.COMPOSE}")
-    implementation("androidx.compose.foundation:foundation-layout:${Versions.COMPOSE}")
-    implementation("androidx.compose.ui:ui:${Versions.COMPOSE}")
-    implementation("androidx.compose.ui:ui-graphics:${Versions.COMPOSE}")
-    implementation("androidx.compose.ui:ui-text:${Versions.COMPOSE}")
-    implementation("androidx.compose.ui:ui-tooling-preview:${Versions.COMPOSE}")
-    implementation("androidx.compose.ui:ui-unit:${Versions.COMPOSE}")
-    implementation("androidx.compose.runtime:runtime:${Versions.COMPOSE}")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:${Versions.COMPOSE}")
-    debugImplementation("androidx.compose.ui:ui-tooling:${Versions.COMPOSE}")
-    androidTestImplementation("androidx.compose.ui:ui-test:${Versions.COMPOSE}")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:${Versions.COMPOSE}")
-
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.animation)
+    implementation(libs.compose.animation.core)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.foundation.layout)
+    implementation(libs.compose.runtime)
+    implementation(libs.compose.runtime.saveable)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.text)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.ui.unit)
+    implementation(libs.material3)
+    debugImplementation(libs.compose.ui.test.manifest)
+    debugImplementation(libs.compose.ui.tooling)
+    androidTestImplementation(platform(libs.compose.bom.test))
+    androidTestImplementation(libs.compose.ui.test)
+    androidTestImplementation(libs.compose.ui.test.junit4)
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-common:${Versions.LIFECYCLE}")
-    implementation("androidx.lifecycle:lifecycle-runtime:${Versions.LIFECYCLE}")
-    implementation("androidx.lifecycle:lifecycle-viewmodel:${Versions.LIFECYCLE}")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.LIFECYCLE}")
+    implementation(libs.lifecycle.common)
+    implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.viewmodel.navigation3)
 
     // Navigation
-    implementation("androidx.navigation:navigation-fragment:${Versions.NAVIGATION}")
-    implementation("androidx.navigation:navigation-common:${Versions.NAVIGATION}")
-    implementation("androidx.navigation:navigation-compose:${Versions.NAVIGATION}")
-    implementation("androidx.navigation:navigation-runtime:${Versions.NAVIGATION}")
-    implementation("androidx.navigation:navigation-ui:${Versions.NAVIGATION}")
-    androidTestImplementation("androidx.navigation:navigation-testing:${Versions.NAVIGATION}")
-
-    // Consider moving to navigation3 once it matures
-    // implementation("androidx.navigation3:navigation3-runtime:${Versions.NAVIGATION3}")
-    // implementation("androidx.navigation3:navigation3-ui:${Versions.NAVIGATION3}")
+    implementation(libs.navigation.common)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.runtime)
+    implementation(libs.navigation.ui)
+    implementation(libs.navigation3.runtime)
+    implementation(libs.navigation3.ui)
+    androidTestImplementation(libs.navigation.testing)
 
     // Database
-    ksp("androidx.room:room-compiler:${Versions.ROOM}")
-    implementation("androidx.room:room-common:${Versions.ROOM}")
-    implementation("androidx.room:room-runtime:${Versions.ROOM}")
-    debugImplementation("androidx.room:room-testing-android:${Versions.ROOM}")
-    implementation("androidx.sqlite:sqlite:2.6.2")
+    ksp(libs.room.compiler)
+    implementation(libs.room.common)
+    implementation(libs.room.runtime)
+    implementation(libs.sqlite)
+    debugImplementation(libs.room.testing.android)
 
     // Dependency Injection
-    implementation("io.insert-koin:koin-android:${Versions.KOIN}")
-    implementation("io.insert-koin:koin-androidx-compose:${Versions.KOIN}")
-    implementation("io.insert-koin:koin-compose:${Versions.KOIN}")
-    implementation("io.insert-koin:koin-core:${Versions.KOIN}")
-    implementation("io.insert-koin:koin-core-viewmodel:${Versions.KOIN}")
-    androidTestImplementation("io.insert-koin:koin-test:${Versions.KOIN}")
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.workmanager)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.core)
+    implementation(libs.koin.core.viewmodel)
+    androidTestImplementation(platform(libs.koin.bom.test))
+    androidTestImplementation(libs.koin.test)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.COROUTINES}")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.COROUTINES}")
-    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.COROUTINES}")
+    implementation(platform(libs.kotlinx.coroutines.bom))
+    implementation(libs.kotlinx.coroutines.core)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    // Serialization
+    implementation(platform(libs.kotlinx.serialization.bom))
+    implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Supabase
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.kt)
+    implementation(libs.supabase.auth.kt)
+    implementation(libs.supabase.postgrest.kt)
+
+    // Ktor
+    implementation(platform(libs.ktor.bom))
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.core)
 
     // Testing
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform(libs.junit.bom))
+    testRuntimeOnly(libs.junit.platform.launcher)
+    // testRuntimeOnly(libs.junit.vintage.engine)
     testImplementation(project(":testData"))
-    testImplementation("org.junit.jupiter:junit-jupiter:${Versions.JUNIT}")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${Versions.JUNIT}")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:${Versions.JUNIT}")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.params)
+    testImplementation(libs.mockk)
+    // testImplementation(libs.robolectric)
+    testImplementation(libs.slf4j.nop)
 
     // Android Testing
     androidTestImplementation(project(":testData"))
-    androidTestImplementation("androidx.test.ext:junit:1.3.0")
-    androidTestImplementation("androidx.test:core-ktx:1.7.0")
-    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
-    androidTestImplementation("tools.fastlane:screengrab:2.1.1")
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.kotlin.test)
+    androidTestImplementation(libs.screengrab)
+    androidTestImplementation(libs.test.core.ktx)
+    androidTestImplementation(libs.uiautomator)
+    androidTestImplementation(libs.work.testing)
 
-    debugImplementation("androidx.test.espresso:espresso-contrib:${Versions.ESPRESSO}")
-    androidTestImplementation("androidx.test.espresso:espresso-core:${Versions.ESPRESSO}")
-    androidTestImplementation("androidx.test.espresso:espresso-intents:${Versions.ESPRESSO}")
-    androidTestImplementation("org.hamcrest:hamcrest:3.0")
+    debugImplementation(libs.espresso.contrib)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.espresso.intents)
+    androidTestImplementation(libs.hamcrest)
 }

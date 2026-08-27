@@ -20,23 +20,16 @@ package com.aisleron.data.product
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.aisleron.data.aisleproduct.AisleProductDao
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 
 @Dao
-interface ProductDao : BaseDao<ProductEntity> {
+interface ProductDao : BaseDao<ProductEntity>, SyncDao<ProductEntity> {
     @Query("SELECT * FROM Product WHERE id = :productId AND (isRemoved = 0 OR :includeRemoved = 1)")
     suspend fun getProduct(productId: Int, includeRemoved: Boolean): ProductEntity?
 
     @Query("SELECT * FROM Product WHERE isRemoved = 0")
     suspend fun getProducts(): List<ProductEntity>
-
-    @Transaction
-    suspend fun delete(product: ProductEntity, aisleProductDao: AisleProductDao) {
-        val aisleProducts = aisleProductDao.getAisleProductsByProduct(product.id)
-        aisleProductDao.delete(*aisleProducts.map { it.aisleProduct }.toTypedArray())
-        delete(product)
-    }
 
     @Query("SELECT * FROM Product WHERE name = :name COLLATE NOCASE AND isRemoved = 0")
     suspend fun getProductByName(name: String): ProductEntity?
@@ -57,4 +50,16 @@ interface ProductDao : BaseDao<ProductEntity> {
 
         upsert(product)
     }
+
+    @Query("SELECT * FROM Product WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<ProductEntity>
+
+    @Query("SELECT * FROM Product WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): ProductEntity?
+
+    @Query("DELETE FROM Product WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM Product WHERE name = :name COLLATE NOCASE")
+    fun getByNaturalKey(name: String): List<ProductEntity>
 }

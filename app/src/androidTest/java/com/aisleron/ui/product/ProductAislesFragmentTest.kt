@@ -35,6 +35,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import com.aisleron.R
 import com.aisleron.di.KoinTestRule
 import com.aisleron.di.daoTestModule
+import com.aisleron.di.generalTestModule
 import com.aisleron.di.repositoryModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
@@ -48,11 +49,10 @@ import com.aisleron.domain.product.Product
 import com.aisleron.domain.product.ProductRepository
 import com.aisleron.domain.product.usecase.GetProductMappingsUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
-import com.aisleron.ui.AddEditFragmentListenerTestImpl
-import com.aisleron.ui.ApplicationTitleUpdateListenerTestImpl
+import com.aisleron.ui.AddEditFragmentListener
+import com.aisleron.ui.ApplicationTitleUpdateListener
 import com.aisleron.ui.FabHandlerTestImpl
 import com.aisleron.ui.bundles.Bundler
-import com.aisleron.ui.navigation.MainNavigatorTestImpl
 import com.aisleron.ui.settings.ProductPreferencesTestImpl
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -66,20 +66,18 @@ import org.koin.test.get
 
 class ProductAislesFragmentTest : KoinTest {
     private lateinit var bundler: Bundler
-    private lateinit var addEditFragmentListener: AddEditFragmentListenerTestImpl
-    private lateinit var applicationTitleUpdateListener: ApplicationTitleUpdateListenerTestImpl
     private lateinit var product: Product
 
     @get:Rule
     val koinTestRule = KoinTestRule(
-        modules = listOf(daoTestModule, viewModelTestModule, repositoryModule, useCaseModule)
+        modules = listOf(
+            daoTestModule, viewModelTestModule, repositoryModule, useCaseModule, generalTestModule
+        )
     )
 
     @Before
     fun setUp() {
         bundler = Bundler()
-        addEditFragmentListener = AddEditFragmentListenerTestImpl()
-        applicationTitleUpdateListener = ApplicationTitleUpdateListenerTestImpl()
         runBlocking {
             get<CreateSampleDataUseCase>().invoke()
             product = get<ProductRepository>().getAll().first { it.inStock }
@@ -94,14 +92,14 @@ class ProductAislesFragmentTest : KoinTest {
             themeResId = R.style.Theme_Aisleron,
             instantiate = {
                 ProductFragment(
-                    addEditFragmentListener,
-                    applicationTitleUpdateListener,
+                    addEditFragmentListener = get<AddEditFragmentListener>(),
+                    applicationTitleUpdateListener = get<ApplicationTitleUpdateListener>(),
                     productPreferences ?: ProductPreferencesTestImpl().also {
                         it.setShowExtraOptions(true)
                     },
 
                     FabHandlerTestImpl(),
-                    MainNavigatorTestImpl(bundler)
+                    navigator = get()
                 )
             }
         )

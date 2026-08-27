@@ -30,7 +30,7 @@ class NoteMapper : Mapper<NoteEntity, Note> {
     override fun fromModel(value: Note, syncMetadata: SyncEntity?) = NoteEntity(
         id = value.id,
         noteText = value.noteText.trim(),
-        syncId = syncMetadata?.syncId,
+        syncId = syncMetadata?.syncId ?: SyncEntity.generateSyncId(),
         isRemoved = syncMetadata?.isRemoved ?: false,
         lastModifiedAt = System.currentTimeMillis(),
         serverUpdatedAt = syncMetadata?.serverUpdatedAt

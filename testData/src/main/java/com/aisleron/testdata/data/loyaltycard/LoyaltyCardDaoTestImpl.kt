@@ -20,17 +20,16 @@ package com.aisleron.testdata.data.loyaltycard
 import com.aisleron.data.loyaltycard.LoyaltyCardDao
 import com.aisleron.data.loyaltycard.LoyaltyCardEntity
 import com.aisleron.domain.loyaltycard.LoyaltyCardProviderType
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 
 class LoyaltyCardDaoTestImpl(
     private val locationLoyaltyCardDao: LocationLoyaltyCardDaoTestImpl
-) : LoyaltyCardDao {
-    private val loyaltyCardList = mutableListOf<LoyaltyCardEntity>()
-    private val activeItems: List<LoyaltyCardEntity> get() = loyaltyCardList.filter { !it.isRemoved }
+) : BaseSyncTestDao<LoyaltyCardEntity>(), LoyaltyCardDao {
 
     override suspend fun getLoyaltyCard(
         loyaltyCardId: Int, includeRemoved: Boolean
     ): LoyaltyCardEntity? {
-        return loyaltyCardList.find { it.id == loyaltyCardId && (!it.isRemoved || includeRemoved) }
+        return entityList.find { it.id == loyaltyCardId && (!it.isRemoved || includeRemoved) }
     }
 
     override suspend fun getProviderCard(
@@ -60,14 +59,20 @@ class LoyaltyCardDaoTestImpl(
         locationLoyaltyCardDao.upsert(entity)
     }
 
+    override fun getByNaturalKey(
+        provider: LoyaltyCardProviderType, intent: String
+    ): List<LoyaltyCardEntity> {
+        return entityList.filter { it.provider == provider && it.intent == intent }
+    }
+
     override suspend fun upsert(vararg entity: LoyaltyCardEntity): List<Long> {
         val result = mutableListOf<Long>()
         entity.forEach {
             val existingEntity = getLoyaltyCard(it.id, true)
             val id = existingEntity?.let {
-                loyaltyCardList.removeAt(loyaltyCardList.indexOf(existingEntity))
+                entityList.removeAt(entityList.indexOf(existingEntity))
                 existingEntity.id
-            } ?: ((loyaltyCardList.maxOfOrNull { e -> e.id } ?: 0) + 1)
+            } ?: ((entityList.maxOfOrNull { e -> e.id } ?: 0) + 1)
 
             val newEntity = LoyaltyCardEntity(
                 id = id,
@@ -80,13 +85,14 @@ class LoyaltyCardDaoTestImpl(
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            loyaltyCardList.add(newEntity)
+            entityList.add(newEntity)
             result.add(existingEntity?.let { -1 } ?: newEntity.id.toLong())
         }
+
         return result
     }
 
-    override suspend fun delete(vararg entity: LoyaltyCardEntity) {
-        loyaltyCardList.removeIf { it in entity }
+    override suspend fun upsert(entities: List<LoyaltyCardEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

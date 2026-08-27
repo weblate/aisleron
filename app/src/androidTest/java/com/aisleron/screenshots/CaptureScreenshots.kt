@@ -22,9 +22,16 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.ActionBarContextView
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.AndroidComposeUiTest
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso
@@ -50,6 +57,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.aisleron.AppCompatActivityTestImpl
 import com.aisleron.BuildConfig
 import com.aisleron.MainActivity
 import com.aisleron.R
@@ -61,6 +69,7 @@ import com.aisleron.di.fragmentModule
 import com.aisleron.di.generalModule
 import com.aisleron.di.preferenceModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.FilterType
@@ -78,13 +87,23 @@ import com.aisleron.domain.loyaltycard.LoyaltyCard
 import com.aisleron.domain.loyaltycard.LoyaltyCardProviderType
 import com.aisleron.domain.loyaltycard.usecase.AddLoyaltyCardToLocationUseCase
 import com.aisleron.domain.loyaltycard.usecase.AddLoyaltyCardUseCase
-import com.aisleron.domain.product.ProductRepository
+import com.aisleron.domain.preferences.SyncServicePreference
+import com.aisleron.domain.preferences.SyncStatusPreference
 import com.aisleron.domain.preferences.TrackingMode
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+import com.aisleron.domain.product.ProductRepository
 import com.aisleron.domain.product.usecase.UpdateProductQtyNeededUseCase
 import com.aisleron.domain.product.usecase.UpdateProductStatusUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
+import com.aisleron.domain.sync.SyncSessionManager
+import com.aisleron.domain.sync.SyncSessionStatus
 import com.aisleron.testdata.data.maintenance.DatabaseMaintenanceTestImpl
+import com.aisleron.testdata.data.sync.SyncSessionManagerTestImpl
 import com.aisleron.ui.FabHandler
+import com.aisleron.ui.navigation.ConfigNavHost
+import com.aisleron.ui.navigation.Destination
+import com.aisleron.ui.settings.DisplayPreferences
+import com.aisleron.ui.theme.AisleronTheme
 import com.aisleron.utils.SystemIds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -101,6 +120,7 @@ import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalTestApi::class)
 @Suppress("SameParameterValue")
 @RunWith(AndroidJUnit4::class)
 class CaptureScreenshots : KoinTest {
@@ -117,7 +137,8 @@ class CaptureScreenshots : KoinTest {
             useCaseModule,
             generalModule,
             preferenceModule,
-            factoryModule
+            factoryModule,
+            syncTestModule
         )
     )
 
@@ -129,6 +150,11 @@ class CaptureScreenshots : KoinTest {
         prefs.setLastUpdateCode(BuildConfig.VERSION_CODE)
         prefs.setLastUpdateName(BuildConfig.VERSION_NAME)
         prefs.setPureBlackStyle(SharedPreferencesInitializer.PureBlackStyle.DEFAULT)
+        prefs.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
+        prefs.setCustomSyncServiceUrl("https://custom.sync.service")
+
+        declare<SyncSessionManager> { SyncSessionManagerTestImpl(SyncSessionStatus.NotAuthenticated) }
+
         val uiMode = InstrumentationRegistry.getArguments().getString("uiMode", "light")
         val appTheme = if (uiMode == "dark") {
             Log.d("Theme", "Dark")
@@ -840,18 +866,74 @@ class CaptureScreenshots : KoinTest {
         }
     }
 
-    private fun navigateToAbout() {
-        openNavigationDrawer()
-        onView(withId(R.id.nav_about))
-            .perform(click())
+    private fun getString(@StringRes resId: Int): String =
+        InstrumentationRegistry.getInstrumentation().targetContext.getString(resId)
+
+    fun <A : ComponentActivity> AndroidComposeUiTest<A>.setContentScreen(
+        destination: Destination,
+        content: @Composable () -> Unit = {
+            val displayPreferences: DisplayPreferences = get()
+
+            AisleronTheme(
+                applicationTheme = displayPreferences.applicationTheme(),
+                dynamicColor = displayPreferences.dynamicColor(),
+                pureBlackStyle = displayPreferences.pureBlackStyle(),
+            ) {
+                ConfigNavHost(startDestination = destination)
+            }
+        }
+    ) {
+        setContent(content)
+        waitForIdle()
+    }
+
+    fun runComposeUiScreenshotTest(
+        block: AndroidComposeUiTest<AppCompatActivityTestImpl>.() -> Unit
+    ) = runAndroidComposeUiTest<AppCompatActivityTestImpl> {
+        block()
     }
 
     @Test
-    fun screenshot_About() {
-        getActivityScenario().use {
-            navigateToAbout()
-            takeScreenshot("alr-055-about")
-        }
+    fun screenshot_About() = runComposeUiScreenshotTest {
+        setContentScreen(Destination.About)
+        takeScreenshot("alr-055-about")
+    }
+
+    @Test
+    fun screenshot_AccountPreferences() = runComposeUiScreenshotTest {
+        setContentScreen(Destination.AccountPreferences)
+        takeScreenshot("alr-370-010-account-preferences-custom-sync")
+
+        val syncServiceAddressText = getString(R.string.sync_service_address)
+        onNodeWithText(syncServiceAddressText).performClick()
+
+        val keyLabel = getString(R.string.sync_service_public_key)
+        onNodeWithText(keyLabel).performClick()
+
+        waitForIdle()
+        takeScreenshot("alr-370-030-sync-service-config-dialog", 300)
+    }
+
+    @Test
+    fun screenshot_SignIn() = runComposeUiScreenshotTest {
+        setContentScreen(Destination.SignIn)
+        takeScreenshot("alr-370-100-sign-in")
+    }
+
+    @Test
+    fun screenshot_AccountPreferencesConnected() = runComposeUiScreenshotTest {
+        val prefsRepo = get<SyncPreferencesRepository>()
+        prefsRepo.setSyncService(SyncServicePreference.CUSTOM_SERVICE)
+        prefsRepo.setCustomServiceDetails("https://aisleron.example.com", "abc123")
+        prefsRepo.setSyncStatus(1787814089000, SyncStatusPreference.SUCCESS)
+
+        val syncSessionManager = get<SyncSessionManager>() as SyncSessionManagerTestImpl
+        syncSessionManager.setSignedIn(true)
+        syncSessionManager.setFutureStatus(SyncSessionStatus.Authenticated("user@example.com"))
+        syncSessionManager.refreshStatus()
+
+        setContentScreen(Destination.AccountPreferences)
+        takeScreenshot("alr-370-200-account-preferences-connected")
     }
 }
 

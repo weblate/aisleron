@@ -18,12 +18,16 @@
 package com.aisleron.di
 
 import com.aisleron.data.AisleronDb
-import com.aisleron.data.AisleronTestDatabase
 import com.aisleron.domain.TransactionRunner
+import com.aisleron.testdata.data.AisleronTestDb
 import com.aisleron.testdata.data.TransactionRunnerTestImpl
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.koin.dsl.module
 
+@OptIn(ExperimentalCoroutinesApi::class)
 val databaseTestModule = module {
-    single<AisleronDb> { AisleronTestDatabase() }
+    single<AisleronDb> { AisleronTestDb(TestScope(UnconfinedTestDispatcher())) }
     single<TransactionRunner> { TransactionRunnerTestImpl() }
 }

@@ -17,7 +17,10 @@
 
 package com.aisleron.di
 
+import com.aisleron.MainViewModel
 import com.aisleron.ui.about.AboutViewModel
+import com.aisleron.ui.account.AccountPreferencesViewModel
+import com.aisleron.ui.account.SignInViewModel
 import com.aisleron.ui.aisle.AisleViewModel
 import com.aisleron.ui.copyentity.CopyEntityViewModel
 import com.aisleron.ui.note.NoteDialogViewModel
@@ -115,6 +118,36 @@ val viewModelModule = module {
         NoteDialogViewModel(
             getNoteParentUseCase = get(),
             applyNoteChangesUseCase = get()
+        )
+    }
+
+    viewModel {
+        SignInViewModel(
+            signInWithEmailUseCase = get(),
+            getSyncPreferencesUseCase = get(),
+            logger = get()
+        )
+    }
+
+    viewModel {
+        AccountPreferencesViewModel(
+            signOutUseCase = get(),
+            getSyncPreferencesUseCase = get(),
+            getSyncPreferencesFlowUseCase = get(),
+            setCustomSyncServiceDetailsUseCase = get(),
+            getSessionStatusUseCase = get(),
+            refreshSessionStatusUseCase = get(),
+            setSyncOnMobileDataUseCase = get(),
+            setSyncServiceUseCase = get(),
+            scheduleForceSyncUseCase = get(),
+            logger = get()
+        )
+    }
+
+    viewModel {
+        MainViewModel(
+            scheduleAdhocSyncUseCase = get(),
+            schedulePeriodicSyncUseCase = get()
         )
     }
 }

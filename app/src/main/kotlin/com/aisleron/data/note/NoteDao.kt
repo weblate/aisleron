@@ -20,10 +20,11 @@ package com.aisleron.data.note
 import androidx.room.Dao
 import androidx.room.Query
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface NoteDao : BaseDao<NoteEntity> {
+interface NoteDao : BaseDao<NoteEntity>, SyncDao<NoteEntity> {
     @Query("SELECT * FROM Note WHERE id = :noteId AND (isRemoved = 0 OR :includeRemoved = 1)")
     suspend fun getNote(noteId: Int, includeRemoved: Boolean): NoteEntity?
 
@@ -32,4 +33,17 @@ interface NoteDao : BaseDao<NoteEntity> {
 
     @Query("SELECT * FROM Note WHERE id IN (:ids) AND isRemoved = 0")
     fun getNotes(ids: List<Int>): Flow<List<NoteEntity>>
+
+
+    @Query("SELECT * FROM Note WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<NoteEntity>
+
+    @Query("SELECT * FROM Note WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): NoteEntity?
+
+    @Query("DELETE FROM Note WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM Note WHERE noteText = :noteText COLLATE NOCASE")
+    fun getByNaturalKey(noteText: String): List<NoteEntity>
 }

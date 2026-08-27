@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025-2026 aisleron.com
+ * Copyright (C) 2026 aisleron.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,10 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.aisleron.data.maintenance
+package com.aisleron.domain.preferences.syncpreferences.usecase
 
-class MaintenanceDaoTestImpl : MaintenanceDao {
-    override suspend fun checkpoint(supportSQLiteQuery: androidx.sqlite.db.SupportSQLiteQuery): Int {
-        return 0
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
+
+class SetCustomSyncServiceDetailsUseCase(private val syncPreferencesRepository: SyncPreferencesRepository) {
+    operator fun invoke(url: String, key: String) {
+        syncPreferencesRepository.setCustomServiceDetails(url, key)
     }
 }

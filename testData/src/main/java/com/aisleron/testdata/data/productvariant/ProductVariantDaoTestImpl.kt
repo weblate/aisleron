@@ -20,19 +20,18 @@ package com.aisleron.testdata.data.productvariant
 import com.aisleron.data.product.ProductDao
 import com.aisleron.data.productvariant.ProductVariantDao
 import com.aisleron.data.productvariant.ProductVariantEntity
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 class ProductVariantDaoTestImpl(
     private val productDao: ProductDao
-) : ProductVariantDao {
-    private val variants = mutableListOf<ProductVariantEntity>()
-    private val activeItems: List<ProductVariantEntity> get() = variants.filter { !it.isRemoved }
+) : BaseSyncTestDao<ProductVariantEntity>(), ProductVariantDao {
 
     override suspend fun getAll(): List<ProductVariantEntity> = activeItems
 
     override suspend fun getById(id: Int, includeRemoved: Boolean): ProductVariantEntity? =
-        variants.find { it.id == id && (!it.isRemoved || includeRemoved) }
+        entityList.find { it.id == id && (!it.isRemoved || includeRemoved) }
 
     override fun getByBarcode(barcode: String): Flow<ProductVariantEntity?> =
         flowOf(activeItems.find { it.barcode == barcode })
@@ -60,12 +59,12 @@ class ProductVariantDaoTestImpl(
     override suspend fun upsert(vararg entity: ProductVariantEntity): List<Long> {
         val ids = mutableListOf<Long>()
         entity.forEach { newEntity ->
-            val existingIndex = variants.indexOfFirst { it.id == newEntity.id }
+            val existingIndex = entityList.indexOfFirst { it.id == newEntity.id }
             if (existingIndex >= 0) {
-                variants[existingIndex] = newEntity
+                entityList[existingIndex] = newEntity
                 ids.add(newEntity.id.toLong())
             } else {
-                val newId = (variants.maxOfOrNull { it.id } ?: 0) + 1
+                val newId = (entityList.maxOfOrNull { it.id } ?: 0) + 1
                 val entityWithId = newEntity.copy(
                     id = newId,
                     lastModifiedAt = newEntity.lastModifiedAt,
@@ -73,17 +72,12 @@ class ProductVariantDaoTestImpl(
                     syncId = newEntity.syncId,
                     serverUpdatedAt = newEntity.serverUpdatedAt
                 )
-                variants.add(entityWithId)
+                entityList.add(entityWithId)
                 ids.add(newId.toLong())
             }
         }
-        return ids
-    }
 
-    override suspend fun delete(vararg entity: ProductVariantEntity) {
-        entity.forEach { toRemove ->
-            variants.removeAll { it.id == toRemove.id }
-        }
+        return ids
     }
 
     override suspend fun getProductIdsWithVariants(productIds: List<Int>): List<Int> =
@@ -92,7 +86,15 @@ class ProductVariantDaoTestImpl(
     override suspend fun hasVariants(productId: Int): Boolean =
         activeItems.any { it.productId == productId }
 
+    override fun getByNaturalKey(barcode: String): List<ProductVariantEntity> {
+        return entityList.filter { it.barcode == barcode }
+    }
+
     fun clear() {
-        variants.clear()
+        entityList.clear()
+    }
+
+    override suspend fun upsert(entities: List<ProductVariantEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

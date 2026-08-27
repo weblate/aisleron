@@ -62,7 +62,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Matchers.emptyString
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -98,7 +97,7 @@ class ShopFragmentTest : KoinTest {
         val bundle = bundler.makeEditLocationBundle(1)
         val scenario = getFragmentScenario(bundle)
         scenario.onFragment {
-            Assert.assertEquals(
+            assertEquals(
                 it.getString(R.string.edit_location),
                 applicationTitleUpdateListener.appTitle
             )
@@ -120,7 +119,7 @@ class ShopFragmentTest : KoinTest {
         val bundle = bundler.makeAddLocationBundle("New Location")
         val scenario = getFragmentScenario(bundle)
         scenario.onFragment {
-            Assert.assertEquals(
+            assertEquals(
                 it.getString(R.string.add_location),
                 applicationTitleUpdateListener.appTitle
             )
@@ -142,8 +141,8 @@ class ShopFragmentTest : KoinTest {
         val shop = get<LocationRepository>().getAll().firstOrNull { it.name == newShopName }
 
         onView(withId(R.id.edt_shop_name)).check(matches(withText(newShopName)))
-        Assert.assertTrue(addEditFragmentListener.addEditSuccess)
-        Assert.assertNotNull(shop)
+        assertTrue(addEditFragmentListener.addEditSuccess)
+        assertNotNull(shop)
     }
 
     @Test
@@ -157,7 +156,7 @@ class ShopFragmentTest : KoinTest {
         }
 
         onView(withId(R.id.edt_shop_name)).check(matches(withText("")))
-        Assert.assertFalse(addEditFragmentListener.addEditSuccess)
+        assertFalse(addEditFragmentListener.addEditSuccess)
     }
 
     @Test
@@ -179,9 +178,9 @@ class ShopFragmentTest : KoinTest {
         val updatedShop = get<LocationRepository>().get(existingShop.id)
 
         onView(withId(R.id.edt_shop_name)).check(matches(withText(newShopName)))
-        Assert.assertTrue(addEditFragmentListener.addEditSuccess)
-        Assert.assertNotNull(updatedShop)
-        Assert.assertEquals(newShopName, updatedShop?.name)
+        assertTrue(addEditFragmentListener.addEditSuccess)
+        assertNotNull(updatedShop)
+        assertEquals(newShopName, updatedShop.name)
     }
 
     @Test
@@ -199,8 +198,8 @@ class ShopFragmentTest : KoinTest {
         val updatedShop = get<LocationRepository>().get(existingShop.id)
 
         onView(withId(R.id.swc_shop_pinned)).check(matches(ViewMatchers.isChecked()))
-        Assert.assertTrue(addEditFragmentListener.addEditSuccess)
-        Assert.assertEquals(existingShop.copy(pinned = !existingShop.pinned), updatedShop)
+        assertTrue(addEditFragmentListener.addEditSuccess)
+        assertEquals(existingShop.copy(pinned = !existingShop.pinned), updatedShop)
     }
 
     @Test

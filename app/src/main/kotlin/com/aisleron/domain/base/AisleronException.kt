@@ -70,6 +70,23 @@ sealed class AisleronException(
     class AisleMoveException(message: String? = null, cause: Throwable? = null) :
         AisleronException(ExceptionCode.AISLE_MOVE_EXCEPTION, message, cause)
 
+    class SignOutException(message: String? = null, cause: Throwable? = null) :
+        AisleronException(ExceptionCode.SIGN_OUT_EXCEPTION, message, cause)
+
+    class SignInException(message: String? = null, cause: Throwable? = null) :
+        AisleronException(ExceptionCode.SIGN_IN_EXCEPTION, message, cause)
+
+    class MissingCredentialException(message: String? = null, cause: Throwable? = null) :
+        AisleronException(ExceptionCode.MISSING_CREDENTIAL_EXCEPTION, message, cause)
+
+    class AuthException(
+        exceptionCode: ExceptionCode, message: String? = null, cause: Throwable? = null
+    ) : AisleronException(exceptionCode, message, cause)
+
+    class NetworkException(
+        exceptionCode: ExceptionCode, message: String? = null, cause: Throwable? = null
+    ) : AisleronException(exceptionCode, message, cause)
+
     enum class ExceptionCode {
         GENERIC_EXCEPTION,
         DELETE_DEFAULT_AISLE_EXCEPTION,
@@ -87,6 +104,17 @@ sealed class AisleronException(
         INVALID_LOYALTY_CARD_EXCEPTION,
         LOYALTY_CARD_NOT_FOUND_EXCEPTION,
         INVALID_PRODUCT_EXCEPTION,
-        AISLE_MOVE_EXCEPTION
+        AISLE_MOVE_EXCEPTION,
+        SIGN_OUT_EXCEPTION,
+        SIGN_IN_EXCEPTION,
+        MISSING_CREDENTIAL_EXCEPTION,
+        INVALID_CREDENTIAL_EXCEPTION,
+        UNCONFIRMED_EMAIL_EXCEPTION,
+        AUTH_EXCEPTION,
+        NETWORK_EXCEPTION
     }
 }
+
+val Throwable?.exceptionCode: AisleronException.ExceptionCode
+    get() = (this as? AisleronException)?.exceptionCode
+        ?: AisleronException.ExceptionCode.GENERIC_EXCEPTION

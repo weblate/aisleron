@@ -20,9 +20,13 @@ package com.aisleron.data.loyaltycard
 import androidx.room.Dao
 import androidx.room.Query
 import com.aisleron.data.base.BaseDao
+import com.aisleron.data.sync.SyncDao
 
 @Dao
-interface LocationLoyaltyCardDao : BaseDao<LocationLoyaltyCardEntity> {
+interface LocationLoyaltyCardDao :
+    BaseDao<LocationLoyaltyCardEntity>,
+    SyncDao<LocationLoyaltyCardEntity> {
+
     @Query(
         "SELECT * FROM LocationLoyaltyCard " +
                 "WHERE locationId = :locationId AND (isRemoved = 0 OR :includeRemoved = 1)"
@@ -30,4 +34,19 @@ interface LocationLoyaltyCardDao : BaseDao<LocationLoyaltyCardEntity> {
     suspend fun getLocationLoyaltyCard(
         locationId: Int, includeRemoved: Boolean
     ): LocationLoyaltyCardEntity?
+
+    /**
+     * Sync Queries
+     */
+    @Query("SELECT * FROM LocationLoyaltyCard WHERE lastModifiedAt > :modifiedAfterDate")
+    override suspend fun getModified(modifiedAfterDate: Long): List<LocationLoyaltyCardEntity>
+
+    @Query("SELECT * FROM LocationLoyaltyCard WHERE syncId = :syncId")
+    override suspend fun getBySyncId(syncId: String): LocationLoyaltyCardEntity?
+
+    @Query("DELETE FROM LocationLoyaltyCard WHERE isRemoved = 1 AND lastModifiedAt <= :purgeToDate")
+    override suspend fun purgeRemoved(purgeToDate: Long)
+
+    @Query("SELECT * FROM LocationLoyaltyCard WHERE locationId = :locationId AND loyaltyCardId = :loyaltyCardId")
+    fun getByNaturalKey(locationId: Int, loyaltyCardId: Int): List<LocationLoyaltyCardEntity>
 }

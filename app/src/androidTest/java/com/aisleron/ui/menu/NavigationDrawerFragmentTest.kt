@@ -23,59 +23,43 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import com.aisleron.R
-import com.aisleron.di.KoinTestRule
-import com.aisleron.di.daoTestModule
-import com.aisleron.di.generalTestModule
-import com.aisleron.di.repositoryModule
-import com.aisleron.di.useCaseModule
-import com.aisleron.di.viewModelTestModule
-import com.aisleron.ui.navigation.MainNavigator
+import com.aisleron.domain.FilterType
+import com.aisleron.domain.location.LocationType
 import com.aisleron.ui.navigation.MainNavigatorTestImpl
 import com.aisleron.ui.shopmenu.ShopMenuFragment
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.koin.test.KoinTest
-import org.koin.test.get
+import kotlin.test.assertEquals
 
 @RunWith(value = Parameterized::class)
 class NavigationDrawerFragmentTest(
     private val testName: String,
     private val textViewId: Int,
-    private val navTargetId: Int
-) : KoinTest {
+    private val expectedDestination: MainNavigatorTestImpl.TestDestination
+) {
     private lateinit var navigator: MainNavigatorTestImpl
-
-    @get:Rule
-    val koinTestRule = KoinTestRule(
-        modules = listOf(
-            daoTestModule, repositoryModule, useCaseModule, viewModelTestModule, generalTestModule
-        )
-    )
 
     @Before
     fun setUp() {
-        navigator = get<MainNavigator>() as MainNavigatorTestImpl
+        navigator = MainNavigatorTestImpl()
     }
 
     private fun getFragmentScenario(): FragmentScenario<NavigationDrawerFragment> {
+        class StubShopMenuFragment : androidx.fragment.app.Fragment()
+
         val testFactory = object : androidx.fragment.app.FragmentFactory() {
             override fun instantiate(
                 classLoader: ClassLoader, className: String
             ): androidx.fragment.app.Fragment {
                 return when (className) {
                     NavigationDrawerFragment::class.java.name -> NavigationDrawerFragment(navigator)
-                    ShopMenuFragment::class.java.name -> ShopMenuFragment(navigator)
-
+                    ShopMenuFragment::class.java.name -> StubShopMenuFragment()
                     else -> super.instantiate(classLoader, className)
                 }
             }
         }
-
 
         return launchFragmentInContainer<NavigationDrawerFragment>(
             themeResId = R.style.Theme_Aisleron,
@@ -85,12 +69,13 @@ class NavigationDrawerFragmentTest(
     }
 
     @Test
-    fun onClick_textViewClicked_NavigateToTargetView() = runTest {
-        getFragmentScenario()
+    fun onClick_textViewClicked_NavigateToTargetView() {
+        val scenario = getFragmentScenario()
 
-        onView(withId(textViewId)).perform(ViewActions.click())
-
-        Assert.assertEquals(navTargetId, navigator.destination)
+        scenario.use {
+            onView(withId(textViewId)).perform(ViewActions.click())
+            assertEquals(expectedDestination, navigator.destination)
+        }
     }
 
     companion object {
@@ -98,13 +83,49 @@ class NavigationDrawerFragmentTest(
         @Parameterized.Parameters(name = "{0}")
         fun data(): Collection<Array<Any>> {
             return listOf(
-                arrayOf("navInStock", R.id.nav_in_stock, R.id.nav_in_stock),
-                arrayOf("navNeeded", R.id.nav_needed, R.id.nav_needed),
-                arrayOf("navAllItems", R.id.nav_all_items, R.id.nav_all_items),
-                arrayOf("navAllShops", R.id.nav_all_shops, R.id.nav_shopping_list),
-                arrayOf("navSettings", R.id.nav_settings, R.id.nav_settings),
-                arrayOf("navAllLists", R.id.nav_all_lists, R.id.nav_all_lists),
-                arrayOf("navAbout", R.id.nav_about, R.id.nav_about)
+                arrayOf(
+                    "navInStock",
+                    R.id.nav_in_stock,
+                    MainNavigatorTestImpl.TestDestination.InStockDestination
+                ),
+
+                arrayOf(
+                    "navNeeded",
+                    R.id.nav_needed,
+                    MainNavigatorTestImpl.TestDestination.NeededDestination
+                ),
+
+                arrayOf(
+                    "navAllItems",
+                    R.id.nav_all_items,
+                    MainNavigatorTestImpl.TestDestination.AllItemsDestination
+                ),
+
+                arrayOf(
+                    "navAllShops",
+                    R.id.nav_all_shops,
+                    MainNavigatorTestImpl.TestDestination.LocationGroupedProductListDestination(
+                        LocationType.SHOP, FilterType.NEEDED
+                    )
+                ),
+
+                arrayOf(
+                    "navSettings",
+                    R.id.nav_settings,
+                    MainNavigatorTestImpl.TestDestination.SettingsDestination
+                ),
+
+                arrayOf(
+                    "navAllLists",
+                    R.id.nav_all_lists,
+                    MainNavigatorTestImpl.TestDestination.AllListsDestination
+                ),
+
+                arrayOf(
+                    "navAbout",
+                    R.id.nav_about,
+                    MainNavigatorTestImpl.TestDestination.AboutDestination
+                )
             )
         }
     }

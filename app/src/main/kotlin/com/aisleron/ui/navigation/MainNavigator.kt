@@ -31,4 +31,5 @@ interface MainNavigator {
     fun navigateToDefaultRoute(@IdRes destinationId: Int)
     fun navigateToWelcome()
     fun navigateToAbout()
+    fun navigateToAccountPreferences()
 }

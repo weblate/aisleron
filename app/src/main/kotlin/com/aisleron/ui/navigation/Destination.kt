@@ -18,15 +18,25 @@
 package com.aisleron.ui.navigation
 
 import android.os.Parcelable
+import androidx.navigation3.runtime.NavKey
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class Destination : Parcelable {
+sealed class Destination : Parcelable, NavKey {
     @Parcelize
     @Serializable
     data object About : Destination()
+
+    @Parcelize
+    @Serializable
+    data object SignIn : Destination()
+
+    @Parcelize
+    @Serializable
+    data object AccountPreferences : Destination()
 }
+
 
 object IntentExtras {
     const val EXTRA_DESTINATION = "destination"

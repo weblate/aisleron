@@ -40,10 +40,10 @@ import com.aisleron.ui.shoppinglist.ShoppingListGrouping
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class MainNavigatorImplTest {
     private lateinit var bundler: Bundler
@@ -209,6 +209,7 @@ class MainNavigatorImplTest {
         nav.navigateToAddShop()
         nav.navigateToWelcome()
         nav.navigateToEditProduct(123)
+        nav.navigateToAbout()
     }
 
     @Test
@@ -218,13 +219,26 @@ class MainNavigatorImplTest {
 
         activityRule.scenario.onActivity { navigator.navigateToAbout() }
 
-        // 2. Match that an intent was broadcast matching both the destination class and the extra bundle keys
         intended(
             allOf(
                 hasComponent(ConfigActivity::class.java.name),
                 hasExtra(EXTRA_DESTINATION, Destination.About)
             )
         )
+    }
 
+    @Test
+    fun navigateToAccountPreferences_FiresIntentToConfigActivityWithAccountPreferenceExtra() {
+        val dummyResult = Instrumentation.ActivityResult(Activity.RESULT_OK, null)
+        intending(anyIntent()).respondWith(dummyResult)
+
+        activityRule.scenario.onActivity { navigator.navigateToAccountPreferences() }
+
+        intended(
+            allOf(
+                hasComponent(ConfigActivity::class.java.name),
+                hasExtra(EXTRA_DESTINATION, Destination.AccountPreferences)
+            )
+        )
     }
 }

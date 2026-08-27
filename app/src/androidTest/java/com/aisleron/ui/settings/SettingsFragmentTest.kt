@@ -22,19 +22,12 @@ import android.app.Instrumentation
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.findNavController
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.recyclerview.widget.RecyclerView
-import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -47,20 +40,14 @@ import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.hasDescendant
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import com.aisleron.AppCompatActivityTestImpl
-import com.aisleron.MainActivity
 import com.aisleron.R
 import com.aisleron.SharedPreferencesInitializer
 import com.aisleron.di.KoinTestRule
 import com.aisleron.di.daoTestModule
-import com.aisleron.di.factoryModule
-import com.aisleron.di.fragmentModule
 import com.aisleron.di.generalTestModule
-import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
@@ -70,11 +57,13 @@ import com.aisleron.domain.location.LocationRepository
 import com.aisleron.domain.location.LocationType
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.testdata.data.maintenance.DatabaseMaintenanceDbNameTestImpl
+import com.aisleron.testdata.ui.settings.LocaleDelegateTestImpl
+import com.aisleron.ui.navigation.MainNavigator
+import com.aisleron.ui.navigation.MainNavigatorTestImpl
 import com.aisleron.utils.SystemIds
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.startsWith
-import org.hamcrest.Matchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -82,32 +71,32 @@ import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
-import java.lang.Thread.sleep
 import java.util.Calendar
 import java.util.Locale
+import kotlin.test.DefaultAsserter.assertTrue
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class SettingsFragmentTest : KoinTest {
-    private val fragmentTag = "SETTINGS_FRAGMENT"
+    private lateinit var navigator: MainNavigatorTestImpl
+    private lateinit var localeDelegate: LocaleDelegateTestImpl
 
     @get:Rule
     val koinTestRule = KoinTestRule(
         modules = listOf(
-            daoTestModule,
-            fragmentModule,
-            repositoryModule,
-            useCaseModule,
             viewModelTestModule,
-            generalTestModule,
-            preferenceTestModule,
-            factoryModule
+            useCaseModule,
+            repositoryModule,
+            daoTestModule,
+            generalTestModule
         )
     )
 
     @Before
     fun setUp() {
+        navigator = get<MainNavigator>() as MainNavigatorTestImpl
+        localeDelegate = get<LocaleDelegate>() as LocaleDelegateTestImpl
         declare<DatabaseMaintenance> { DatabaseMaintenanceDbNameTestImpl("Dummy") }
     }
 
@@ -129,43 +118,9 @@ class SettingsFragmentTest : KoinTest {
     private fun getFragmentScenario(): FragmentScenario<SettingsFragment> =
         launchFragmentInContainer<SettingsFragment>(
             themeResId = R.style.Theme_Aisleron,
-            instantiate = { SettingsFragment() }
+            instantiate = { SettingsFragment(navigator, localeDelegate) }
         )
 
-    private fun getActivityScenario(): ActivityScenario<AppCompatActivityTestImpl> {
-        val scenario = ActivityScenario.launch(AppCompatActivityTestImpl::class.java)
-        scenario.onActivity { activity ->
-            activity.supportFragmentManager.beginTransaction()
-                .replace(android.R.id.content, SettingsFragment(), fragmentTag)
-                .commitNow()
-        }
-
-        return scenario
-    }
-
-    @Test
-    fun onBackPressed_OnSettingsFragment_ReturnToMain() {
-        var navController: NavController? = null
-        var startDestination: NavDestination? = null
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-
-            scenario.onActivity {
-                navController = it.findNavController(R.id.nav_host_fragment_content_main)
-                startDestination = navController.currentDestination
-                navController.navigate(R.id.nav_settings)
-            }
-            //pressBack()
-            val backAction = onView(
-                Matchers.allOf(withContentDescription("Navigate up"), isDisplayed())
-            )
-            backAction.perform(click())
-
-            // Add sleep to try and prevent test failure when running multiple tests
-            sleep(100)
-
-            assertEquals(startDestination, navController?.currentDestination)
-        }
-    }
 
     @Test
     fun onBackupFolderClick_OnLaunchIntent_IsOpenDocumentTree() {
@@ -396,78 +351,23 @@ class SettingsFragmentTest : KoinTest {
             .check(matches(isDisplayed()))
     }
 
-    private fun getLocalizedString(resourceId: Int, localeTag: String): String {
-        val config =
-            Configuration(getInstrumentation().targetContext.resources.configuration)
-
-        config.setLocale(Locale.forLanguageTag(localeTag))
-        val localizedContext =
-            getInstrumentation().targetContext.createConfigurationContext(
-                config
-            )
-
-        return localizedContext.resources.getString(resourceId)
-    }
-
-    private fun languageChange_ArrangeActAssert(
-        scenario: ActivityScenario<AppCompatActivityTestImpl>,
-        @StringRes languageResId: Int,
-        localeTag: String
-    ) {
-        val context = getInstrumentation().targetContext
-        val languageName = context.getString(languageResId)
-
-        clickOption(R.string.language)
-        onView(withText(languageName)).inRoot(isDialog()).perform(click())
-
-        scenario.onActivity { activity ->
-            val activityFragment =
-                activity.supportFragmentManager.findFragmentByTag(fragmentTag) as SettingsFragment
-
-            val languagePreference = activityFragment.findPreference<ListPreference>("language")
-            assertEquals(languageName, languagePreference?.summary)
-        }
-
-        val expectedText = getLocalizedString(R.string.language, localeTag)
-        onView(withText(expectedText)).check(matches(isDisplayed()))
-    }
-
     @Test
     fun onLanguageClick_SelectValue_PreferenceUpdated() {
-        val languages = listOf(
-            Pair(R.string.language_english_en, "en"),
-            Pair(R.string.language_afrikaans_af, "af"),
-            Pair(R.string.language_arabic_ar, "ar"),
-            Pair(R.string.language_bulgarian_bg, "bg"),
-            Pair(R.string.language_german_de, "de"),
-            Pair(R.string.language_spanish_es, "es"),
-            Pair(R.string.language_french_fr, "fr"),
-            Pair(R.string.language_italian_it, "it"),
-            Pair(R.string.language_polish_pl, "pl"),
-            Pair(R.string.language_portuguese_pt, "pt"),
-            Pair(R.string.language_russian_ru, "ru"),
-            Pair(R.string.language_swedish_sv, "sv"),
-            Pair(R.string.language_tamil_ta, "ta"),
-            Pair(R.string.language_turkish_tr, "tr"),
-            Pair(R.string.language_ukrainian_uk, "uk")
-        )
+        val languageResId = R.string.language_spanish_es
+        getFragmentScenario().use { scenario ->
+            val context = getInstrumentation().targetContext
+            val languageName = context.getString(languageResId)
 
-        val scenario = getActivityScenario()
-        try {
-            languages.forEach { (languageResId, localeTag) ->
-                try {
-                    languageChange_ArrangeActAssert(scenario, languageResId, localeTag)
-                } catch (e: Exception) {
-                    throw AssertionError("Failed to change language to $localeTag", e)
-                }
-            }
-        } finally {
-            // Reset the system-level locale while activity is still active
-            getInstrumentation().runOnMainSync {
-                AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+            clickOption(R.string.language)
+            onView(withText(languageName)).inRoot(isDialog()).perform(click())
+
+            scenario.onFragment { fragment ->
+                val languagePreference = fragment.findPreference<ListPreference>("language")
+                assertEquals(languageName, languagePreference?.summary)
             }
 
-            scenario.close()
+            val expectedLocaleTag = "es"
+            assertEquals(expectedLocaleTag, localeDelegate.getLocaleTag())
         }
     }
 
@@ -512,6 +412,48 @@ class SettingsFragmentTest : KoinTest {
                     throw AssertionError("Failed to set starting list to $option", e)
                 }
             }
+        }
+    }
+
+    @Test
+    fun verifyEveryCompiledLocaleHasAnEntryInLanguageCodes() {
+        // Test that all translations have corresponding config in Settings for language selection
+        val context = getInstrumentation().targetContext
+        val uiLanguageCodes = context.resources.getStringArray(R.array.language_codes).toSet()
+        val defaultText = context.resources.getString(R.string.language)
+
+        val missingLanguages = mutableListOf<String>()
+        Locale.getISOLanguages().forEach { isoLanguage ->
+            if (isoLanguage != "en") {
+                val config = Configuration(context.resources.configuration).apply {
+                    setLocale(Locale.forLanguageTag(isoLanguage))
+                }
+
+                val localizedContext = context.createConfigurationContext(config)
+                val localizedText = localizedContext.resources.getString(R.string.language)
+                val stringFileExists = localizedText != defaultText
+
+                if (stringFileExists && !uiLanguageCodes.contains(isoLanguage)) {
+                    missingLanguages.add(isoLanguage)
+                }
+            }
+        }
+
+        assertTrue(
+            "Language Config Missing: $missingLanguages",
+            missingLanguages.isEmpty()
+        )
+    }
+
+    @Test
+    fun onAccountSyncClick_NavigateToAccountSync() {
+        getFragmentScenario().use {
+            clickOption(R.string.account_sync)
+
+            val expectedDestination =
+                MainNavigatorTestImpl.TestDestination.AccountPreferencesDestination
+
+            assertEquals(expectedDestination, navigator.destination)
         }
     }
 }

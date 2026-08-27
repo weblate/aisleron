@@ -18,46 +18,45 @@
 package com.aisleron.ui.component
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalLayoutDirection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AisleronScreen(
     title: String,
-    onBackPressed: () -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState? = null,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
     topBar: @Composable (TopAppBarScrollBehavior) -> Unit = { scrollBehavior ->
         BasicTopAppBar(
             title = title,
-            onBackPressed = onBackPressed,
             scrollBehavior = scrollBehavior
         )
     },
     content: @Composable (PaddingValues) -> Unit
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val layoutDirection = LocalLayoutDirection.current
+    val resolvedScrollBehavior = scrollBehavior ?: TopAppBarDefaults.enterAlwaysScrollBehavior(
+        rememberTopAppBarState()
+    )
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { topBar(scrollBehavior) }
+        modifier = modifier.nestedScroll(resolvedScrollBehavior.nestedScrollConnection) // Link scrolling to the topbar
+            .imePadding(),
+        topBar = { topBar(resolvedScrollBehavior) },
+        snackbarHost = {
+            snackbarHostState?.let { SnackbarHost(hostState = it) }
+        }
     ) { paddingValues ->
-        val edgeToEdgePadding = PaddingValues(
-            top = paddingValues.calculateTopPadding(),
-            bottom = paddingValues.calculateBottomPadding(),
-            start = paddingValues.calculateStartPadding(layoutDirection),
-            end = paddingValues.calculateEndPadding(layoutDirection)
-        )
-
-        content(edgeToEdgePadding)
+        content(paddingValues)
     }
 }

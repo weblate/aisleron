@@ -36,7 +36,6 @@ import com.aisleron.testdata.data.maintenance.DatabaseMaintenanceDbNameTestImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +43,7 @@ import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.mock.declare
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class SettingsViewModelTest : KoinTest {
     private lateinit var settingsViewModel: SettingsViewModel
@@ -69,7 +69,7 @@ class SettingsViewModelTest : KoinTest {
             getPinnedShopsUseCase = get<GetPinnedShopsUseCase>()
         )
 
-        Assert.assertNotNull(vm)
+        assertNotNull(vm)
     }
 
     @Test

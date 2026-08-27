@@ -102,6 +102,11 @@ import com.aisleron.domain.note.usecase.RemoveNoteUseCase
 import com.aisleron.domain.note.usecase.RemoveNoteUseCaseImpl
 import com.aisleron.domain.note.usecase.UpdateNoteUseCase
 import com.aisleron.domain.note.usecase.UpdateNoteUseCaseImpl
+import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesFlowUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.GetSyncPreferencesUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.SetCustomSyncServiceDetailsUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncOnMobileDataUseCase
+import com.aisleron.domain.preferences.syncpreferences.usecase.SetSyncServiceUseCase
 import com.aisleron.domain.product.usecase.AddProductUseCase
 import com.aisleron.domain.product.usecase.AddProductUseCaseImpl
 import com.aisleron.domain.product.usecase.CopyProductUseCase
@@ -124,8 +129,17 @@ import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCaseImpl
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCase
 import com.aisleron.domain.shoppinglist.usecase.GetShoppingListUseCaseImpl
+import com.aisleron.domain.sync.usecase.GetSessionStatusUseCase
+import com.aisleron.domain.sync.usecase.RefreshSessionStatusUseCase
+import com.aisleron.domain.sync.usecase.ScheduleAdhocSyncUseCase
+import com.aisleron.domain.sync.usecase.ScheduleForceSyncUseCase
+import com.aisleron.domain.sync.usecase.SchedulePeriodicSyncUseCase
+import com.aisleron.domain.sync.usecase.SignInWithEmailUseCase
+import com.aisleron.domain.sync.usecase.SignOutUseCase
 import org.koin.android.ext.koin.androidApplication
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.factory
 
 val useCaseModule = module {
 
@@ -308,19 +322,8 @@ val useCaseModule = module {
         )
     }
 
-    factory<UpdateProductStatusUseCase> {
-        UpdateProductStatusUseCaseImpl(
-            getProductUseCase = get(),
-            updateProductUseCase = get()
-        )
-    }
-
-    factory<UpdateProductQtyNeededUseCase> {
-        UpdateProductQtyNeededUseCaseImpl(
-            getProductUseCase = get(),
-            updateProductUseCase = get()
-        )
-    }
+    factory<UpdateProductStatusUseCaseImpl>() bind UpdateProductStatusUseCase::class
+    factory<UpdateProductQtyNeededUseCaseImpl>() bind UpdateProductQtyNeededUseCase::class
 
     factory<CopyProductUseCase> {
         CopyProductUseCaseImpl(
@@ -452,4 +455,24 @@ val useCaseModule = module {
             getNoteUseCase = get()
         )
     }
+
+    /**
+     * Sync Use Cases
+     */
+    factory<GetSyncPreferencesUseCase> { GetSyncPreferencesUseCase(syncPreferencesRepository = get()) }
+    factory<GetSyncPreferencesFlowUseCase>()
+    factory<SetSyncOnMobileDataUseCase> { SetSyncOnMobileDataUseCase(syncPreferencesRepository = get()) }
+    factory<SetSyncServiceUseCase> { SetSyncServiceUseCase(syncPreferencesRepository = get()) }
+    factory<SetCustomSyncServiceDetailsUseCase> {
+        SetCustomSyncServiceDetailsUseCase(syncPreferencesRepository = get())
+    }
+
+    factory<SignInWithEmailUseCase> { SignInWithEmailUseCase(sessionManager = get()) }
+    factory<SignOutUseCase> { SignOutUseCase(sessionManager = get()) }
+    factory<GetSessionStatusUseCase> { GetSessionStatusUseCase(sessionManager = get()) }
+    factory<RefreshSessionStatusUseCase> { RefreshSessionStatusUseCase(sessionManager = get()) }
+    factory<ScheduleForceSyncUseCase>()
+    factory<ScheduleAdhocSyncUseCase>()
+    factory<SchedulePeriodicSyncUseCase>()
+
 }

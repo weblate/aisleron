@@ -23,6 +23,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.aisleron.data.AisleronDatabase
 import com.aisleron.data.DbInitializer
 import com.aisleron.data.RoomTransactionRunner
+import com.aisleron.data.migration.Migration6To7
+import com.aisleron.data.migration.Migration8To9
 import com.aisleron.domain.TransactionRunner
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
@@ -33,14 +35,16 @@ val databaseModule = module {
             androidApplication(),
             AisleronDatabase::class.java,
             "aisleron.db"
-        )
-            .addMigrations(AisleronDatabase.MIGRATION_6_7)
-            .addCallback(object : RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    DbInitializer(get(), get()).invoke()
-                }
-            }).build()
+        ).addMigrations(
+            Migration6To7(),
+            Migration8To9()
+        ).addCallback(object : RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                DbInitializer(get(), get()).invoke()
+            }
+        }
+        ).build()
     }
 
     single<TransactionRunner> { RoomTransactionRunner(get()) }

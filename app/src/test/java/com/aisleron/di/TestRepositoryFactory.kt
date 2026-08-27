@@ -35,7 +35,9 @@ import com.aisleron.domain.aisleproduct.AisleProductRepository
 import com.aisleron.domain.location.LocationRepository
 import com.aisleron.domain.loyaltycard.LoyaltyCardRepository
 import com.aisleron.domain.note.NoteRepository
+import com.aisleron.domain.preferences.syncpreferences.SyncPreferencesRepository
 import com.aisleron.domain.product.ProductRepository
+import com.aisleron.testdata.data.preferences.syncpreferences.SyncPreferencesRepositoryTestImpl
 
 class TestRepositoryFactory(private val db: AisleronDb) {
     val aisleRepository: AisleRepository by lazy {
@@ -45,7 +47,6 @@ class TestRepositoryFactory(private val db: AisleronDb) {
     val productRepository: ProductRepository by lazy {
         ProductRepositoryImpl(
             db.productDao(),
-            db.aisleProductDao(),
             ProductMapper()
         )
     }
@@ -70,6 +71,10 @@ class TestRepositoryFactory(private val db: AisleronDb) {
         NoteRepositoryImpl(db.noteDao(), NoteMapper())
     }
 
+    val syncPreferencesRepository: SyncPreferencesRepository by lazy {
+        SyncPreferencesRepositoryTestImpl()
+    }
+
     inline fun <reified T> get(): T {
         return when (T::class) {
             AisleRepository::class -> aisleRepository as T
@@ -78,6 +83,7 @@ class TestRepositoryFactory(private val db: AisleronDb) {
             LocationRepository::class -> locationRepository as T
             LoyaltyCardRepository::class -> loyaltyCardRepository as T
             NoteRepository::class -> noteRepository as T
+            SyncPreferencesRepository::class -> syncPreferencesRepository as T
 
             else -> throw Exception("Unknown repository ${T::class}")
         }

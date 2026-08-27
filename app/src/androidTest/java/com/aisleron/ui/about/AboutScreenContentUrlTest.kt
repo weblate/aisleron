@@ -17,18 +17,22 @@
 
 package com.aisleron.ui.about
 
-import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.aisleron.R
-import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import kotlin.test.assertEquals
 
+@OptIn(ExperimentalTestApi::class)
 @RunWith(value = Parameterized::class)
 class AboutScreenContentUrlTest(private val labelResId: Int, private val expectedUri: String) {
 
@@ -77,30 +81,30 @@ class AboutScreenContentUrlTest(private val labelResId: Int, private val expecte
         }
     }
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
     @Test
-    fun onAboutEntryClick_InvokesCallbackWithCorrectUrl() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val expectedLabelString = context.getString(labelResId)
+    fun onAboutEntryClick_InvokesCallbackWithCorrectUrl() = runComposeUiTest {
+        lateinit var expectedLabelString: String
         var capturedUrl: String? = null
 
-        // 2. Launch the stateless UI component in isolation
-        composeTestRule.setContent {
-            AboutScreenContent(
-                versionName = "2.4.1",
-                onBackPressed = {},
-                onUrlClick = { url -> capturedUrl = url } // Trap the URL string in our test hook
-            )
+        val fakeUriHandler = object : UriHandler {
+            override fun openUri(uri: String) {
+                capturedUrl = uri
+            }
         }
 
-        // 3. Find, Scroll to, and Click the item using semantic text matchers
-        composeTestRule.onNodeWithText(expectedLabelString)
+        setContent {
+            expectedLabelString = stringResource(labelResId)
+            CompositionLocalProvider(LocalUriHandler provides fakeUriHandler) {
+                AboutScreenContent(
+                    versionName = "2.4.1"
+                )
+            }
+        }
+
+        onNodeWithText(expectedLabelString)
             .performScrollTo()
             .performClick()
 
-        // 4. Verify the UI passed the correct string payload back up to the parent layer
         assertEquals(expectedUri, capturedUrl)
     }
 }

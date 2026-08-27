@@ -18,9 +18,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("com.android.library")
-
-    id("com.autonomousapps.dependency-analysis")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.dependency.analysis)
 }
 android {
     namespace = "com.aisleron.testdata"
@@ -31,18 +30,20 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     kotlin {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
 }
 
 dependencies {
     compileOnly(project(":app"))
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    api(platform(libs.kotlinx.coroutines.bom))
+    api(libs.kotlinx.coroutines.core)
+    api(libs.sqlite)
 }

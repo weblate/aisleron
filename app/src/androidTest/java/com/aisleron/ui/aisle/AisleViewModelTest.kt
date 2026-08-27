@@ -33,7 +33,6 @@ import com.aisleron.domain.location.LocationRepository
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,7 +41,9 @@ import org.koin.test.get
 import org.koin.test.mock.declare
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class AisleViewModelTest : KoinTest {
     private lateinit var aisleViewModel: AisleViewModel
@@ -76,11 +77,9 @@ class AisleViewModelTest : KoinTest {
         vm.addAisle()
 
         val uiState = vm.uiState.value
-        Assert.assertTrue(uiState is AisleViewModel.AisleUiState.Error)
-        with(uiState as AisleViewModel.AisleUiState.Error) {
-            Assert.assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, this.errorCode)
-            Assert.assertEquals(exceptionMessage, this.errorMessage)
-        }
+        assertTrue(uiState is AisleViewModel.AisleUiState.Error)
+        assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, uiState.errorCode)
+        assertEquals(exceptionMessage, uiState.errorMessage)
     }
 
     @Test
@@ -91,7 +90,7 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.setAisleName(newAisleName)
         aisleViewModel.addAisle()
 
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Error)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Error)
     }
 
     @Test
@@ -112,7 +111,7 @@ class AisleViewModelTest : KoinTest {
         assertFalse(addedAisle.isDefault)
         assertEquals(aisleMaxRank + 1, addedAisle.rank)
 
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
     }
 
     @Test
@@ -129,8 +128,8 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.addAisle()
         val aisleCountAfter = aisleRepository.getAll().count()
 
-        Assert.assertEquals(aisleCountBefore, aisleCountAfter)
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
+        assertEquals(aisleCountBefore, aisleCountAfter)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
     }
 
     @Test
@@ -144,9 +143,9 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.updateAisleName()
 
         val updatedAisle = aisleRepository.get(existingAisle.id)
-        Assert.assertNotNull(updatedAisle)
-        Assert.assertEquals(existingAisle.copy(name = updatedAisleName), updatedAisle)
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
+        assertNotNull(updatedAisle)
+        assertEquals(existingAisle.copy(name = updatedAisleName), updatedAisle)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
     }
 
     @Test
@@ -162,12 +161,12 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.updateAisleName()
 
         val aisleCountAfter = aisleRepository.getAll().count()
-        Assert.assertEquals(aisleCountBefore, aisleCountAfter)
+        assertEquals(aisleCountBefore, aisleCountAfter)
 
         val updatedAisle = aisleRepository.get(existingAisle.id)
-        Assert.assertNotEquals(updatedAisleName, updatedAisle?.name)
+        assertNotEquals(updatedAisleName, updatedAisle?.name)
 
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
     }
 
     @Test
@@ -182,8 +181,8 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.clearState()
 
         val stateAfter = aisleViewModel.uiState.value
-        Assert.assertNotEquals(stateBefore, stateAfter)
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Empty)
+        assertNotEquals(stateBefore, stateAfter)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Empty)
     }
 
     @Test
@@ -195,7 +194,7 @@ class AisleViewModelTest : KoinTest {
             get<GetAisleMaxRankUseCase>(),
         )
 
-        Assert.assertNotNull(vm)
+        assertNotNull(vm)
     }
 
     @Test
@@ -246,11 +245,9 @@ class AisleViewModelTest : KoinTest {
         vm.updateAisleName()
 
         val uiState = vm.uiState.value
-        Assert.assertTrue(uiState is AisleViewModel.AisleUiState.Error)
-        with(uiState as AisleViewModel.AisleUiState.Error) {
-            Assert.assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, this.errorCode)
-            Assert.assertEquals(exceptionMessage, this.errorMessage)
-        }
+        assertTrue(uiState is AisleViewModel.AisleUiState.Error)
+        assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, uiState.errorCode)
+        assertEquals(exceptionMessage, uiState.errorMessage)
     }
 
     @Test
@@ -264,10 +261,10 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.updateAisleName()
 
         val updatedAisle = aisleRepository.get(existingAisle.id)
-        Assert.assertNotNull(updatedAisle)
-        Assert.assertEquals(existingAisle.copy(name = updatedAisleName), updatedAisle)
+        assertNotNull(updatedAisle)
+        assertEquals(existingAisle.copy(name = updatedAisleName), updatedAisle)
 
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
     }
 
     @Test
@@ -282,11 +279,11 @@ class AisleViewModelTest : KoinTest {
         aisleViewModel.updateAisleName()
 
         val aisleCountAfter = aisleRepository.getAll().count()
-        Assert.assertEquals(aisleCountBefore, aisleCountAfter)
+        assertEquals(aisleCountBefore, aisleCountAfter)
 
         val updatedAisle = aisleRepository.get(existingAisle.id)
-        Assert.assertEquals(existingAisle.name, updatedAisle?.name)
+        assertEquals(existingAisle.name, updatedAisle?.name)
 
-        Assert.assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
+        assertTrue(aisleViewModel.uiState.value is AisleViewModel.AisleUiState.Success)
     }
 }

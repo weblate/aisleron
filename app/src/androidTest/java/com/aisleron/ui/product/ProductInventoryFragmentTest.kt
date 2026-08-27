@@ -34,17 +34,17 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.platform.app.InstrumentationRegistry
 import com.aisleron.R
 import com.aisleron.di.daoTestModule
+import com.aisleron.di.generalTestModule
 import com.aisleron.di.repositoryModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
-import com.aisleron.domain.product.ProductRepository
 import com.aisleron.domain.preferences.TrackingMode
+import com.aisleron.domain.product.ProductRepository
 import com.aisleron.domain.sampledata.usecase.CreateSampleDataUseCase
 import com.aisleron.ui.AddEditFragmentListenerTestImpl
 import com.aisleron.ui.ApplicationTitleUpdateListenerTestImpl
 import com.aisleron.ui.FabHandlerTestImpl
 import com.aisleron.ui.bundles.Bundler
-import com.aisleron.ui.navigation.MainNavigatorTestImpl
 import com.aisleron.ui.settings.ProductPreferencesTestImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,6 +54,7 @@ import org.junit.Test
 import org.koin.core.context.GlobalContext.startKoin
 import org.koin.core.context.GlobalContext.stopKoin
 import org.koin.test.KoinTest
+import org.koin.test.get
 import java.text.DecimalFormat
 import kotlin.test.assertEquals
 
@@ -66,7 +67,7 @@ class ProductInventoryFragmentTest : KoinTest {
         override val trackingMode: TrackingMode = TrackingMode.DEFAULT
     ) : ProductInventoryUiData
 
-    class ProductInventoryViewModelTestImpl() : ProductInventoryViewModel {
+    class ProductInventoryViewModelTestImpl : ProductInventoryViewModel {
         override fun updateQtyIncrement(newIncrement: Double) {
             _uiData.value = _uiData.value.copy(qtyIncrement = newIncrement)
         }
@@ -138,7 +139,9 @@ class ProductInventoryFragmentTest : KoinTest {
         onView(withId(R.id.edt_increment)).check(
             matches(
                 withText(
-                    String.format("%.3f", viewModel.uiData.value.qtyIncrement).trimEnd('0').trimEnd('.')
+                    String.format("%.3f", viewModel.uiData.value.qtyIncrement)
+                        .trimEnd('0')
+                        .trimEnd('.')
                 )
             )
         )
@@ -190,7 +193,15 @@ class ProductInventoryFragmentTest : KoinTest {
     @Test
     fun validateProductInventoryFragmentLoad() = runTest {
         val koinApp = startKoin {
-            modules(listOf(daoTestModule, viewModelTestModule, repositoryModule, useCaseModule))
+            modules(
+                listOf(
+                    daoTestModule,
+                    viewModelTestModule,
+                    repositoryModule,
+                    useCaseModule,
+                    generalTestModule
+                )
+            )
         }
 
         try {
@@ -212,7 +223,7 @@ class ProductInventoryFragmentTest : KoinTest {
                             it.setShowExtraOptions(true)
                         },
                         FabHandlerTestImpl(),
-                        MainNavigatorTestImpl(bundler)
+                        navigator = get()
                     )
                 }
             )

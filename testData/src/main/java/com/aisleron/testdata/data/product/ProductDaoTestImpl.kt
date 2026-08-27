@@ -20,11 +20,10 @@ package com.aisleron.testdata.data.product
 import com.aisleron.data.aisleproduct.AisleProductDao
 import com.aisleron.data.product.ProductDao
 import com.aisleron.data.product.ProductEntity
+import com.aisleron.testdata.data.base.BaseSyncTestDao
 
-class ProductDaoTestImpl : ProductDao {
+class ProductDaoTestImpl : BaseSyncTestDao<ProductEntity>(), ProductDao {
     private var _aisleProductDao: AisleProductDao? = null
-    private val productList = mutableListOf<ProductEntity>()
-    private val activeItems: List<ProductEntity> get() = productList.filter { !it.isRemoved }
 
     override suspend fun upsert(vararg entity: ProductEntity): List<Long> {
         val result = mutableListOf<Long>()
@@ -32,10 +31,10 @@ class ProductDaoTestImpl : ProductDao {
             val id: Int
             val existingEntity = getProduct(it.id, true)
             if (existingEntity == null) {
-                id = (productList.maxOfOrNull { e -> e.id } ?: 0) + 1
+                id = (entityList.maxOfOrNull { e -> e.id } ?: 0) + 1
             } else {
                 id = existingEntity.id
-                productList.removeAt(productList.indexOf(existingEntity))
+                entityList.removeAt(entityList.indexOf(existingEntity))
             }
 
             val newEntity = ProductEntity(
@@ -53,18 +52,15 @@ class ProductDaoTestImpl : ProductDao {
                 serverUpdatedAt = it.serverUpdatedAt
             )
 
-            productList.add(newEntity)
+            entityList.add(newEntity)
             result.add(newEntity.id.toLong())
         }
+
         return result
     }
 
-    override suspend fun delete(vararg entity: ProductEntity) {
-        productList.removeIf { it in entity }
-    }
-
     override suspend fun getProduct(productId: Int, includeRemoved: Boolean): ProductEntity? {
-        return productList.find { it.id == productId && (!it.isRemoved || includeRemoved) }
+        return entityList.find { it.id == productId && (!it.isRemoved || includeRemoved) }
     }
 
     override suspend fun getProducts(): List<ProductEntity> = activeItems
@@ -85,7 +81,15 @@ class ProductDaoTestImpl : ProductDao {
         _aisleProductDao?.upsert(*entities.toTypedArray())
     }
 
+    override fun getByNaturalKey(name: String): List<ProductEntity> {
+        return entityList.filter { it.name.equals(name, ignoreCase = true) }
+    }
+
     fun setAisleProductDao(aisleProductDao: AisleProductDao) {
         _aisleProductDao = aisleProductDao
+    }
+
+    override suspend fun upsert(entities: List<ProductEntity>) {
+        upsert(*entities.toTypedArray())
     }
 }

@@ -20,7 +20,9 @@ package com.aisleron.ui.shoppinglist
 import com.aisleron.di.KoinTestRule
 import com.aisleron.di.daoTestModule
 import com.aisleron.di.factoryModule
+import com.aisleron.di.preferenceTestModule
 import com.aisleron.di.repositoryModule
+import com.aisleron.di.syncTestModule
 import com.aisleron.di.useCaseModule
 import com.aisleron.di.viewModelTestModule
 import com.aisleron.domain.FilterType
@@ -60,7 +62,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,6 +74,7 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ShoppingListViewModelTest : KoinTest {
@@ -81,7 +83,13 @@ class ShoppingListViewModelTest : KoinTest {
     @get:Rule
     val koinTestRule = KoinTestRule(
         modules = listOf(
-            daoTestModule, viewModelTestModule, repositoryModule, useCaseModule, factoryModule
+            daoTestModule,
+            viewModelTestModule,
+            repositoryModule,
+            useCaseModule,
+            factoryModule,
+            preferenceTestModule,
+            syncTestModule
         )
     )
 
@@ -122,7 +130,7 @@ class ShoppingListViewModelTest : KoinTest {
 
         val result = awaitUiStateUpdated(shoppingListViewModel)
 
-        Assert.assertEquals(ShoppingListViewModel.ListTitle.Needed, result.title)
+        assertEquals(ShoppingListViewModel.ListTitle.Needed, result.title)
         assertFalse(result.showEditShop)
     }
 
@@ -213,14 +221,14 @@ class ShoppingListViewModelTest : KoinTest {
     fun updateProductStatus_InStockTrue_ProductUpdatedToInStock() = runTest {
         val newInStock = true
         val updatedProduct = updateProductStatusArrangeAct(newInStock)
-        Assert.assertEquals(newInStock, updatedProduct?.inStock)
+        assertEquals(newInStock, updatedProduct?.inStock)
     }
 
     @Test
     fun updateProductStatus_InStockFalse_ProductUpdatedToNotInStock() = runTest {
         val newInStock = false
         val updatedProduct = updateProductStatusArrangeAct(newInStock)
-        Assert.assertEquals(newInStock, updatedProduct?.inStock)
+        assertEquals(newInStock, updatedProduct?.inStock)
     }
 
     private suspend fun updateExpandedArrangeAct(expanded: Boolean): Aisle? {
@@ -237,14 +245,14 @@ class ShoppingListViewModelTest : KoinTest {
     fun updateExpanded_ExpandedTrue_UpdatedToExpanded() = runTest {
         val newExpanded = true
         val updatedAisle = updateExpandedArrangeAct(newExpanded)
-        Assert.assertEquals(newExpanded, updatedAisle?.expanded)
+        assertEquals(newExpanded, updatedAisle?.expanded)
     }
 
     @Test
     fun updateExpanded_ExpandedFalse_UpdatedToNotExpanded() = runTest {
         val newExpanded = false
         val updatedAisle = updateExpandedArrangeAct(newExpanded)
-        Assert.assertEquals(newExpanded, updatedAisle?.expanded)
+        assertEquals(newExpanded, updatedAisle?.expanded)
     }
 
     @Test
@@ -298,7 +306,7 @@ class ShoppingListViewModelTest : KoinTest {
         shoppingListViewModel.submitProductSearch(searchString)
 
         val shoppingList = awaitUiStateUpdated(shoppingListViewModel).shoppingList
-        Assert.assertEquals(
+        assertEquals(
             productSearchCount,
             shoppingList.count { p -> p.name.contains(searchString) && p.itemType == ShoppingListItem.ItemType.PRODUCT }
         )
@@ -318,7 +326,7 @@ class ShoppingListViewModelTest : KoinTest {
         shoppingListViewModel.submitProductSearch(searchString)
 
         val shoppingList = awaitUiStateUpdated(shoppingListViewModel).shoppingList
-        Assert.assertEquals(
+        assertEquals(
             productSearchCount,
             shoppingList.count { p -> p.name.contains(searchString) && p.itemType == ShoppingListItem.ItemType.PRODUCT }
         )
@@ -426,7 +434,7 @@ class ShoppingListViewModelTest : KoinTest {
             shoppingListStreamProviderFactory = get<ShoppingListCoordinatorFactory>()
         )
 
-        Assert.assertNotNull(vm)
+        assertNotNull(vm)
     }
 
     private suspend fun TestScope.awaitEvent(
@@ -446,7 +454,7 @@ class ShoppingListViewModelTest : KoinTest {
         trigger()
 
         // Wait for the trap to snap shut
-        return withTimeout(2000) {
+        return withTimeout(2000.milliseconds) {
             val result = deferred.await()
             job.cancel()
             result
@@ -502,7 +510,7 @@ class ShoppingListViewModelTest : KoinTest {
         shoppingListViewModel.updateItemRank(shoppingListItem, precedingItem)
 
         val updatedAisle = get<AisleRepository>().get(movedAisle.id)
-        Assert.assertEquals(precedingItem.rank + 1, updatedAisle?.rank)
+        assertEquals(precedingItem.rank + 1, updatedAisle?.rank)
     }
 
     @Test
@@ -516,7 +524,7 @@ class ShoppingListViewModelTest : KoinTest {
         shoppingListViewModel.removeSelectedItems()
 
         val removedAisle = get<AisleRepository>().get(shoppingListItem.id)
-        Assert.assertNull(removedAisle)
+        assertNull(removedAisle)
     }
 
     private suspend fun defaultAisleTestArrangeAct(showDefaultAisle: Boolean): ShoppingListItem? {
@@ -568,7 +576,7 @@ class ShoppingListViewModelTest : KoinTest {
         shoppingListViewModel.sortListByName()
 
         val sortedAisle = aisleRepository.get(aisleId)
-        Assert.assertEquals(1, sortedAisle?.rank)
+        assertEquals(1, sortedAisle?.rank)
     }
 
     @Test
@@ -595,7 +603,7 @@ class ShoppingListViewModelTest : KoinTest {
         shoppingListViewModel.sortListByName()
 
         val sortedLocation = locationRepository.get(locationId)
-        Assert.assertEquals(1, sortedLocation?.rank)
+        assertEquals(1, sortedLocation?.rank)
     }
 
     @Test
@@ -619,8 +627,8 @@ class ShoppingListViewModelTest : KoinTest {
         assert(event is ShoppingListViewModel.ShoppingListEvent.ShowError)
 
         val error = event as ShoppingListViewModel.ShoppingListEvent.ShowError
-        Assert.assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, error.errorCode)
-        Assert.assertEquals(exceptionMessage, error.errorMessage)
+        assertEquals(AisleronException.ExceptionCode.GENERIC_EXCEPTION, error.errorCode)
+        assertEquals(exceptionMessage, error.errorMessage)
     }
 
     @Test
@@ -717,7 +725,7 @@ class ShoppingListViewModelTest : KoinTest {
         val qtyNew = 10.0
         val productId = updateProductNeededQuantityArrangeAct(qtyInitial, qtyNew)
         val updatedProduct = get<ProductRepository>().get(productId)
-        Assert.assertEquals(qtyNew, updatedProduct?.qtyNeeded)
+        assertEquals(qtyNew, updatedProduct?.qtyNeeded)
     }
 
     @Test
@@ -738,7 +746,7 @@ class ShoppingListViewModelTest : KoinTest {
         val qtyNew = null
         val productId = updateProductNeededQuantityArrangeAct(qtyInitial, qtyNew)
         val updatedProduct = get<ProductRepository>().get(productId)
-        Assert.assertEquals(qtyInitial, updatedProduct?.qtyNeeded)
+        assertEquals(qtyInitial, updatedProduct?.qtyNeeded)
     }
 
     @Test
@@ -892,7 +900,7 @@ class ShoppingListViewModelTest : KoinTest {
         assert(event is ShoppingListViewModel.ShoppingListEvent.ShowError)
 
         val error = event as ShoppingListViewModel.ShoppingListEvent.ShowError
-        Assert.assertEquals(AisleronException.ExceptionCode.AISLE_MOVE_EXCEPTION, error.errorCode)
+        assertEquals(AisleronException.ExceptionCode.AISLE_MOVE_EXCEPTION, error.errorCode)
     }
 
     @Test

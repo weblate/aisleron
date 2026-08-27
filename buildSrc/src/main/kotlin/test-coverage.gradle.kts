@@ -15,8 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import org.gradle.testing.jacoco.tasks.JacocoReport
-
 val coverageExcludes = listOf(
     "**/R.class",
     "**/R$*.class",
@@ -25,6 +23,7 @@ val coverageExcludes = listOf(
     "**/theme/Theme*",
     "**/theme/Type*",
     "**/*Preview*.*",
+    "**/*PreviewKt*.*",
     "**/*ComposableSingletons*.*"
 )
 

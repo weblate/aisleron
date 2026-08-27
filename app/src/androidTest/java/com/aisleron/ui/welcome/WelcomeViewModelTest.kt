@@ -28,11 +28,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.get
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WelcomeViewModelTest : KoinTest {
@@ -58,12 +62,12 @@ class WelcomeViewModelTest : KoinTest {
 
         welcomeViewModel.createSampleData()
 
-        Assert.assertTrue(welcomeViewModel.welcomeUiState.value is WelcomeViewModel.WelcomeUiState.Error)
-        Assert.assertEquals(
+        assertTrue(welcomeViewModel.welcomeUiState.value is WelcomeViewModel.WelcomeUiState.Error)
+        assertEquals(
             AisleronException.ExceptionCode.GENERIC_EXCEPTION,
             (welcomeViewModel.welcomeUiState.value as WelcomeViewModel.WelcomeUiState.Error).errorCode
         )
-        Assert.assertEquals(
+        assertEquals(
             exceptionMessage,
             (welcomeViewModel.welcomeUiState.value as WelcomeViewModel.WelcomeUiState.Error).errorMessage
         )
@@ -87,12 +91,12 @@ class WelcomeViewModelTest : KoinTest {
 
         welcomeViewModel.createSampleData()
 
-        Assert.assertTrue(welcomeViewModel.welcomeUiState.value is WelcomeViewModel.WelcomeUiState.Error)
-        Assert.assertEquals(
+        assertTrue(welcomeViewModel.welcomeUiState.value is WelcomeViewModel.WelcomeUiState.Error)
+        assertEquals(
             AisleronException.ExceptionCode.SAMPLE_DATA_CREATION_EXCEPTION,
             (welcomeViewModel.welcomeUiState.value as WelcomeViewModel.WelcomeUiState.Error).errorCode
         )
-        Assert.assertEquals(
+        assertEquals(
             exceptionMessage,
             (welcomeViewModel.welcomeUiState.value as WelcomeViewModel.WelcomeUiState.Error).errorMessage
         )
@@ -112,7 +116,7 @@ class WelcomeViewModelTest : KoinTest {
 
         welcomeViewModel.createSampleData()
 
-        Assert.assertEquals(
+        assertEquals(
             WelcomeViewModel.WelcomeUiState.SampleDataLoaded,
             welcomeViewModel.welcomeUiState.value
         )
@@ -125,7 +129,7 @@ class WelcomeViewModelTest : KoinTest {
             get<GetAllProductsUseCase>(),
         )
 
-        Assert.assertNotNull(welcomeViewModel)
+        assertNotNull(welcomeViewModel)
     }
 
     @Test
@@ -146,8 +150,8 @@ class WelcomeViewModelTest : KoinTest {
         viewModel.clearState()
         val stateAfter = viewModel.welcomeUiState.value
 
-        Assert.assertNotEquals(stateBefore, stateAfter)
-        Assert.assertTrue(viewModel.welcomeUiState.value is WelcomeViewModel.WelcomeUiState.Empty)
+        assertNotEquals(stateBefore, stateAfter)
+        assertTrue(viewModel.welcomeUiState.value is WelcomeViewModel.WelcomeUiState.Empty)
     }
 
     @Test
@@ -164,7 +168,7 @@ class WelcomeViewModelTest : KoinTest {
 
         viewModel.checkForProducts()
 
-        Assert.assertFalse(viewModel.productsLoaded.value)
+        assertFalse(viewModel.productsLoaded.value)
     }
 
     @Test
@@ -178,6 +182,6 @@ class WelcomeViewModelTest : KoinTest {
         viewModel.createSampleData()
         viewModel.checkForProducts()
 
-        Assert.assertTrue(viewModel.productsLoaded.value)
+        assertTrue(viewModel.productsLoaded.value)
     }
 }

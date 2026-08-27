@@ -17,13 +17,11 @@
 
 package com.aisleron.data.product
 
-import com.aisleron.data.aisleproduct.AisleProductDao
 import com.aisleron.domain.product.Product
 import com.aisleron.domain.product.ProductRepository
 
 class ProductRepositoryImpl(
     private val productDao: ProductDao,
-    private val aisleProductDao: AisleProductDao,
     private val productMapper: ProductMapper
 ) : ProductRepository {
     override suspend fun getByName(name: String): Product? {
@@ -84,7 +82,7 @@ class ProductRepositoryImpl(
     }
 
     override suspend fun hardDelete(item: Product) {
-        productDao.delete(mapExisting(item, true), aisleProductDao)
+        productDao.delete(mapExisting(item, true))
     }
 
     private suspend fun getProduct(id: Int, includeDeleted: Boolean): Product? {

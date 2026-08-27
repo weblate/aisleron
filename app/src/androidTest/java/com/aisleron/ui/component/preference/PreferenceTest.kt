@@ -20,34 +20,32 @@ package com.aisleron.ui.component.preference
 import androidx.compose.material3.Switch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.aisleron.R
-import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 
+@OptIn(ExperimentalTestApi::class)
 class PreferenceTest {
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
     private val testTitle = "Test Preference Title"
     private val testSummary = "Test Preference Summary"
     private val controlTag = "test_control_tag"
     private val iconDescRes = R.string.about_support_documentation_title
 
     @Test
-    fun preference_MinimalSetup_RendersTitleAndHidesOptionalComponents() {
-        composeTestRule.setContent {
+    fun preference_MinimalSetup_RendersTitleAndHidesOptionalComponents() = runComposeUiTest {
+        setContent {
             Preference(
                 title = testTitle,
                 summary = null,
@@ -58,45 +56,46 @@ class PreferenceTest {
         }
 
         // Title must show
-        composeTestRule.onNodeWithText(testTitle).assertIsDisplayed()
-        composeTestRule.onNodeWithText(testTitle).assertHasNoClickAction()
+        onNodeWithText(testTitle).assertIsDisplayed()
+        onNodeWithText(testTitle).assertHasNoClickAction()
 
         // Optional components must not exist in the layout tree
-        composeTestRule.onNodeWithText(testSummary).assertDoesNotExist()
-        composeTestRule.onNodeWithTag(controlTag).assertDoesNotExist()
+        onNodeWithText(testSummary).assertDoesNotExist()
+        onNodeWithTag(controlTag).assertDoesNotExist()
     }
 
     @Test
-    fun preference_WithSummaryProvided_RendersSummaryText() {
-        composeTestRule.setContent {
+    fun preference_WithSummaryProvided_RendersSummaryText() = runComposeUiTest {
+        setContent {
             Preference(
                 title = testTitle,
                 summary = testSummary
             )
         }
 
-        composeTestRule.onNodeWithText(testSummary).assertIsDisplayed()
+        onNodeWithText(testSummary).assertIsDisplayed()
     }
 
     @Test
-    fun preference_WithIconAndContentDescription_RendersIconComponentWithDescription() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val expectedContentDescription = context.getString(iconDescRes)
+    fun preference_WithIconAndContentDescription_RendersIconComponentWithDescription() =
+        runComposeUiTest {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val expectedContentDescription = context.getString(iconDescRes)
 
-        composeTestRule.setContent {
-            Preference(
-                title = testTitle,
-                iconResId = R.drawable.baseline_add_aisle_24,
-                iconContentDescriptionResId = iconDescRes
-            )
+            setContent {
+                Preference(
+                    title = testTitle,
+                    iconResId = R.drawable.baseline_add_aisle_24,
+                    iconContentDescriptionResId = iconDescRes
+                )
+            }
+
+            onNodeWithContentDescription(expectedContentDescription).assertIsDisplayed()
         }
 
-        composeTestRule.onNodeWithContentDescription(expectedContentDescription).assertIsDisplayed()
-    }
-
     @Test
-    fun preference_WithControlSlotProvided_AttachesWidgetInsideSlot() {
-        composeTestRule.setContent {
+    fun preference_WithControlSlotProvided_AttachesWidgetInsideSlot() = runComposeUiTest {
+        setContent {
             Preference(
                 title = testTitle,
                 control = {
@@ -109,13 +108,13 @@ class PreferenceTest {
             )
         }
 
-        composeTestRule.onNodeWithTag(controlTag).assertIsDisplayed()
+        onNodeWithTag(controlTag).assertIsDisplayed()
     }
 
-    private fun preference_WithOnClickAction_ArrangeActAssert(enabled: Boolean) {
+    private fun preference_WithOnClickAction_ArrangeActAssert(enabled: Boolean) = runComposeUiTest {
         var clickCount = 0
 
-        composeTestRule.setContent {
+        setContent {
             Preference(
                 title = testTitle,
                 enabled = enabled,
@@ -123,7 +122,7 @@ class PreferenceTest {
             )
         }
 
-        val rowNode = composeTestRule.onNodeWithText(testTitle)
+        val rowNode = onNodeWithText(testTitle)
         rowNode.assertHasClickAction()
         if (enabled) rowNode.assertIsEnabled() else rowNode.assertIsNotEnabled()
         rowNode.performClick()
