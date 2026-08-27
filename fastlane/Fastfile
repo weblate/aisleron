@@ -108,4 +108,82 @@ platform :android do
       UI.error("Could not find any AAB in the release folder!")
     end
   end
+
+  desc "Sync app documentation for F-Droid, Play Store, and README"
+  lane :sync_documentation do
+    docs_includes_dir  = "../../../code-projects/aisleron.docs/_includes"
+    metadata_dir       = "metadata/android/en-US"
+    description_path   = File.join(docs_includes_dir, "aisleron_full_description.md")
+    readme_path        = "../README.md"
+    store_path         = File.join(metadata_dir, "full_description.txt")
+    changelog_src_dir  = File.join(docs_includes_dir, "changelogs")
+    changelog_dest_dir = File.join(metadata_dir, "changelogs")
+
+    master_content = File.read(description_path)
+    master_content = master_content.strip
+
+    # Process GitHub README.md (Keep links, resolve docs URLs)
+    if File.exist?(readme_path)
+      readme_content = master_content.gsub('./docs/', 'https://aisleron.com/docs/')
+      readme_text = File.read(readme_path)
+      start_tag = "<!-- START_APP_DESCRIPTION -->"
+      end_tag = "<!-- END_APP_DESCRIPTION -->"
+
+      pattern = /#{Regexp.escape(start_tag)}.*?#{Regexp.escape(end_tag)}/m
+      if readme_text.match?(pattern)
+        updated_readme = readme_text.sub(pattern, "#{start_tag}\n\n#{readme_content}\n\n#{end_tag}")
+        File.write(readme_path, updated_readme)
+        UI.success("Updated README.md")
+      else
+        UI.important("README.md found, but marker tags #{start_tag} and #{end_tag} are missing!")
+      end
+    else
+      UI.error("Could not find README.md!")
+    end
+
+    # Process F-Droid & Google Play Store description
+    if File.exist?(store_path)
+      store_text = master_content.dup
+
+      # 1. Strip Markdown links: [Link Text](URL) -> Link Text
+      store_text = store_text.gsub(/\[([^\]]+)\]\([^)]+\)/, '\1')
+
+      # 2. Replace header markup "## " with a newline to create a blank line
+      store_text = store_text.gsub(/^\s*#+\s*/, "\n").strip
+
+      File.write(store_path, store_text)
+
+      UI.success("Updated shared store description at #{store_path}")
+    else
+      UI.error("Could not find full_description.txt!")
+    end
+
+
+    # Process Numbered Changelogs
+    if Dir.exist?(changelog_src_dir)
+      # Target only numbered markdown files (e.g., 25.md)
+      Dir.glob("#{changelog_src_dir}/[0-9]*.md").each do |src_file|
+        version_code = File.basename(src_file, ".md")
+        dest_file = File.join(changelog_dest_dir, "#{version_code}.txt")
+        changelog_text = File.read(src_file).dup
+
+        # 1. Strip Markdown links: [Link Text](URL) -> Link Text
+        changelog_text = changelog_text.gsub(/\[([^\]]+)\]\([^)]+\)/, '\1')
+
+        # 2. Strip Markdown headers
+        changelog_text = changelog_text.gsub(/^\s*#+\s*/, "\n")
+
+        # 3. Replace ' (Github).' with '.'
+        changelog_text = changelog_text.gsub(/\s*\(GitHub\)\./, '.')
+
+        changelog_text = changelog_text.strip
+
+        File.write(dest_file, changelog_text)
+
+        UI.success("Synced changelog: #{version_code}.txt")
+      end
+    else
+      UI.error("Could not find changelogs source directory at #{changelog_src_dir}!")
+    end
+  end
 end
