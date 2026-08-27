@@ -1,18 +1,21 @@
-Coordina tus compras con esta intuitiva, fácil de usar aplicación de lista de compras. Incluso cuando te preparas para las compras semanales o para una ocasión especial, esta aplicación te permite mantenerte organizado y eficiente.
+Agilice sus compras con esta aplicación de lista de compras intuitiva y fácil de usar. Ya sea que te estés preparando para una carrera semanal o para comprar una ocasión especial, esta aplicación te ayuda a mantenerte organizado y eficiente.
 
-Funciones Clave:
-* Crea Tiendas y Pasillos Personalizados: añade tus tiendas favoritas, categoriza productos por pasillos, y organiza tu lista de compra basado en tus disposiciones locales
-* Gestión inteligente de productos: añade productos a tu lista y asígnalos a el área apropiada en tu hogar. Organiza los productos por pasillos entre cada tienda para igualar tu ruta de compras
-* Desliza Para Marcar: Mantén tu lista de compras marcada con un simple desliz. Desliza hacia la izquierda o a la derecha para marcar objetos como "necesitado" o "En stock"
-* Mira en la Pantalla de Bloqueo: no necesitas desbloquear tu teléfono al final de cada pasillo, tu lista de compra se va a mostrar en la pantalla de bloqueo convenientemente
-* Edición sencilla: Presiona un objeto durante un tiempo prolongado para eliminarlo
+Características clave
+* Crear Tiendas personalizadas & pasillos: Agregue sus tiendas favoritas, categorice los elementos por pasillos, y organice fácilmente su lista de compras basada en su diseño local.
+* Smart Product Management: Añadir productos a su lista y asignarlos al área apropiada en su casa. Rearrange products by aisle within each store to match your shopping route.
+* Swipe-to-Track: Realice un seguimiento de su progreso de compras con un simple giro. Gire a la izquierda o a la derecha para marcar los elementos como "neced" o "In Stock".
+* Mostrar en la pantalla de bloqueo: No es necesario desbloquear la pantalla al final de cada pasillo. Su lista de compras se mostrará en la pantalla de bloqueo para mayor comodidad.
+* Easy Editing: Larga la impresión de cualquier artículo para editarlo o eliminarlo.
+* Tarjetas de lealtad: Integre con Catima — Loyalty Card Wallet para abrir rápidamente su tarjeta de fidelidad de la tienda.
+* Vistas: Vea su lista de compras en casa, por tienda o en todas las tiendas.
+* Múltiples dispositivos: Mantenga listas de compras actualizadas en múltiples dispositivos utilizando un servicio de sincronización autogestionado.
 
-Porque lo amaras?:
-* Te mantiene organizado a través de compras inteligentes
-* Reduce el tiempo gastado en navegar tiendas
-* Nunca te olvides un producto devuelta — mantén seguimiento de todo lo que necesitas con sencillez
-* Tema Oscuro y Claro
-* Gratis y sin anuncios
-* Todo de hace de manera local en el dispositivo, sin compartir tus datos de ubicación o hábitos de compra
+¿Por qué te encantará?
+* Gratis, sin anuncios.
+* Sin localización, sin seguimiento de telemetría, sin compartir hábitos comerciales.
+* Manténgase organizado por compras más inteligentes.
+* Reducir el tiempo pasado navegando por la tienda.
+* Nunca olvides un artículo de nuevo — rastrea todo lo que necesitas con facilidad.
+* Hermosos temas de Luz y Oscura con colores dinámicos y modos Negros puros.
 
-Empieza hoy y haz tus compras rápidas y eficientes!
+Empieza hoy y haz tus viajes de compra más rápido y más eficiente!
