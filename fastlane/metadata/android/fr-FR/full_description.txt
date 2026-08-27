@@ -1,19 +1,21 @@
-Simplifiez vos courses grâce à cette application de liste de courses intuitive et facile à utiliser. Que vous vous prépariez à faire vos courses hebdomadaires ou que vous fassiez des achats pour une occasion spéciale, cette application vous aide à rester organisé et efficace.
+Simplifiez vos achats avec cette application intuitive et facile à utiliser. Que vous vous prépariez à une course d'épicerie hebdomadaire ou à faire du shopping pour une occasion spéciale, cette application vous aide à rester organisée et efficace.
 
-Caractéristiques principales :
-* Créez des magasins et des rayons personnalisés : Ajoutez vos magasins préférés, classez les articles par rayon et organisez facilement votre liste de courses en fonction de l'agencement de votre magasin.
-* Gestion intelligente des produits : Ajoutez des produits à votre liste et affectez-les à la zone appropriée de votre maison. Réorganisez les produits par rayon dans chaque magasin en fonction de votre itinéraire d'achat.
-* Glissez pour suivre : Suivez la progression de vos achats d'un simple geste. Glissez vers la gauche ou la droite pour marquer les articles comme étant « nécessaires » ou « en stock ».
-* Afficher sur l'écran de verrouillage : Plus besoin de déverrouiller votre écran à la fin de chaque allée. Votre liste de courses s'affichera sur l'écran de verrouillage pour plus de commodité.
-* Édition facile : Appuyez longuement sur un article pour le modifier ou le supprimer.
-* Cartes de fidélité : Intégrez avec Catima—Loyalty Card Wallet pour ouvrir rapidement votre carte de fidélité en magasin.
+Caractéristiques principales
+* Créer des boutiques personnalisées & Aisles: Ajoutez vos magasins préférés, catégorisez les articles par aisles et organisez facilement votre liste d'achats en fonction de votre disposition locale.
+* Smart Product Management: Ajoutez des produits à votre liste et assignez-les à la zone appropriée dans votre maison. Réorganiser les produits par aisle dans chaque magasin pour correspondre à votre itinéraire commercial.
+* Swipe-to-Track: Gardez la trace de vos progrès commerciaux avec un simple pivot. Tournez à gauche ou à droite pour marquer les éléments comme "Besoin" ou "En stock".
+* Show on Lock Screen: Pas besoin de déverrouiller votre écran à la fin de chaque allée. Votre liste de courses sera affichée sur l'écran de verrouillage pour plus de commodité.
+* Facile d'édition: Long-press any item to edit or delete it.
+* Cartes de fidélité: Intégrer avec Catima — Carte de fidélité Portefeuille pour ouvrir rapidement votre carte de fidélité.
+* Multiple Vues : Consultez votre liste d'achats à la maison, par magasin, ou dans toutes les boutiques.
+* Appareils multiples: Garder les listes d'achats à jour sur plusieurs appareils en utilisant un service de synchronisation autogéré.
 
-Pourquoi vous l'aimerez :
-* Restez organisé en faisant vos courses de manière plus intelligente.
-* Réduisez le temps passé à naviguer dans le magasin.
-* N'oubliez plus jamais un article : suivez tout ce dont vous avez besoin en toute simplicité.
-* Thèmes clair et sombre.
-* Gratuit, sans publicité.
-* Tout est fait sur l'appareil, sans partage des données de localisation ou des habitudes d'achat.
+Pourquoi tu l'aimeras
+* Gratuit, pas d'annonces.
+* Pas de localisation, pas de suivi de la télémétrie, pas de partage des habitudes d'achat.
+* Stay organized by shopping smarter.
+* Réduire le temps passé à naviguer dans le magasin.
+* N'oubliez plus jamais un article — suivez tout ce dont vous avez besoin avec facilité.
+* Belles thèmes Light et Dark avec des couleurs dynamiques et des modes Pure Black.
 
-Commencez dès aujourd'hui et rendez vos courses plus rapides et plus efficaces !
+Commencez dès aujourd'hui et faites vos achats plus rapidement et plus efficacement!
