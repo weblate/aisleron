@@ -21,7 +21,6 @@ import com.aisleron.domain.FilterType
 import com.aisleron.domain.aisle.Aisle
 import com.aisleron.domain.note.Note
 import com.aisleron.domain.note.NoteParent
-import java.io.Serializable
 
 data class Location(
     override val id: Int,
@@ -35,4 +34,4 @@ data class Location(
     override val note: Note? = null,
     val expanded: Boolean,
     val rank: Int
-) : Serializable, NoteParent
+) : NoteParent

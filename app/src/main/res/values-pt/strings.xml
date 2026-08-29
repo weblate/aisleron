@@ -243,4 +243,5 @@
     <string name="sync_status_success">Sucesso</string>
     <string name="sync_status_running">Em execução</string>
     <string name="sync_status_failed">Falhou</string>
+    <string name="help">Ajuda</string>
 </resources>

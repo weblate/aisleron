@@ -241,4 +241,5 @@
     <string name="sync_status_success">Slutfört</string>
     <string name="sync_status_running">Körs</string>
     <string name="sync_status_failed">Misslyckades</string>
+    <string name="help">Hjälp</string>
 </resources>

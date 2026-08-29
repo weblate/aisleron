@@ -254,4 +254,5 @@
     <string name="sync_status_success">Berzh</string>
     <string name="sync_status_running">O erlec\'hiañ</string>
     <string name="sync_status_failed">C\'hwitet</string>
+    <string name="help">Skoazell</string>
 </resources>

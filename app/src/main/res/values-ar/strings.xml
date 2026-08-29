@@ -252,4 +252,5 @@
     <string name="sync_status_success">نجاح</string>
     <string name="sync_status_running">قيد التشغيل</string>
     <string name="sync_status_failed">فشل</string>
+    <string name="help">مساعدة</string>
 </resources>

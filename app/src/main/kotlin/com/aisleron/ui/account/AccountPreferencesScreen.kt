@@ -49,6 +49,7 @@ import com.aisleron.ui.component.preference.ListPreference
 import com.aisleron.ui.component.preference.Preference
 import com.aisleron.ui.component.preference.PreferenceCategory
 import com.aisleron.ui.component.preference.SwitchPreference
+import com.aisleron.ui.component.preference.UrlPreference
 import com.aisleron.ui.component.preference.labelRes
 import com.aisleron.ui.theme.AisleronTheme
 import org.koin.androidx.compose.koinViewModel
@@ -206,7 +207,11 @@ fun AccountPreferencesScreenContent(
                         onCheckedChanged = onSyncOnMobileDataChanged
                     )
 
-                    // TODO: Add help preference item or toolbar button
+                    UrlPreference(
+                        iconResId = R.drawable.baseline_help_outline_24,
+                        title = stringResource(R.string.help),
+                        urlResId = R.string.aisleron_sync_help_url
+                    )
                 }
             }
 

@@ -175,6 +175,7 @@
     <string name="aisleron_license_url" translatable="false">https://aisleron.com/docs/licenses-policies/aisleron-license</string>
     <string name="aisleron_privacy_policy_url" translatable="false">https://aisleron.com/docs/licenses-policies/aisleron-privacy-policy</string>
     <string name="aisleron_3rd_party_licenses_url" translatable="false">https://aisleron.com/docs/licenses-policies/3rd-party-licenses</string>
+    <string name="aisleron_sync_help_url" translatable="false">https://aisleron.com/docs/sync-service/</string>
 
     <!-- Loyalty cards -->
     <string name="shop_loyalty_card_name">Loyalty Card</string>
@@ -271,6 +272,7 @@
     <string name="keep_editing">Keep Editing</string>
     <string name="show_location_list">Show %1$s</string>
     <string name="back">Back</string>
+    <string name="help">Help</string>
 
     <!-- Account -->
     <string name="account">Account</string>

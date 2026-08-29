@@ -241,4 +241,5 @@
     <string name="sync_status_success">Успішно</string>
     <string name="sync_status_running">Виконується</string>
     <string name="sync_status_failed">Помилка</string>
+    <string name="help">Довідка</string>
 </resources>

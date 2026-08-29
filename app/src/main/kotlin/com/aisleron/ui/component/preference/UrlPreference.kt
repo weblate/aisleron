@@ -30,9 +30,9 @@ import com.aisleron.R
 @Composable
 fun UrlPreference(
     title: String,
-    summary: String,
     @StringRes urlResId: Int,
     modifier: Modifier = Modifier,
+    summary: String? = null,
     @DrawableRes iconResId: Int? = null
 ) {
     val url = stringResource(urlResId)

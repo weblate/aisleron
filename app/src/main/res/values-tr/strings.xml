@@ -241,4 +241,5 @@
     <string name="sync_status_success">Başarılı</string>
     <string name="sync_status_running">Çalışıyor</string>
     <string name="sync_status_failed">Başarısız</string>
+    <string name="help">Yardım</string>
 </resources>

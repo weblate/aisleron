@@ -44,7 +44,7 @@ Documentation is available at [Aisleron.com](https://aisleron.com/docs/documenta
 
 <p>
   <img src="https://aisleron.com/assets/images/screenshots/light-mode/alr-010-welcome-page.png" width=250px  alt="Welcome Page"/>
-  <img src="https://aisleron.com/assets/images/screenshots/light-mode/alr-040-navigation-drawer.png" width=250px  alt="Navigation Drawer"/>
+  <img src="https://aisleron.com/assets/images/screenshots/light-mode/alr-370-200-account-preferences-connected.png" width=250px  alt="Navigation Drawer"/>
   <img src="https://aisleron.com/assets/images/screenshots/light-mode/alr-050-settings.png" width=250px  alt="Settings"/>
 </p>
 
@@ -59,6 +59,16 @@ Documentation is available at [Aisleron.com](https://aisleron.com/docs/documenta
   <img src="https://aisleron.com/assets/images/screenshots/light-mode/alr-310-emoji-needed.png" width=250px  alt="Emoji Needed"/>
   <img src="https://aisleron.com/assets/images/screenshots/light-mode/alr-320-emoji-all-items.png" width=250px  alt="Emoji All Items"/>
 </p>
+
+## Get Aisleron
+
+<a href="https://play.google.com/store/apps/details?id=com.aisleron" target="_blank">
+    <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"  height="90"/>
+</a>
+
+<a href="https://f-droid.org/en/packages/com.aisleron" target="_blank">
+    <img alt="Get it on F-Droid" src="https://f-droid.org/badge/get-it-on.png"  height="90"/>
+</a>
 
 ## Translating
 

@@ -20,6 +20,9 @@ package com.aisleron.ui.account
 import android.text.format.DateUtils
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
@@ -28,6 +31,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasProgressBarRangeInfo
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
@@ -491,5 +495,30 @@ class AccountPreferencesScreenContentTest : ComposeScreenTest() {
         }
 
         onNodeWithText(statusText, substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun accountPreferencesContent_PressHelp_InvokesCallbackWithCorrectUrl() = runComposeUiTest {
+        val helpLabelString = getString(R.string.help)
+        var capturedUrl: String? = null
+
+        val fakeUriHandler = object : UriHandler {
+            override fun openUri(uri: String) {
+                capturedUrl = uri
+            }
+        }
+
+        setContent {
+            CompositionLocalProvider(LocalUriHandler provides fakeUriHandler) {
+                SetAccountPreferencesScreenContent(state = AccountPreferencesUiState())
+            }
+        }
+
+        onNodeWithText(helpLabelString)
+            .performScrollTo()
+            .performClick()
+
+        val expectedUri = getString(R.string.aisleron_sync_help_url)
+        assertEquals(expectedUri, capturedUrl)
     }
 }

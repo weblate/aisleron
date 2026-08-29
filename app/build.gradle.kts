@@ -102,7 +102,8 @@ android {
     }
 
     fun getSyncServiceProperty(key: String, defaultValue: String = ""): String {
-        return syncServiceProperties.getProperty(key) ?: defaultValue
+        val value = syncServiceProperties.getProperty(key) ?: defaultValue
+        return "\"$value\""
     }
 
     buildTypes {
@@ -139,13 +140,13 @@ android {
             buildConfigField(
                 "String",
                 "SUPABASE_URL",
-                getSyncServiceProperty("DEBUG_SUPABASE_URL", "http://10.0.2.2:54321")
+                getSyncServiceProperty("DEBUG_SUPABASE_URL")
             )
 
             buildConfigField(
                 "String",
                 "SUPABASE_ANON_KEY",
-                getSyncServiceProperty("DEBUG_SUPABASE_ANON_KEY", "missing_debug_key")
+                getSyncServiceProperty("DEBUG_SUPABASE_ANON_KEY")
             )
         }
     }
